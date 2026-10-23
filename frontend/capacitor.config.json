@@ -1,0 +1,13 @@
+{
+  "appId": "nl.veiligbuiten.app",
+  "appName": "Veilig Buiten",
+  "webDir": ".output/public",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "PushNotifications": {
+      "presentationOptions": ["badge", "sound", "banner", "list"]
+    }
+  }
+}

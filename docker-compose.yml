@@ -1,0 +1,39 @@
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_DB: veiligbuiten
+      POSTGRES_USER: veiligbuiten
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes: [postgres-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U veiligbuiten -d veiligbuiten]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes: [redis-data:/data]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  backend:
+    build: ./backend
+    env_file: ./backend/.env.docker
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    ports: ["8000:8000"]
+  queue:
+    build: ./backend
+    command: php artisan queue:work redis --sleep=1 --tries=3 --max-time=3600
+    env_file: ./backend/.env.docker
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_healthy }
+volumes:
+  postgres-data:
+  redis-data:
