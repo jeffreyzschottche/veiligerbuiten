@@ -8,10 +8,13 @@ use App\Http\Controllers\Api\V1\IncidentController;
 use App\Http\Controllers\Api\V1\InstallationController;
 use App\Http\Controllers\Api\V1\AlertDeliveryController;
 use App\Http\Controllers\Api\V1\ReportController;
-use App\Http\Controllers\Api\V1\CaptchaController;
 use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\AdminController;
+use App\Http\Controllers\Api\V1\AccountController;
+use App\Http\Controllers\Api\V1\AiConnectionController;
+use App\Http\Controllers\Api\V1\PlaceController;
+use App\Http\Controllers\Api\V1\SubscriptionController;
 
 Route::prefix('v1')->group(function () {
 
@@ -36,7 +39,9 @@ Route::prefix('v1')->group(function () {
 
     // Authenticated user routes
     Route::middleware('auth:sanctum')->group(function () {
-        Route::get('/me', [AuthController::class, 'me']);
+        Route::get('/me', [AccountController::class, 'show']);
+        Route::put('/me/settings', [AccountController::class, 'updateSettings'])->middleware('throttle:30,1');
+        Route::post('/me/subscription/refresh', [SubscriptionController::class, 'refresh'])->middleware('throttle:10,1');
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::post('/email/resend', [AuthController::class, 'resendVerification'])
             ->middleware('throttle:3,1');
@@ -51,37 +56,41 @@ Route::prefix('v1')->group(function () {
     // Installation (device) routes
     Route::post('/installations', [InstallationController::class, 'store'])
         ->middleware('throttle:10,1');
-    Route::put('/installations/preferences', [InstallationController::class, 'preferences'])
-        ->middleware('throttle:20,1');
     Route::put('/installations/push-token', [InstallationController::class, 'pushToken'])
         ->middleware('throttle:10,1');
-    Route::put('/installations/location', [InstallationController::class, 'location'])
-        ->middleware('throttle:12,1');
-
-    // Captcha
-    Route::get('/captcha/challenge', [CaptchaController::class, 'show'])
-        ->middleware('throttle:20,1');
+    Route::put('/installations/link', [InstallationController::class, 'link'])
+        ->middleware(['auth:sanctum', 'throttle:10,1']);
 
     // Alert delivery tracking
     Route::post('/alert-deliveries/{alertDelivery}/opened', [AlertDeliveryController::class, 'opened'])
         ->middleware('throttle:30,1');
 
-    // Incidents (read)
-    Route::middleware('throttle:60,1')->group(function () {
-        Route::get('/incidents', [IncidentController::class, 'index']);
-        Route::get('/incidents.geojson', [IncidentController::class, 'geojson']);
-        Route::get('/incidents/{incident}', [IncidentController::class, 'show']);
+    // Alles hieronder is voor betalende accounts (€ 0,99 per maand).
+    Route::middleware(['auth:sanctum', 'subscribed'])->group(function () {
+        Route::middleware('throttle:60,1')->group(function () {
+            Route::get('/incidents', [IncidentController::class, 'index']);
+            Route::get('/incidents/sync', [IncidentController::class, 'sync']);
+            Route::get('/incidents.geojson', [IncidentController::class, 'geojson']);
+            Route::get('/incidents/{incident}', [IncidentController::class, 'show'])->whereNumber('incident');
+        });
+
+        Route::post('/incidents/{incident}/confirm', [IncidentController::class, 'confirm'])->middleware('throttle:30,1');
+        Route::post('/incidents/{incident}/resolve', [IncidentController::class, 'resolve'])->middleware('throttle:15,1');
+
+        Route::get('/reports/quota', [ReportController::class, 'quota']);
+        Route::post('/reports', [ReportController::class, 'store'])->middleware('throttle:6,1');
+
+        Route::apiResource('places', PlaceController::class)->except('show');
+
+        Route::get('/me/ai', [AiConnectionController::class, 'show']);
+        Route::post('/me/ai/token', [AiConnectionController::class, 'rotateToken'])->middleware('throttle:10,1');
+        Route::delete('/me/ai/token', [AiConnectionController::class, 'disconnect']);
+        Route::put('/me/ai/webhook', [AiConnectionController::class, 'updateWebhook'])->middleware('throttle:10,1');
+        Route::post('/me/ai/webhook/test', [AiConnectionController::class, 'testWebhook'])->middleware('throttle:5,1');
     });
 
-    // Incidents (write)
-    Route::post('/incidents/{incident}/confirm', [IncidentController::class, 'confirm'])
-        ->middleware('throttle:30,1');
-    Route::post('/incidents/{incident}/resolve', [IncidentController::class, 'resolve'])
-        ->middleware('throttle:15,1');
-
-    // Reports (new incidents)
-    Route::post('/reports', [ReportController::class, 'store'])
-        ->middleware('throttle:6,1');
+    // RevenueCat meldt aankopen, verlengingen en opzeggingen.
+    Route::post('/webhooks/revenuecat', [SubscriptionController::class, 'webhook'])->middleware('throttle:120,1');
 
     // Admin routes
     Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {

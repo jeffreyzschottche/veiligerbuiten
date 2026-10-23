@@ -8,20 +8,18 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
+/**
+ * Een installatie is één toestel: het pushtoken en de betrouwbaarheidsscore.
+ * Ingelogd wordt het toestel aan het account gekoppeld, zodat meldingen voor
+ * je plekken op al je toestellen binnenkomen. Locaties worden niet opgeslagen.
+ */
 class InstallationController extends Controller
 {
     public function store(Request $request): JsonResponse
     {
-        $installation = Installation::create(['token' => Str::random(64), 'alert_preferences' => ['direct' => true, 'warning' => true, 'info' => false], 'trust_score' => 50, 'last_seen_at' => now()]);
-        return response()->json(['data' => ['token' => $installation->token, 'alert_preferences' => $installation->alert_preferences]], 201);
-    }
+        $installation = Installation::create(['token' => Str::random(64), 'user_id' => auth('sanctum')->id(), 'trust_score' => 50, 'last_seen_at' => now()]);
 
-    public function preferences(Request $request): JsonResponse
-    {
-        $installation = Installation::where('token', $request->header('X-Installation-Token'))->firstOrFail();
-        $data = $request->validate(['preferences' => 'required|array']);
-        $installation->update(['alert_preferences' => $data['preferences'], 'last_seen_at' => now()]);
-        return response()->json(['data' => $installation->alert_preferences]);
+        return response()->json(['data' => ['token' => $installation->token]], 201);
     }
 
     public function pushToken(Request $request): JsonResponse
@@ -34,22 +32,17 @@ class InstallationController extends Controller
         // A restored app or a reinstalled device can move a token to a new anonymous installation.
         Installation::query()->where('push_token', $data['push_token'])->whereKeyNot($installation->id)
             ->update(['push_token' => null, 'push_platform' => null]);
-        $installation->update(['push_token' => $data['push_token'], 'push_platform' => $data['platform'], 'last_seen_at' => now()]);
+        $installation->update(['push_token' => $data['push_token'], 'push_platform' => $data['platform'], 'user_id' => auth('sanctum')->id() ?? $installation->user_id, 'last_seen_at' => now()]);
+
         return response()->json(['data' => ['registered' => true]]);
     }
 
-    public function location(Request $request): JsonResponse
+    /** Koppelt (of ontkoppelt bij uitloggen) dit toestel aan het ingelogde account. */
+    public function link(Request $request): JsonResponse
     {
         $installation = Installation::where('token', $request->header('X-Installation-Token'))->firstOrFail();
-        $data = $request->validate([
-            'latitude' => 'required|numeric|between:50.5,53.7', 'longitude' => 'required|numeric|between:3.1,7.3',
-            'accuracy_m' => 'nullable|numeric|between:0,5000',
-        ]);
-        $installation->update([
-            'last_latitude' => $data['latitude'], 'last_longitude' => $data['longitude'],
-            'last_location_accuracy_m' => isset($data['accuracy_m']) ? min(5000, (int) $data['accuracy_m']) : null,
-            'last_location_at' => now(), 'last_seen_at' => now(),
-        ]);
-        return response()->json(['data' => ['updated' => true]]);
+        $installation->update(['user_id' => $request->boolean('unlink') ? null : $request->user()->id, 'last_seen_at' => now()]);
+
+        return response()->json(['data' => ['linked' => $installation->user_id !== null]]);
     }
 }

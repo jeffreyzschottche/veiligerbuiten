@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Installation extends Model
 {
     protected $fillable = [
+        'user_id',
         'token',
         'last_latitude',
         'last_longitude',
@@ -30,6 +31,11 @@ class Installation extends Model
             'last_location_at' => 'datetime',
             'blocked_at' => 'datetime',
         ];
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 
     public function votes()

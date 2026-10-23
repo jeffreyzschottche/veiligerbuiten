@@ -25,6 +25,7 @@ class AuthController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'locale' => $request->input('locale') === 'en' ? 'en' : 'nl',
         ]);
 
         event(new Registered($user));

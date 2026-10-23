@@ -9,6 +9,8 @@ class AlertDelivery extends Model
     protected $fillable = [
         'incident_id',
         'installation_id',
+        'user_id',
+        'place_id',
         'event_key',
         'level',
         'payload',
@@ -33,6 +35,11 @@ class AlertDelivery extends Model
     public function incident()
     {
         return $this->belongsTo(Incident::class);
+    }
+
+    public function place()
+    {
+        return $this->belongsTo(Place::class);
     }
 
     public function installation()

@@ -13,6 +13,12 @@ class IncidentVoteSafetyTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->actingAsSubscriber();
+    }
+
     public function test_a_vote_requires_an_installation_token_and_can_only_be_cast_once(): void
     {
         $installation = Installation::create(['token' => str_repeat('a', 64), 'trust_score' => 50]);

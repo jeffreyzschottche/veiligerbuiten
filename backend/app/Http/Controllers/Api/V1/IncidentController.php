@@ -8,58 +8,71 @@ use App\Models\Installation;
 use App\Models\IncidentObservation;
 use App\Services\IncidentEngine;
 use App\Services\InstallationTrust;
+use App\Support\GeoUtils;
+use App\Support\IncidentPresenter;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class IncidentController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $latitude = $request->float('latitude', 52.3702);
-        $longitude = $request->float('longitude', 4.8952);
-        $radius = min(25, max(1, $request->integer('radius_km', 25)));
-        $latDelta = $radius / 111;
-        $lonDelta = $radius / (111 * max(.1, cos(deg2rad($latitude))));
+        [$latitude, $longitude, $radius] = $this->area($request);
 
-        $incidents = Incident::query()
-            ->where('visibility', 'public')->where('expires_at', '>', now())
-            ->whereNull('resolved_at')
-            ->where('resolved_count', '<', 3)
-            ->whereBetween('latitude', [$latitude - $latDelta, $latitude + $latDelta])
-            ->whereBetween('longitude', [$longitude - $lonDelta, $longitude + $lonDelta])
-            ->orderByDesc('severity')
-            ->latest('last_confirmed_at')
-            ->get()
-            ->filter(fn (Incident $incident) => $this->distanceInMeters($latitude, $longitude, $incident->latitude, $incident->longitude) <= $radius * 1000)
-            ->take(100)
-            ->map(fn (Incident $incident) => $this->present($incident, $latitude, $longitude));
+        $incidents = $this->activeWithin($latitude, $longitude, $radius)
+            ->take(150)
+            ->map(fn (Incident $incident) => IncidentPresenter::present($incident, $latitude, $longitude))
+            ->values();
 
         return response()->json(['data' => $incidents]);
     }
 
+    /**
+     * Alles binnen 30 km in één keer, voor de lokale cache van de app. De app
+     * synchroniseert ieder uur (of bij een grote verplaatsing) en controleert
+     * daartussen zelf; zo blijft het aantal verzoeken laag.
+     */
+    public function sync(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'latitude' => 'required|numeric|between:50.5,53.7',
+            'longitude' => 'required|numeric|between:3.1,7.3',
+        ]);
+        $radius = config('veiligbuiten.sync.radius_km');
+        $incidents = $this->activeWithin((float) $data['latitude'], (float) $data['longitude'], $radius)
+            ->take(500)
+            ->map(fn (Incident $incident) => IncidentPresenter::present($incident))
+            ->values();
+
+        return response()->json([
+            'data' => $incidents,
+            'center' => ['latitude' => (float) $data['latitude'], 'longitude' => (float) $data['longitude']],
+            'radius_km' => $radius,
+            'generated_at' => now()->toIso8601String(),
+            'next_sync_after' => config('veiligbuiten.sync.interval_seconds'),
+        ])->header('Cache-Control', 'private, max-age=60');
+    }
+
     public function geojson(Request $request): JsonResponse
     {
-        $latitude = $request->float('latitude', 52.3702);
-        $longitude = $request->float('longitude', 4.8952);
-        $radius = min(25, max(1, $request->integer('radius_km', 25)));
-        $latDelta = $radius / 111;
-        $lonDelta = $radius / (111 * max(.1, cos(deg2rad($latitude))));
-        $features = Incident::query()->where('visibility', 'public')->where('expires_at', '>', now())->whereNull('resolved_at')
-            ->whereBetween('latitude', [$latitude - $latDelta, $latitude + $latDelta])
-            ->whereBetween('longitude', [$longitude - $lonDelta, $longitude + $lonDelta])
-            ->get()->filter(fn (Incident $incident) => $this->distanceInMeters($latitude, $longitude, $incident->latitude, $incident->longitude) <= $radius * 1000)->map(fn (Incident $incident) => [
-                'type' => 'Feature',
-                'id' => $incident->id,
-                'geometry' => $incident->geometry ?: ['type' => 'Point', 'coordinates' => [$incident->longitude, $incident->latitude]],
-                'properties' => $this->present($incident, $latitude, $longitude),
-            ]);
+        [$latitude, $longitude, $radius] = $this->area($request);
+        $features = $this->activeWithin($latitude, $longitude, $radius)->map(fn (Incident $incident) => [
+            'type' => 'Feature',
+            'id' => $incident->id,
+            'geometry' => $incident->geometry ?: ['type' => 'Point', 'coordinates' => [$incident->longitude, $incident->latitude]],
+            'properties' => IncidentPresenter::present($incident, $latitude, $longitude),
+        ])->values();
+
         return response()->json(['type' => 'FeatureCollection', 'features' => $features]);
     }
 
     public function show(Request $request, Incident $incident): JsonResponse
     {
         abort_if($incident->visibility !== 'public' || $incident->expires_at->isPast() || $incident->resolved_at, 404);
-        return response()->json(['data' => $this->present($incident, $request->float('latitude', $incident->latitude), $request->float('longitude', $incident->longitude))]);
+
+        return response()->json(['data' => IncidentPresenter::present($incident, $request->float('latitude', $incident->latitude), $request->float('longitude', $incident->longitude))]);
     }
 
     public function confirm(Request $request, Incident $incident, IncidentEngine $engine, InstallationTrust $trust): JsonResponse
@@ -72,43 +85,31 @@ class IncidentController extends Controller
         return $this->vote($request, $incident, 'resolved', $engine, $trust);
     }
 
-    private function present(Incident $incident, float $latitude, float $longitude): array
+    /** @return array{float, float, int} */
+    private function area(Request $request): array
     {
-        $distance = $this->distanceInMeters($latitude, $longitude, $incident->latitude, $incident->longitude);
-        $left = min(82, max(18, 50 + (($incident->longitude - $longitude) * 480)));
-        $top = min(78, max(24, 54 - (($incident->latitude - $latitude) * 720)));
-
         return [
-            'id' => $incident->id,
-            'title' => $incident->subtype,
-            'subtype' => $incident->subtype,
-            'category' => $incident->category,
-            'status' => $incident->status,
-            'source' => in_array($incident->source, ['ndw', 'knmi', 'luchtmeetnet', 'rijkswaterstaat', 'politie']) ? 'official' : $incident->source,
-            'sourceName' => strtoupper($incident->source),
-            'severity' => $incident->severity,
-            'confidence' => $incident->confidence,
-            'geometry' => $incident->geometry,
-            'distance' => $distance < 1000 ? round($distance) . ' m' : number_format($distance / 1000, 1, ',', '') . ' km',
-            'reportedAt' => $incident->created_at->diffForHumans(),
-            'description' => $incident->description ?: 'Melding uit de omgeving.',
-            'advice' => 'Blijf op veilige afstand en bel 112 bij direct gevaar.',
-            'confirmations' => $incident->confirmations_count,
-            'resolvedReports' => $incident->resolved_count,
-            'latitude' => $incident->latitude,
-            'longitude' => $incident->longitude,
-            'left' => round($left),
-            'top' => round($top),
+            $request->float('latitude', 52.3702),
+            $request->float('longitude', 4.8952),
+            min(config('veiligbuiten.sync.radius_km'), max(1, $request->integer('radius_km', 25))),
         ];
     }
 
-    private function distanceInMeters(float $lat1, float $lon1, float $lat2, float $lon2): float
+    /** Actieve, publieke incidenten binnen een echte cirkel, zwaarste eerst. */
+    private function activeWithin(float $latitude, float $longitude, int $radiusKm): Collection
     {
-        $earth = 6371000;
-        $lat = deg2rad($lat2 - $lat1);
-        $lon = deg2rad($lon2 - $lon1);
-        $a = sin($lat / 2) ** 2 + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($lon / 2) ** 2;
-        return $earth * 2 * atan2(sqrt($a), sqrt(1 - $a));
+        $latDelta = $radiusKm / 111;
+        $lonDelta = $radiusKm / (111 * max(.1, cos(deg2rad($latitude))));
+
+        return Incident::query()
+            ->where('visibility', 'public')->where('expires_at', '>', now())
+            ->whereNull('resolved_at')
+            ->where('resolved_count', '<', 3)
+            ->whereBetween('latitude', [$latitude - $latDelta, $latitude + $latDelta])
+            ->whereBetween('longitude', [$longitude - $lonDelta, $longitude + $lonDelta])
+            ->tap(fn (Builder $query) => $query->orderByDesc('severity')->latest('last_confirmed_at'))
+            ->get()
+            ->filter(fn (Incident $incident) => GeoUtils::distanceMeters($latitude, $longitude, $incident->latitude, $incident->longitude) <= $radiusKm * 1000);
     }
 
     private function vote(Request $request, Incident $incident, string $vote, IncidentEngine $engine, InstallationTrust $trust): JsonResponse
@@ -121,6 +122,7 @@ class IncidentController extends Controller
         $incident = $engine->castVote($incident, $installation->id, $vote, $data['latitude'] ?? null, $data['longitude'] ?? null);
         if ($incident->source !== 'user' && $vote === 'present') $trust->adjust($installation, 1, 'confirmed_official_incident', $incident->id);
         IncidentObservation::create(['incident_id' => $incident->id, 'installation_id' => $installation->id, 'source' => 'user', 'source_reference' => 'vote:'.$incident->id.':'.$installation->id, 'kind' => $vote, 'status' => 'accepted', 'category' => $incident->category, 'subtype' => $incident->subtype, 'latitude' => $data['latitude'] ?? null, 'longitude' => $data['longitude'] ?? null, 'observed_at' => now()]);
-        return response()->json(['data' => $this->present($incident, $data['latitude'] ?? $incident->latitude, $data['longitude'] ?? $incident->longitude), 'vote' => $vote]);
+
+        return response()->json(['data' => IncidentPresenter::present($incident, $data['latitude'] ?? null, $data['longitude'] ?? null), 'vote' => $vote]);
     }
 }

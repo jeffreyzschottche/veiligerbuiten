@@ -30,9 +30,22 @@ return [
         'rijkswaterstaat' => ['label' => 'Rijkswaterstaat', 'enabled' => (bool) env('RWS_WATER_OBSERVATIONS_URL'), 'maximum_age_minutes' => 180],
     ],
     'push' => [
-        // Use `log` locally. Production Android delivery uses Firebase HTTP v1 when configured.
+        // Use `log` locally. Production: Android via Firebase HTTP v1, iOS via APNs.
         'driver' => env('PUSH_DELIVERY_DRIVER', 'log'),
         'fcm_service_account_json' => env('FCM_SERVICE_ACCOUNT_JSON_BASE64'),
+    ],
+    'apns' => [
+        'key_id' => env('APNS_KEY_ID'),
+        'team_id' => env('APNS_TEAM_ID'),
+        // Inhoud van de .p8-key (PEM of base64), nooit een pad in de repo.
+        'private_key' => env('APNS_PRIVATE_KEY'),
+        'bundle_id' => env('APNS_BUNDLE_ID', 'nl.veiligbuiten.app'),
+        'production' => (bool) env('APNS_PRODUCTION', false),
+    ],
+    'revenuecat' => [
+        'secret_key' => env('REVENUECAT_SECRET_KEY'),
+        'webhook_secret' => env('REVENUECAT_WEBHOOK_SECRET'),
+        'entitlement' => env('REVENUECAT_ENTITLEMENT', 'premium'),
     ],
 
     /*

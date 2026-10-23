@@ -21,4 +21,5 @@ Schedule::command('veiligbuiten:ingest-police-news')->hourly()->withoutOverlappi
 Schedule::command('veiligbuiten:ingest-p2000')->everyMinute()->withoutOverlapping();
 Schedule::command('veiligbuiten:sync-cbs-police-metadata')->dailyAt('03:15')->withoutOverlapping();
 Schedule::command('veiligbuiten:queue-alerts')->everyMinute()->withoutOverlapping();
+Schedule::command('veiligbuiten:flush-digests')->everyFiveMinutes()->withoutOverlapping();
 Schedule::command('veiligbuiten:deliver-alerts')->everyMinute()->withoutOverlapping();

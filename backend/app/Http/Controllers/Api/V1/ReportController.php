@@ -11,15 +11,15 @@ use App\Models\ModerationEvent;
 use App\Services\IncidentEngine;
 use App\Services\IncidentSafetyPolicy;
 use App\Services\InstallationTrust;
-use App\Services\ProofOfWorkCaptcha;
+use App\Services\ReportQuota;
+use App\Support\GeoUtils;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 
 class ReportController extends Controller
 {
-    public function __construct(private readonly IncidentEngine $engine, private readonly ProofOfWorkCaptcha $captcha, private readonly IncidentSafetyPolicy $policy, private readonly InstallationTrust $trust) {}
+    public function __construct(private readonly IncidentEngine $engine, private readonly IncidentSafetyPolicy $policy, private readonly InstallationTrust $trust, private readonly ReportQuota $quota) {}
     public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
@@ -28,10 +28,7 @@ class ReportController extends Controller
             'latitude' => 'required|numeric|between:50.5,53.7', 'longitude' => 'required|numeric|between:3.1,7.3',
             'user_latitude' => 'nullable|numeric|between:50.5,53.7', 'user_longitude' => 'nullable|numeric|between:3.1,7.3',
             'location_accuracy_m' => 'nullable|numeric|between:0,5000',
-            'captcha_token' => 'required|string|max:512',
         ]);
-        abort_unless($this->captcha->valid($data['captcha_token']), 422, 'De beveiligingscontrole is verlopen. Probeer opnieuw.');
-        unset($data['captcha_token']);
         $description = trim($data['description'] ?? '');
         if (($data['category'] === 'anders' || str_starts_with($data['subtype'], 'Anders:')) && $description === '') {
             throw ValidationException::withMessages(['description' => 'Geef bij Anders een korte toelichting.']);
@@ -43,44 +40,38 @@ class ReportController extends Controller
         abort_unless($this->trust->mayContribute($installation), 403, 'Deze installatie kan tijdelijk geen meldingen plaatsen.');
         abort_unless(isset($data['user_latitude'], $data['user_longitude']), 422, 'We hebben je actuele locatie nodig om een melding te plaatsen.');
         abort_if(($data['location_accuracy_m'] ?? 0) > 250, 422, 'Je locatie is nog niet nauwkeurig genoeg. Probeer het buiten opnieuw.');
-        abort_if($this->engine->distance($data['latitude'], $data['longitude'], $data['user_latitude'], $data['user_longitude']) > 1000, 422, 'Een melding moet binnen 1 km van je actuele locatie liggen.');
-        $nearby = $this->engine->findDuplicate($data['category'], $data['latitude'], $data['longitude']);
-        if (! $nearby) $this->guardNewIncidentRate($installation->id);
-        $visibility = $this->policy->initialVisibility($data['category']);
-        $incident = $nearby ?: Incident::create([...$data, 'status' => 'gemeld', 'visibility' => $visibility, 'source' => 'user', 'incident_type' => $this->incidentType($data['category']), 'severity' => $this->severity($data['category']), 'confidence' => .20, 'confirmations_count' => 0, 'last_confirmed_at' => now(), 'first_observed_at' => now(), 'last_activity_at' => now(), 'location_precision_m' => isset($data['location_accuracy_m']) ? min(5000, (int) $data['location_accuracy_m']) : null, 'expires_at' => now()->addHours(min(24, $this->policy->expiryHours($data['category'], $data['subtype'])))]);
-        $report = IncidentReport::create([
-            ...$data,
-            'incident_id' => $incident->id,
-            'installation_id' => $installation->id,
-            'user_id' => $request->user()?->id,
-            'status' => $visibility === 'review' ? 'review' : 'accepted',
-            'source' => 'user',
-            'reported_at' => now(),
-        ]);
-        IncidentObservation::create(['incident_id' => $incident->id, 'installation_id' => $installation->id, 'source' => 'user', 'source_reference' => 'report:'.$report->id, 'kind' => 'report', 'status' => $report->status, 'category' => $data['category'], 'subtype' => $data['subtype'], 'description' => $description ?: null, 'latitude' => $data['latitude'], 'longitude' => $data['longitude'], 'observed_at' => now(), 'metadata' => ['location_accuracy_m' => $data['location_accuracy_m'] ?? null]]);
-        if ($visibility === 'review') {
-            ModerationEvent::create(['incident_id' => $incident->id, 'installation_id' => $installation->id, 'action' => 'queued_for_review', 'reason' => 'sensitive_user_category']);
-        }
-        $incident->increment('confirmations_count');
-        $incident->update(['last_confirmed_at' => now()]);
-        $incident = $this->engine->updateConfidence($incident);
-        return response()->json(['data' => $incident->fresh(), 'duplicate' => (bool) $nearby, 'visibility' => $incident->visibility], $nearby ? 200 : 201);
+        abort_if(GeoUtils::distanceMeters($data['latitude'], $data['longitude'], $data['user_latitude'], $data['user_longitude']) > 1000, 422, 'Een melding moet binnen 1 km van je actuele locatie liggen.');
+        $user = $request->user();
+        // Eén transactie onder een lock per gebruiker: het dagquotum kan niet worden omzeild.
+        [$incident, $nearby] = $this->quota->consume($user, function () use ($data, $description, $installation, $user) {
+            $nearby = $this->engine->findDuplicate($data['category'], $data['latitude'], $data['longitude']);
+            $visibility = $this->policy->initialVisibility($data['category']);
+            $incident = $nearby ?: Incident::create([...$data, 'status' => 'gemeld', 'visibility' => $visibility, 'source' => 'user', 'incident_type' => $this->incidentType($data['category']), 'severity' => $this->severity($data['category']), 'confidence' => .20, 'confirmations_count' => 0, 'last_confirmed_at' => now(), 'first_observed_at' => now(), 'last_activity_at' => now(), 'location_precision_m' => isset($data['location_accuracy_m']) ? min(5000, (int) $data['location_accuracy_m']) : null, 'expires_at' => now()->addHours(min(24, $this->policy->expiryHours($data['category'], $data['subtype'])))]);
+            $report = IncidentReport::create([
+                ...$data,
+                'incident_id' => $incident->id,
+                'installation_id' => $installation->id,
+                'user_id' => $user->id,
+                'status' => $visibility === 'review' ? 'review' : 'accepted',
+                'source' => 'user',
+                'reported_at' => now(),
+            ]);
+            IncidentObservation::create(['incident_id' => $incident->id, 'installation_id' => $installation->id, 'source' => 'user', 'source_reference' => 'report:'.$report->id, 'kind' => 'report', 'status' => $report->status, 'category' => $data['category'], 'subtype' => $data['subtype'], 'description' => $description ?: null, 'latitude' => $data['latitude'], 'longitude' => $data['longitude'], 'observed_at' => now(), 'metadata' => ['location_accuracy_m' => $data['location_accuracy_m'] ?? null]]);
+            if ($visibility === 'review') {
+                ModerationEvent::create(['incident_id' => $incident->id, 'installation_id' => $installation->id, 'action' => 'queued_for_review', 'reason' => 'sensitive_user_category']);
+            }
+            $incident->increment('confirmations_count');
+            $incident->update(['last_confirmed_at' => now()]);
+            $incident = $this->engine->updateConfidence($incident);
+
+            return [$incident, $nearby];
+        });
+        return response()->json(['data' => $incident->fresh(), 'duplicate' => (bool) $nearby, 'visibility' => $incident->visibility, 'quota' => $this->quota->summary($user)], $nearby ? 200 : 201);
     }
 
-    private function guardNewIncidentRate(int $installationId): void
+    public function quota(Request $request): JsonResponse
     {
-        $hourlyKey = "incident-create:hour:{$installationId}";
-        $dailyKey = "incident-create:day:{$installationId}";
-
-        if (RateLimiter::tooManyAttempts($hourlyKey, 3)) {
-            throw ValidationException::withMessages(['rate_limit' => 'Je kunt maximaal 3 nieuwe meldingen per uur plaatsen.']);
-        }
-        if (RateLimiter::tooManyAttempts($dailyKey, 10)) {
-            throw ValidationException::withMessages(['rate_limit' => 'Je kunt maximaal 10 nieuwe meldingen per dag plaatsen.']);
-        }
-
-        RateLimiter::hit($hourlyKey, 3600);
-        RateLimiter::hit($dailyKey, 86400);
+        return response()->json(['data' => $this->quota->summary($request->user())]);
     }
 
     private function invalidDescriptionReason(string $text): ?string
