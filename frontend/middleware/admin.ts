@@ -6,6 +6,6 @@ export default defineNuxtRouteMiddleware((to) => {
   }
 
   if (!authStore.user?.is_admin) {
-    return navigateTo('/')
+    return navigateTo('/app')
   }
 })

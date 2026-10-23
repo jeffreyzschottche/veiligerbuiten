@@ -279,7 +279,7 @@ async function deleteAccount() {
   try {
     await api.delete('/profile', { password: deletePassword.value })
     authStore.logout()
-    router.push('/')
+    router.push('/app')
   } catch (error: any) {
     deleteError.value = error.message || 'Kon account niet verwijderen'
   } finally {

@@ -1,0 +1,36 @@
+/* VeiligBuiten design tokens — simpel, neutraal, één accentkleur. */
+:root {
+  --vb-ink: #0b0d12;
+  --vb-ink-2: #161a22;
+  --vb-ink-3: #262b36;
+  --vb-muted: #5a606d;
+  --vb-subtle: #8b919d;
+  --vb-line: #e3e5ea;
+  --vb-line-2: #eef0f3;
+  --vb-paper: #f4f5f7;
+  --vb-white: #ffffff;
+
+  --vb-brand: #2f6bff;
+  --vb-brand-600: #1f55e0;
+  --vb-brand-50: #eaf0ff;
+
+  /* Ernst: info → waarschuwing → gevaar */
+  --vb-info: #2f6bff;
+  --vb-warn: #ff8a00;
+  --vb-danger: #e5484d;
+  --vb-ok: #1f9d55;
+
+  --vb-font: 'Geist Variable', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --vb-mono: 'Geist Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --vb-radius-sm: 10px;
+  --vb-radius: 16px;
+  --vb-radius-lg: 24px;
+  --vb-shadow: 0 1px 2px #0b0d120d, 0 8px 24px #0b0d1214;
+  --vb-shadow-lg: 0 2px 6px #0b0d1210, 0 30px 80px #0b0d1229;
+  --vb-ease: cubic-bezier(.2, .8, .2, 1);
+}
+
+html { -webkit-text-size-adjust: 100%; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+body { margin: 0; font-family: var(--vb-font); color: var(--vb-ink); background: var(--vb-paper); }
+::selection { background: var(--vb-brand); color: #fff; }
