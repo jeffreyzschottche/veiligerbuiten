@@ -79,6 +79,24 @@ return [
         'categories' => ['verkeer', 'geweld', 'onveilig', 'intimidatie'],
     ],
 
+    // Buurtcijfers van de politie (via CBS): buurten met opvallend veel geweld en straatroof per km².
+    'neighbourhood_stats' => [
+        'months' => 12,
+        // CBS-code => [naam, gewicht]. Straatroof en openlijk geweld raken voorbijgangers het meest.
+        'types' => [
+            '1.4.6' => ['straatroof', 3],
+            '1.4.3' => ['openlijk_geweld', 2],
+            '1.4.4' => ['bedreiging', 1],
+            '1.4.5' => ['mishandeling', 1],
+        ],
+        // Minstens zoveel misdrijven in de periode (kleine aantallen zeggen weinig)...
+        'min_count' => 25,
+        // ...en per km² minstens zoveel keer het landelijke gemiddelde.
+        'min_ratio' => 40,
+        // Hoogstens zoveel buurten per sync-gebied, de opvallendste eerst.
+        'per_area' => 40,
+    ],
+
     // Toegestane achtergrondcontroles (minuten) die een gebruiker kan kiezen.
     'check_intervals' => [15, 30, 60],
 

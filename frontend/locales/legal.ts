@@ -89,6 +89,7 @@ export const legal: Record<'privacy' | 'terms', Record<Locale, Doc>> = {
         { title: 'Geen hulpdienst', body: [
           'VeiligerBuiten is een informatiedienst, geen hulpdienst. Bij direct gevaar bel je altijd 112.',
           'Informatie komt van openbare bronnen en van gebruikers. Die kan onvolledig, vertraagd of onjuist zijn. Dat er niets op de kaart staat, betekent niet dat het veilig is.',
+          'Buurtcijfers zijn geregistreerde misdrijven van de afgelopen twaalf maanden (bron: Politie, via CBS, CC BY 4.0). Ze zeggen iets over een buurt als geheel, niet over wat er nu gebeurt of over de mensen die er wonen.',
         ] },
         { title: 'Melden', body: [
           'Meld alleen wat je zelf ziet, op de plek waar het is. Je kunt drie meldingen per dag plaatsen.',
@@ -111,6 +112,7 @@ export const legal: Record<'privacy' | 'terms', Record<Locale, Doc>> = {
         { title: 'Not an emergency service', body: [
           'VeiligerBuiten is an information service, not an emergency service. In immediate danger, always call 112.',
           'Information comes from public sources and from users. It can be incomplete, delayed or wrong. An empty map does not mean it is safe.',
+          'Neighbourhood statistics are crimes recorded over the past twelve months (source: Police, via CBS, CC BY 4.0). They describe a neighbourhood as a whole, not what is happening now or the people who live there.',
         ] },
         { title: 'Reporting', body: [
           'Only report what you see yourself, where it is. You can post three reports per day.',

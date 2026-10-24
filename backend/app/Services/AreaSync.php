@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\DangerHotspot;
 use App\Models\Incident;
+use App\Models\NeighbourhoodRisk;
 use App\Support\DangerScale;
 use App\Support\GeoUtils;
 use App\Support\IncidentPresenter;
@@ -46,7 +47,7 @@ class AreaSync
         $state = $this->area($latitude, $longitude, $radiusKm)
             ->where(fn (Builder $q) => $q->whereNull('archived_at')->orWhere('archived_at', '>=', $this->deltaHorizon()))
             ->toBase()->selectRaw('max(updated_at) as version, count(*) as total')->first();
-        $hotspots = DangerHotspot::query()->max('computed_at');
+        $hotspots = DangerHotspot::query()->max('computed_at').'|'.NeighbourhoodRisk::query()->max('computed_at');
         // updated_at telt in hele seconden. Veranderde er in de laatste paar seconden iets, dan kan er in
         // dezelfde seconde nog iets bijkomen dat max(updated_at) niet verandert: dan geen 304 beloven.
         $settling = $state->version && Carbon::parse($state->version)->gte(now()->subSeconds(2)) ? now()->getTimestamp() : null;
@@ -112,6 +113,22 @@ class AreaSync
             ->whereBetween('longitude', [$longitude - $lonDelta, $longitude + $lonDelta])
             ->orderByDesc('score')->limit(100)->get()
             ->filter(fn (DangerHotspot $h) => GeoUtils::distanceMeters($latitude, $longitude, $h->latitude, $h->longitude) <= $radiusKm * 1000)
+            ->map->toSync()->values()
+            // Buurtcijfers van de politie erachter: statistiek, dus na wat er echt gemeld is.
+            ->concat($this->neighbourhoods($latitude, $longitude, $radiusKm))
+            ->all();
+    }
+
+    private function neighbourhoods(float $latitude, float $longitude, int $radiusKm): array
+    {
+        [$latDelta, $lonDelta] = $this->deltas($latitude, $radiusKm);
+
+        return NeighbourhoodRisk::query()
+            ->whereBetween('latitude', [$latitude - $latDelta, $latitude + $latDelta])
+            ->whereBetween('longitude', [$longitude - $lonDelta, $longitude + $lonDelta])
+            ->orderByDesc('ratio')->limit(config('veiligbuiten.neighbourhood_stats.per_area') * 2)->get()
+            ->filter(fn (NeighbourhoodRisk $n) => GeoUtils::distanceMeters($latitude, $longitude, $n->latitude, $n->longitude) <= $radiusKm * 1000)
+            ->take(config('veiligbuiten.neighbourhood_stats.per_area'))
             ->map->toSync()->values()->all();
     }
 

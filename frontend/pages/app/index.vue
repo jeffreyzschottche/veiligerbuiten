@@ -44,7 +44,7 @@
 <script setup lang="ts">
 import { App } from '@capacitor/app';
 import { BackgroundRunner } from '@capacitor/background-runner';
-import type { Incident } from '~/types/Incident';
+import type { Hotspot, Incident } from '~/types/Incident';
 import type { Tab } from '~/types/App';
 import { distanceMeters } from '~/composables/useGeo';
 import { currentPosition, watchCurrentPosition, openFromNotification, type Position } from '~/composables/useDevice';
@@ -106,7 +106,8 @@ const nearbyHotspots = computed(() => {
   return sync.hotspots.value
     .map((hotspot) => ({ hotspot, distance: distanceMeters(origin.latitude, origin.longitude, hotspot.latitude, hotspot.longitude) }))
     .filter(({ distance }) => distance <= HOTSPOT_NEARBY_M)
-    .sort((a, b) => a.distance - b.distance)
+    // Wat mensen echt meldden gaat voor de buurtcijfers; daarbinnen het dichtstbij eerst.
+    .sort((a, b) => Number(a.hotspot.kind === 'stats') - Number(b.hotspot.kind === 'stats') || a.distance - b.distance)
     .slice(0, 3);
 });
 
@@ -199,6 +200,15 @@ function showHotspot(key: string) {
   if (!hotspot) return;
   panelOpen.value = false;
   map.value?.showArea(hotspot.latitude, hotspot.longitude, hotspot.radius);
+  if (hotspot.kind === 'stats') flash(statsSummary(hotspot), 6000);
+}
+
+/** "Leidsebuurt: 171× geweld of straatroof (o.a. 12× straatroof) in 12 maanden. Bron: Politie (CBS)." */
+function statsSummary(hotspot: Hotspot) {
+  const copy = t.value.hotspots.stats;
+  const [type, n] = Object.entries(hotspot.counts ?? {}).filter(([key]) => key !== 'mishandeling').sort((a, b) => b[1] - a[1])[0] ?? [];
+  const detail = type && n ? fill(copy.detail, { n, type: copy.types[type] ?? type }) : '';
+  return fill(copy.toast, { name: hotspot.name ?? '', n: hotspot.count, detail });
 }
 
 let openedFromAlert = false;
@@ -219,10 +229,10 @@ function placed(incident: Incident) {
 }
 
 let toastTimer: ReturnType<typeof setTimeout> | undefined;
-function flash(message: string) {
+function flash(message: string, ms = 3200) {
   toast.value = message;
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { toast.value = null; }, 3200);
+  toastTimer = setTimeout(() => { toast.value = null; }, ms);
 }
 
 async function onSubscribed() {

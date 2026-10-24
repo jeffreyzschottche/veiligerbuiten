@@ -27,7 +27,8 @@ Schedule::command('veiligbuiten:ingest-police-news')->everyFifteenMinutes()->wit
 Schedule::command('veiligbuiten:ingest-p2000')->everyTwoMinutes()->withoutOverlapping();
 Schedule::command('veiligbuiten:ingest-nl-alert')->everyTwoMinutes()->withoutOverlapping();
 Schedule::command('veiligbuiten:ingest-knmi-quakes')->everyTenMinutes()->withoutOverlapping();
-Schedule::command('veiligbuiten:sync-cbs-police-metadata')->dailyAt('03:15')->withoutOverlapping();
+// Politiecijfers per buurt (CBS) verschijnen halverwege de maand; daarna één keer ophalen is genoeg.
+Schedule::command('veiligbuiten:neighbourhood-crime')->monthlyOn(20, '05:20')->timezone('Europe/Amsterdam')->withoutOverlapping();
 Schedule::command('veiligbuiten:queue-alerts')->everyMinute()->withoutOverlapping();
 Schedule::command('veiligbuiten:flush-digests')->everyFiveMinutes()->withoutOverlapping();
 Schedule::command('veiligbuiten:deliver-alerts')->everyMinute()->withoutOverlapping();

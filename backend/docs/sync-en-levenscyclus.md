@@ -43,3 +43,12 @@
 Een plek telt als gevaarlijk als er in 30 dagen minstens 3 ernstige meldingen waren, verspreid over minstens 3 verschillende dagen, binnen ongeveer 250 tot 375 m van elkaar. Het gaat om verkeersongevallen, geweld en ernstige onveilige situaties (zoals bommeldingen en verdachte objecten). Alleen officiële meldingen of meldingen die door meerdere mensen zijn bevestigd tellen mee, zodat één drukke avond of één fanatieke melder geen plek maakt.
 
 De app tekent zo'n plek als een gestippelde zone en toont hem onder "In je buurt". De achtergrondcontrole geeft er hoogstens één keer per week per plek een stil seintje over ("goed om te weten"), en nooit tijdens stille uren.
+
+## Buurtcijfers (`NeighbourhoodCrime`, maandelijks op de 20e)
+
+Naast wat mensen en hulpdiensten melden, gebruiken we de politiecijfers per buurt (CBS-tabel 47022NED, CC BY 4.0). Over de laatste 12 maanden tellen we per buurt straatroof (gewicht 3), openlijk geweld (2), bedreiging (1) en mishandeling (1), en delen dat door de landoppervlakte uit de CBS Kerncijfers van hetzelfde jaar. Een buurt telt mee bij **minstens 25 misdrijven** en **minstens 40× het landelijke gemiddelde per km²**. Dat zijn er nu ongeveer 260, vooral uitgaansgebieden en stationsomgevingen in de grote steden.
+
+- Het middelpunt en de naam komen van PDOK (buurtcode). De straal is een cirkel met de oppervlakte van de buurt, tussen 150 en 700 m.
+- In de sync komen ze ná de gemelde plekken, met `kind: "stats"`, hoogstens 40 per gebied. De ETag verandert alleen als de cijfers opnieuw berekend zijn.
+- In de app: een lichtere zone, onderaan bij "In je buurt", en bij aantikken een korte uitleg met "Bron: Politie (CBS)". **Nooit een pushbericht**, ook niet van de achtergrondcontrole: het is statistiek over het afgelopen jaar, geen actueel gevaar.
+- Mislukt het CBS, dan blijven de cijfers van vorige maand staan. Het ophalen duurt ongeveer 1 minuut.

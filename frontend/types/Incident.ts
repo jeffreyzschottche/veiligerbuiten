@@ -58,16 +58,23 @@ export interface Incident {
   expiresAt?: string | null;
 }
 
-/** Plek waar de afgelopen weken herhaaldelijk iets ernstigs gebeurde. */
+/**
+ * Bekende plek. Zonder kind: hier gebeurde de afgelopen weken herhaaldelijk iets ernstigs.
+ * Met kind 'stats': een buurt met opvallend veel geweld en straatroof volgens de politiecijfers.
+ */
 export interface Hotspot {
   key: string;
+  kind?: 'stats';
   category: IncidentCategory;
   latitude: number;
   longitude: number;
   radius: number;
   count: number;
-  days: number;
-  lastAt: string;
+  days?: number;
+  lastAt?: string;
+  /** Alleen bij buurtcijfers. */
+  name?: string;
+  counts?: Record<string, number>;
 }
 
 export interface Place {

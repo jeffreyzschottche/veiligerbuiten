@@ -13,7 +13,8 @@ Gecontroleerd op 24 oktober 2026. Het gaat om commercieel gebruik: een betaalde 
 | **P2000 via Sirenes** (`sirenes.app/rss.xml`) | Landelijke alarmeringen met straat en plaats | Publieke RSS voor abonnees. Er zijn geen hergebruikvoorwaarden gepubliceerd. robots.txt sluit alleen `/api/` uit; wij gebruiken de RSS. Contact: hi@sirenes.app. | 🟠 Onduidelijk | Bron en link staan per item. Vraag ze om toestemming. |
 | **P2000 via Alarmeringen.nl** (`alarmeringen.nl/feeds/all.rss`) | Landelijke alarmeringen (straat en plaats in de tekst) | Van **DPG Media**. Publieke RSS, zonder licentie voor hergebruik. Voor commercieel gebruik verwacht een grote uitgever normaal een licentie. | 🟠/🔴 Waarschijnlijk licentie nodig | Bron en link staan per item. Neem contact op met DPG Media. |
 | **P2000-monitor** (p2000zhz-rr.nl via FeedBurner) | Ruwe pagerteksten van Rotterdam-Rijnmond, Zuid-Holland Zuid, Lifeliners en KNRM. De andere 24 regiofeeds staan sinds 2012 stil. | Geen voorwaarden gepubliceerd. | 🟠 Onduidelijk | We tonen nooit de ruwe tekst, alleen een eigen zin. |
-| **PDOK Locatieserver** (overheid) | Straat of postcode omzetten naar een plek op de kaart | Open overheidsdata, commercieel gebruik toegestaan. | 🟢 | Nooit op huisnummer; resultaten 30 dagen in cache. |
+| **Politiecijfers per buurt** (CBS-tabel 47022NED, maandcijfers) | Geregistreerde straatroof, openlijk geweld, bedreiging en mishandeling per buurt, de laatste 12 maanden. Met de buurtoppervlakte uit de CBS Kerncijfers wijken en buurten. | data.overheid.nl: **CC BY 4.0**, eigenaar Politie. Commercieel gebruik toegestaan, met naamsvermelding. | 🟢 Toegestaan, met naamsvermelding | "Bron: Politie (CBS)" staat bij elke buurt in de app en in de voorwaarden. Het blijft statistiek: nooit een melding of pushbericht, en de tekst gaat over de buurt, niet over de bewoners. |
+| **PDOK Locatieserver** (overheid) | Straat, postcode of buurtcode omzetten naar een plek op de kaart | Open overheidsdata, commercieel gebruik toegestaan. | 🟢 | Nooit op huisnummer; resultaten 30 dagen in cache. |
 | **OpenFreeMap / OpenStreetMap** | Kaarttegels | OSM-data onder ODbL: commercieel gebruik toegestaan, mits naamsvermelding. | 🟢 | De naamsvermelding staat op de kaart (MapLibre-attributie). |
 | **Google AdMob** | Advertenties | Toegestaan. AVG/ePrivacy vragen wel om toestemming. | 🟢 met toestemming | Google UMP-toestemming is ingebouwd. Stel een GDPR-bericht in de AdMob-console in. Privacyverklaring is bijgewerkt. |
 
@@ -43,4 +44,4 @@ Zwaailicht schrijft zelf dat de P2000-alarmering een openbaar, onversleuteld sig
 
 ## Ook gezien
 
-De landingspagina noemde eerst "meldingen uit 30 bronnen". Dat is aangepast naar 8, het aantal dat echt draait.
+De landingspagina noemde eerst "meldingen uit 30 bronnen". Dat is aangepast naar het aantal dat echt draait: nu 9, met de buurtcijfers erbij.

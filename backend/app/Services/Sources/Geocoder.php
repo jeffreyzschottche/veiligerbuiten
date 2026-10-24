@@ -51,6 +51,12 @@ class Geocoder
         return $city === '' ? null : $this->lookup($city, 'woonplaats', $city, 2500);
     }
 
+    /** Middelpunt en naam van een CBS-buurt ('BU0363AH02'). @return array{latitude: float, longitude: float, precision_m: int, place: string, name: string}|null */
+    public function neighbourhood(string $code): ?array
+    {
+        return preg_match('/^BU[0-9A-Z]{8}$/', $code) ? $this->lookup("buurtcode:{$code}", 'buurt', null, 300) : null;
+    }
+
     /** @param array{latitude: float, longitude: float, precision_m: int} $point */
     public function roundForPrivacy(array $point): array
     {
@@ -74,7 +80,7 @@ class Geocoder
 
         try {
             $doc = Http::timeout(6)->acceptJson()->withHeaders(['User-Agent' => PoliteFetcher::USER_AGENT])
-                ->get(self::URL, ['q' => $query, 'fq' => "type:{$type}", 'rows' => 1, 'fl' => 'weergavenaam,woonplaatsnaam,centroide_ll'])
+                ->get(self::URL, ['q' => $query, 'fq' => "type:{$type}", 'rows' => 1, 'fl' => 'weergavenaam,woonplaatsnaam,gemeentenaam,buurtnaam,centroide_ll'])
                 ->throw()->json('response.docs.0');
         } catch (\Throwable) {
             return null; // niet cachen: volgende keer opnieuw proberen
@@ -83,7 +89,7 @@ class Geocoder
         $point = null;
         if ($doc && preg_match('/POINT\(([\d.]+) ([\d.]+)\)/', (string) ($doc['centroide_ll'] ?? ''), $match)
             && (! $mustMatchCity || str_contains($this->clean((string) ($doc['woonplaatsnaam'] ?? $doc['weergavenaam'] ?? '')), $mustMatchCity))) {
-            $point = ['latitude' => (float) $match[2], 'longitude' => (float) $match[1], 'precision_m' => $precision, 'place' => (string) ($doc['woonplaatsnaam'] ?? '')];
+            $point = ['latitude' => (float) $match[2], 'longitude' => (float) $match[1], 'precision_m' => $precision, 'place' => (string) ($doc['woonplaatsnaam'] ?? $doc['gemeentenaam'] ?? ''), 'name' => (string) ($doc['buurtnaam'] ?? '')];
         }
         // Ook 'niet gevonden' bewaren (als false), zodat we PDOK niet blijven vragen.
         Cache::put($key, $point ?? false, now()->addDays(self::TTL_DAYS));

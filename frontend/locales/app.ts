@@ -173,6 +173,13 @@ const nl = {
     titles: { verkeer: 'Hier gebeuren vaak ongevallen', geweld: 'Hier is vaker geweld gemeld', onveilig: 'Hier is vaker iets onveiligs gemeld', intimidatie: 'Hier worden mensen vaker lastiggevallen' } as Record<string, string>,
     body: '{n} meldingen in de afgelopen weken. Let even extra op.',
     row: '{n}× in {days} dagen',
+    stats: {
+      title: 'Veel geweld geregistreerd',
+      row: '{n}× in 12 maanden',
+      toast: '{name}: {n}× geweld of straatroof geregistreerd in de afgelopen 12 maanden{detail}. Bron: Politie (CBS).',
+      detail: ', waarvan {n}× {type}',
+      types: { straatroof: 'straatroof', openlijk_geweld: 'openlijk geweld', bedreiging: 'bedreiging', mishandeling: 'mishandeling' } as Record<string, string>,
+    },
   },
   ads: { label: 'Advertentie' },
   notify: {
@@ -358,6 +365,13 @@ const en: Copy = {
     titles: { verkeer: 'Accidents happen often here', geweld: 'Violence was reported here more often', onveilig: 'Unsafe situations were reported here more often', intimidatie: 'People are harassed here more often' },
     body: '{n} reports in recent weeks. Take a little extra care.',
     row: '{n}× in {days} days',
+    stats: {
+      title: 'High recorded violence',
+      row: '{n}× in 12 months',
+      toast: '{name}: {n} violent crimes or street robberies recorded in the past 12 months{detail}. Source: Police (CBS).',
+      detail: ', including {n}× {type}',
+      types: { straatroof: 'street robbery', openlijk_geweld: 'public violence', bedreiging: 'threats', mishandeling: 'assault' },
+    },
   },
   ads: { label: 'Advertisement' },
   notify: {

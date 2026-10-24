@@ -28,8 +28,12 @@
     <ul v-if="hotspots.length && (expanded || !items.length)" class="nearby__list nearby__list--spots" :aria-label="t.hotspots.label">
       <li v-for="{ hotspot, distance: meters } in hotspots" :key="hotspot.key">
         <button class="nearby__item nearby__item--spot" @click="emit('hotspot', hotspot.key)">
-          <span class="nearby__icon nearby__icon--spot"><Icon :name="categoryOf(hotspot.category).icon" :size="17" /></span>
-          <span class="row__main">
+          <span class="nearby__icon nearby__icon--spot"><Icon :name="hotspot.kind === 'stats' ? 'users' : categoryOf(hotspot.category).icon" :size="17" /></span>
+          <span v-if="hotspot.kind === 'stats'" class="row__main">
+            <span class="row__title">{{ t.hotspots.stats.title }}</span>
+            <span class="row__sub">{{ distance(meters) }} · {{ hotspot.name }} · {{ fill(t.hotspots.stats.row, { n: hotspot.count }) }}</span>
+          </span>
+          <span v-else class="row__main">
             <span class="row__title">{{ t.hotspots.titles[hotspot.category] ?? t.hotspots.label }}</span>
             <span class="row__sub">{{ distance(meters) }} · {{ fill(t.hotspots.row, { n: hotspot.count, days: windowDays }) }}</span>
           </span>

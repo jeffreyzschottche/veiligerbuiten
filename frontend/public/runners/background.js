@@ -95,6 +95,11 @@ function slim(item) {
   return { id: item.id, title: item.title, level: item.level, category: item.category, latitude: item.latitude, longitude: item.longitude, alertRadius: item.alertRadius, confirmations: item.confirmations, official: item.official, expiresAt: item.expiresAt, status: item.status };
 }
 
+/** Buurtcijfers (kind 'stats') zijn statistiek, geen reden voor een melding: die blijven in de app. */
+function slimHotspots(list) {
+  return (list || []).filter(function (spot) { return spot && spot.kind !== 'stats'; }).map(slimHotspot);
+}
+
 function slimHotspot(spot) {
   return { key: spot.key, category: spot.category, latitude: spot.latitude, longitude: spot.longitude, radius: spot.radius, count: spot.count, days: spot.days };
 }
@@ -121,7 +126,7 @@ function applySync(previous, body, etag, now, point) {
     at: now,
     center: validPoint(body.center) ? body.center : point,
     items: items,
-    hotspots: Array.isArray(body.hotspots) ? body.hotspots.map(slimHotspot) : (previous && previous.hotspots) || [],
+    hotspots: Array.isArray(body.hotspots) ? slimHotspots(body.hotspots) : (previous && previous.hotspots) || [],
     cursor: typeof body.cursor === 'number' ? body.cursor : null,
     etag: etag || null,
     minSyncAfter: typeof body.min_sync_after === 'number' ? body.min_sync_after : null,
@@ -376,7 +381,7 @@ addEventListener('sync', function (resolve, reject, args) {
     if (args && args.items) {
       write('cache', {
         at: args.at || Date.now(), center: args.center, items: args.items.map(slim),
-        hotspots: (args.hotspots || []).map(slimHotspot), cursor: args.cursor || null, etag: args.etag || null, minSyncAfter: args.minSyncAfter || null,
+        hotspots: slimHotspots(args.hotspots), cursor: args.cursor || null, etag: args.etag || null, minSyncAfter: args.minSyncAfter || null,
       });
     }
     resolve({ ok: true });

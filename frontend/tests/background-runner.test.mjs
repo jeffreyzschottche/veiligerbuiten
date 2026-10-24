@@ -213,3 +213,11 @@ test('a known dangerous spot gives one quiet heads-up per week', async () => {
   app.kv.set('cache', JSON.stringify({ at: baseTime + 8 * 24 * 3_600_000, center: start, items: [], hotspots }));
   assert.equal((await app.check()).notified, 1);
 });
+
+test('police statistics for a neighbourhood stay in the app and never notify', async () => {
+  const strings = { near: '{d}', bundle: '{n}', hotspotTitles: { geweld: 'Hier is vaker geweld gemeld' }, hotspotBody: '{n}' };
+  const stats = { key: 'bBU0363AH02', kind: 'stats', category: 'geweld', latitude: start.latitude, longitude: start.longitude, radius: 400, count: 171 };
+  const app = runner({ point: start, config: { strings }, cache: syncedCache({ center: start, items: [] }), fetch: () => response(200, { mode: 'full', data: [], center: area, cursor: 3000, hotspots: [stats] }) });
+  assert.equal((await app.check()).notified, 0);
+  assert.equal(app.read('cache').hotspots.length, 0);
+});

@@ -24,6 +24,12 @@ return [
         'coverage_areas' => json_decode(env('POLITIE_NEWS_AREAS', '[{"lat":52.3000,"lng":4.6900}]'), true, flags: JSON_THROW_ON_ERROR),
     ],
     // Publieke feeds; we vragen ze netjes op (ETag/Last-Modified, herkenbare User-Agent).
+    // Politiecijfers per buurt (CBS, CC-BY 4.0; 'Bron: Politie'). Maandcijfers, eens per maand opgehaald.
+    'cbs' => [
+        'crime_feed' => env('CBS_CRIME_FEED', 'https://dataderden.cbs.nl/ODataFeed/OData/47022NED'),
+        'feed_base' => env('CBS_FEED_BASE', 'https://opendata.cbs.nl/ODataFeed/OData'),
+        'catalog' => env('CBS_CATALOG', 'https://opendata.cbs.nl/ODataCatalog/Tables'),
+    ],
     // Extra P2000-bronnen naast Zwaailicht (zie docs/bronnen-en-licenties.md). Rollende feeds; elke 2 min met ETag.
     'p2000_feeds' => [
         'sirenes' => env('P2000_SIRENES_URL', 'https://sirenes.app/rss.xml'),

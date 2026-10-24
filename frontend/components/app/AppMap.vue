@@ -70,7 +70,7 @@ const placeData = computed(() => ({
 /** Bekende gevaarlijke plekken: alleen een gestippelde rand, rustig op de achtergrond. */
 const hotspotData = computed(() => ({
   type: 'FeatureCollection' as const,
-  features: (props.hotspots ?? []).map((hotspot) => circle(hotspot.latitude, hotspot.longitude, hotspot.radius, 48)),
+  features: (props.hotspots ?? []).map((hotspot) => ({ ...circle(hotspot.latitude, hotspot.longitude, hotspot.radius, 48), properties: { stats: hotspot.kind === 'stats' ? 1 : 0 } })),
 }));
 
 const meData = computed(() => ({
@@ -109,7 +109,7 @@ onMounted(async () => {
     map.addLayer({ id: 'place-line', type: 'line', source: 'places', filter: ['==', ['get', 'kind'], 'area'], paint: { 'line-color': '#0b0d12', 'line-opacity': 0.35, 'line-width': 1.2, 'line-dasharray': [2, 2] } });
     map.addLayer({ id: 'place-label', type: 'symbol', source: 'places', filter: ['==', ['get', 'kind'], 'label'], layout: { 'text-field': ['get', 'name'], 'text-font': ['Noto Sans Bold'], 'text-size': 12, 'text-letter-spacing': 0.02 }, paint: { 'text-color': '#0b0d12', 'text-halo-color': '#ffffff', 'text-halo-width': 1.6 } });
 
-    map.addLayer({ id: 'hotspot-fill', type: 'fill', source: 'hotspots', minzoom: 12, paint: { 'fill-color': '#0b0d12', 'fill-opacity': 0.035 } });
+    map.addLayer({ id: 'hotspot-fill', type: 'fill', source: 'hotspots', minzoom: 12, paint: { 'fill-color': '#0b0d12', 'fill-opacity': ['case', ['==', ['get', 'stats'], 1], 0.02, 0.035] } });
     map.addLayer({ id: 'hotspot-line', type: 'line', source: 'hotspots', minzoom: 12, paint: { 'line-color': '#0b0d12', 'line-opacity': 0.28, 'line-width': 1.2, 'line-dasharray': [1, 2] } });
 
     map.addLayer({ id: 'reach-fill', type: 'fill', source: 'reach', paint: { 'fill-color': LEVEL_COLOR as any, 'fill-opacity': 0.08 } });
