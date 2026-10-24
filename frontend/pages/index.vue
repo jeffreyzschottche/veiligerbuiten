@@ -235,8 +235,11 @@ definePageMeta({ layout: false });
 
 const { locale, setLocale } = useLocale();
 const t = computed(() => siteCopy[locale.value]);
-/** Bronnen die standaard draaien: P2000, Politie, NL-Alert, NDW en KNMI-aardbevingen. Houd dit eerlijk. */
-const sourceCount = 5;
+/**
+ * Bronnen die standaard draaien: P2000 via Zwaailicht, Sirenes, Alarmeringen.nl en de P2000-monitor,
+ * plus Politie, NL-Alert, NDW en KNMI-aardbevingen. Houd dit eerlijk.
+ */
+const sourceCount = 8;
 const siteEl = ref<HTMLElement | null>(null);
 const { data: community } = useFetch<{ total: number; updatedAt: string }>('/api/site/community', { server: false, lazy: true, retry: 0 });
 const displayedUsers = ref<number | null>(null);

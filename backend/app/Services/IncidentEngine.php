@@ -25,10 +25,11 @@ class IncidentEngine
         'blokkade' => ['verkeer', 'blokkade'],
     ];
 
-    public function findDuplicate(string $category, float $latitude, float $longitude): ?Incident
+    /** @param int|null $minRadius ruimer zoeken als de locatie van de nieuwe melding minder precies is */
+    public function findDuplicate(string $category, float $latitude, float $longitude, ?int $minRadius = null): ?Incident
     {
         $categories = self::RELATED_CATEGORIES[$category] ?? [$category];
-        $radius = self::DUPLICATE_RADIUS_M[$category] ?? self::DEFAULT_DUPLICATE_RADIUS_M;
+        $radius = max($minRadius ?? 0, self::DUPLICATE_RADIUS_M[$category] ?? self::DEFAULT_DUPLICATE_RADIUS_M);
         $latDelta = $radius / 111_000;
         $lonDelta = $radius / (111_000 * cos(deg2rad($latitude)));
 

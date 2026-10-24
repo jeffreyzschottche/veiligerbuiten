@@ -92,7 +92,8 @@ class RiskClusters
         return $found
             ->reject(fn (Incident $n) => $n->id === $incident->id)
             ->filter(fn (Incident $n) => GeoUtils::distanceMeters($incident->latitude, $incident->longitude, $n->latitude, $n->longitude) <= $radius)
-            ->unique(fn (Incident $n) => $n->source === 'user' ? 'user:'.$n->id : $n->source)
+            // Alle P2000-feeds zijn hetzelfde signaal (de meldkamer); samen tellen ze één keer.
+            ->unique(fn (Incident $n) => $n->source === 'user' ? 'user:'.$n->id : (str_starts_with((string) $n->source, 'p2000') ? 'p2000' : $n->source))
             ->values();
     }
 }

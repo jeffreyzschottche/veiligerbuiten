@@ -72,6 +72,8 @@ Zolang ze leeg zijn, springen de knoppen naar de prijs-sectie.
 | Bron | Staat | Wat nodig |
 |---|---|---|
 | P2000 (Zwaailicht) | aan | niets; elke 2 min met ETag |
+| P2000 (Sirenes, Alarmeringen.nl, P2000-monitor) | aan | niets; elke 2 min met ETag, locaties via PDOK, samengevoegd met Zwaailicht |
+| Politie Open Data | aan | niets; elk kwartier |
 | NL-Alert | aan | niets; feed van public-warning.app (geen officieel gedocumenteerde API, houd hem in de gaten) |
 | KNMI aardbevingen | aan | niets |
 | NDW | aan | niets |

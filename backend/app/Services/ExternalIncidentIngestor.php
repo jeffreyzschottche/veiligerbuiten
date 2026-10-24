@@ -109,7 +109,8 @@ class ExternalIncidentIngestor
         SourceRecord::updateOrCreate(['source' => $source, 'external_id' => $item['id']], ['payload_hash' => hash('sha256', json_encode($item)), 'payload' => $item, 'received_at' => now(), 'processed_at' => now(), 'status' => 'processed']);
     }
 
-    public function p2000(array $item): Incident
+    /** Null als een melding alleen ter bevestiging mocht dienen en er niets te bevestigen viel. */
+    public function p2000(array $item): ?Incident
     {
         $source = 'p2000_' . ($item['source_feed'] ?? 'unknown');
         $incidentType = match ($item['category']) {
@@ -126,6 +127,9 @@ class ExternalIncidentIngestor
             'incident_type' => $incidentType,
             'fallback_hours' => 2,
         ]);
+        if (! $incident) {
+            return null;
+        }
 
         SourceRecord::updateOrCreate(
             ['source' => $source, 'external_id' => $item['id']],
@@ -205,13 +209,19 @@ class ExternalIncidentIngestor
      * dezelfde situatie houdt hem in leven. Een ongewijzigd item dat bij de volgende
      * ophaalronde opnieuw voorbijkomt, schrijft niets: dat houdt de sync-delta's klein.
      */
-    private function upsertOfficial(string $source, array $item, array $attributes): Incident
+    private function upsertOfficial(string $source, array $item, array $attributes): ?Incident
     {
         $existingObservation = IncidentObservation::query()
             ->where('source', $source)->where('source_reference', (string) $item['id'])->first();
         $incident = $existingObservation ? Incident::find($existingObservation->incident_id) : null;
         $category = $attributes['category'];
-        if (! $incident) $incident = $this->engine->findDuplicate($category, (float) $item['latitude'], (float) $item['longitude']);
+        // Hetzelfde P2000-voorval uit een andere feed ligt door straat- of postcodeniveau soms iets verder weg.
+        $precision = isset($item['location_precision_m']) ? (int) min(1000, max(400, $item['location_precision_m'])) : null;
+        if (! $incident) $incident = $this->engine->findDuplicate($category, (float) $item['latitude'], (float) $item['longitude'], $precision);
+        // Alleen een plaatsnaam bekend: wel een bevestiging van iets dat er al is, nooit een eigen (misleidende) stip.
+        if (! $incident && ($item['corroborate_only'] ?? false)) {
+            return null;
+        }
         $observedAt = Carbon::parse($item['updated_at'] ?? now());
         $endsAt = $item['ends_at'] ?? null;
 
@@ -228,6 +238,7 @@ class ExternalIncidentIngestor
         if (! $incident) {
             $incident = Incident::create($payload + [
                 'source' => $source, 'source_reference' => (string) $item['id'], 'source_url' => $link, 'confirmations_count' => 0,
+                'location_precision_m' => isset($item['location_precision_m']) ? min(5000, (int) $item['location_precision_m']) : null,
                 'first_observed_at' => $observedAt, 'last_activity_at' => now(),
                 'expires_at' => $endsAt ? $this->expiry($endsAt, $attributes['fallback_hours']) : $this->lifecycle->initialExpiry($category, $observedAt->min(now())),
             ]);

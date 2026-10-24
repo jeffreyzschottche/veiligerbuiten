@@ -2,90 +2,91 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Incident;
 use App\Services\ExternalIncidentIngestor;
 use App\Services\P2000FeedService;
 use App\Services\SourceIngestion;
+use App\Services\Sources\P2000ExtraFeeds;
 use Illuminate\Console\Command;
+use Illuminate\Support\Collection;
 
+/**
+ * P2000 uit meerdere bronnen: Zwaailicht (met coördinaten), Sirenes, Alarmeringen.nl
+ * en de P2000-monitor. Hetzelfde voorval uit meerdere bronnen wordt één melding.
+ *
+ * Geen reconcile: alle feeds zijn rollende vensters (de laatste ~50 meldingen), geen
+ * momentopname. Een melding die eruit schuift is niet voorbij; de levensduur volgt de
+ * categorie (IncidentLifecycle) en nieuwe berichten over dezelfde plek.
+ */
 class IngestP2000 extends Command
 {
     protected $signature = 'veiligbuiten:ingest-p2000
-                            {--feed=all : Which feed to use (zwaailicht, alarmeringen, or all)}
-                            {--dry-run : Show what would be imported without saving}';
+                            {--feed=all : zwaailicht, sirenes, alarmeringen, monitor of all}
+                            {--dry-run : Toon wat geïmporteerd zou worden zonder op te slaan}';
 
-    protected $description = 'Haal P2000 meldingen op van RSS/Atom feeds en normaliseer ze tot incidenten.';
+    protected $description = 'Haal P2000-meldingen op uit alle bronnen en normaliseer ze tot incidenten.';
 
-    public function handle(
-        P2000FeedService $feedService,
-        ExternalIncidentIngestor $ingestor,
-        SourceIngestion $tracking
-    ): int {
-        $feed = $this->option('feed');
-        $dryRun = $this->option('dry-run');
+    public function handle(P2000FeedService $zwaailicht, P2000ExtraFeeds $extra, ExternalIncidentIngestor $ingestor, SourceIngestion $tracking): int
+    {
+        $wanted = $this->option('feed');
+        $feeds = ['zwaailicht' => fn () => $zwaailicht->fetchZwaailicht()];
+        foreach (array_keys($extra->feeds()) as $name) {
+            $feeds[$name] = fn () => $extra->fetch($name);
+        }
 
-        $run = $tracking->start('p2000');
-        $count = 0;
-        $created = 0;
-        $updated = 0;
-        $seen = collect();
+        $failed = false;
+        foreach ($feeds as $name => $fetch) {
+            if ($wanted !== 'all' && $wanted !== $name) {
+                continue;
+            }
+            $failed = ! $this->import($name, $fetch, $ingestor, $tracking) || $failed;
+        }
 
+        return $failed ? self::FAILURE : self::SUCCESS;
+    }
+
+    /** Eén bron; een fout in de ene bron houdt de andere niet tegen. */
+    private function import(string $name, \Closure $fetch, ExternalIncidentIngestor $ingestor, SourceIngestion $tracking): bool
+    {
+        $source = "p2000_{$name}";
+        $run = $tracking->start($name === 'zwaailicht' ? 'p2000' : $source);
         try {
-            // Fetch from Zwaailicht (primary - has geo coordinates)
-            if ($feed === 'all' || $feed === 'zwaailicht') {
-                $this->info('Fetching Zwaailicht.nl feed...');
-                $items = $feedService->fetchZwaailicht();
-                if ($items === null) {
-                    // 304: niets nieuws. Niet reconciliëren, anders lijken lopende meldingen verdwenen.
-                    $this->line('  Feed unchanged (304)');
-                    $tracking->finish($run, 0, 0, 0);
+            /** @var Collection|null $items */
+            $items = $fetch();
+            if ($items === null) {
+                // 304: niets nieuws.
+                $tracking->finish($run, 0, 0, 0);
+                $this->line("{$name}: ongewijzigd");
 
-                    return self::SUCCESS;
+                return true;
+            }
+
+            [$created, $updated, $skipped] = [0, 0, 0];
+            foreach ($items as $item) {
+                if ($this->option('dry-run')) {
+                    $this->line("  [{$name}] {$item['title']} ({$item['category']}/{$item['subtype']}, ernst {$item['severity']})");
+                    continue;
                 }
-                $this->line("  Found {$items->count()} items with coordinates");
-
-                foreach ($items as $item) {
-                    if ($dryRun) {
-                        $this->line("  [DRY-RUN] Would import: {$item['title']} ({$item['category']}/{$item['subtype']})");
-                        $count++;
-                        continue;
-                    }
-
-                    $exists = \App\Models\Incident::query()
-                        ->where('source', 'p2000_zwaailicht')
-                        ->where('source_reference', $item['id'])
-                        ->exists();
-
-                    $ingestor->p2000($item);
-                    $tracking->see('p2000_zwaailicht', $item['id'], $item);
-                    $seen->push($item['id']);
-
-                    $exists ? $updated++ : $created++;
-                    $count++;
+                $exists = Incident::query()->where('source', $source)->where('source_reference', $item['id'])->exists();
+                $incident = $ingestor->p2000($item);
+                if (! $incident) {
+                    $skipped++;
+                    continue;
                 }
+                $tracking->see($source, $item['id'], $item);
+                $exists ? $updated++ : $created++;
             }
 
-            // Alarmeringen feed (no geo coords - skip for now, could add geocoding later)
-            if ($feed === 'alarmeringen') {
-                $this->warn('Alarmeringen.nl feed has no coordinates - skipping.');
-                $this->line('Use --feed=zwaailicht or --feed=all for geo-located incidents.');
-            }
+            $tracking->finish($run, $items->count(), $created, $updated);
+            $this->info("{$name}: {$items->count()} meldingen ({$created} nieuw, {$updated} bijgewerkt, {$skipped} alleen ter bevestiging zonder match).");
 
-            if (!$dryRun) {
-                // Geen reconcile: de feed is een rollend venster (ongeveer de laatste 50 meldingen),
-                // geen momentopname. Een melding die eruit schuift is niet voorbij; de levensduur
-                // volgt de categorie (IncidentLifecycle) en nieuwe berichten over dezelfde plek.
-                $tracking->finish($run, $count, $created, $updated);
-            }
-
-            $this->info("P2000 import voltooid: {$count} meldingen verwerkt ({$created} nieuw, {$updated} bijgewerkt).");
-
-            return self::SUCCESS;
+            return true;
         } catch (\Throwable $exception) {
             $tracking->fail($run, $exception);
             report($exception);
-            $this->error('P2000 import mislukt: ' . $exception->getMessage());
+            $this->error("{$name} mislukt: ".$exception->getMessage());
 
-            return self::FAILURE;
+            return false;
         }
     }
 }

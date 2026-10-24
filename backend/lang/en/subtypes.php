@@ -8,6 +8,7 @@ return [
     'Vechtpartij' => 'Fight', 'Agressief persoon' => 'Aggressive person', 'Agressieve groep' => 'Aggressive group', 'Bedreiging' => 'Threat',
     'Beroving / straatroof' => 'Robbery / mugging', 'Mogelijk wapen' => 'Possible weapon', 'Schoten / mogelijk vuurwapen' => 'Shots / possible firearm',
     'Steekincident' => 'Stabbing', 'Rellen / ernstige onrust' => 'Riots / serious unrest', 'Anders: geweld / agressie' => 'Other: violence / aggression',
+    'Brandweerinzet' => 'Fire service call', 'Reddingsactie op het water' => 'Rescue on the water', 'Traumahelikopter ingezet' => 'Trauma helicopter deployed',
     'Handtastelijke persoon' => 'Groping / unwanted touching', 'Nafluiten / naroepen' => 'Catcalling', 'Seksuele opmerkingen / verbale intimidatie' => 'Sexual comments / verbal harassment',
     'Iemand volgt mij' => 'Someone is following me', 'Blijft opdringerig aanspreken' => 'Keeps approaching me', 'Potloodventer / exhibitionist' => 'Indecent exposure',
     'Ongewenst gefilmd of gefotografeerd' => 'Filmed or photographed without consent', 'Intimiderende groep' => 'Intimidating group', 'Voelt onveilig: donker of verlaten' => 'Feels unsafe: dark or deserted',

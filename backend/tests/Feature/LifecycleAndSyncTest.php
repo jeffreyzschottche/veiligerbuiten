@@ -197,6 +197,8 @@ class LifecycleAndSyncTest extends TestCase
         $ride = Incident::where('source_reference', 'v1')->sole();
         $this->assertNotSame('geweld', $ride->category, '"Voorschoten" contains "schoten" but is a town, not a shooting');
         $this->assertSame('info', DangerScale::level($ride));
+        $this->assertStringNotContainsString('Handellaan', $ride->description, 'ambulance rides show the town, never the street');
+        $this->assertSame('Ambulance in Voorschoten', $ride->description);
     }
 
     public function test_police_news_keeps_ongoing_danger_and_skips_what_is_over(): void

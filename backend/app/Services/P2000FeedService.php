@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Services\Sources\Geocoder;
 use App\Services\Sources\PoliteFetcher;
 use App\Support\DangerKeywords;
 use Illuminate\Support\Collection;
@@ -9,7 +10,7 @@ use Illuminate\Support\Facades\Log;
 
 class P2000FeedService
 {
-    public function __construct(private readonly PoliteFetcher $fetcher) {}
+    public function __construct(private readonly PoliteFetcher $fetcher, private readonly Geocoder $geocoder) {}
 
     private const ZWAAILICHT_FEED = 'https://zwaailicht.nl/feed/meldingen.xml';
 
@@ -149,7 +150,12 @@ class P2000FeedService
 
         $title = $this->cleanTitle((string) $entry->title);
         $summary = (string) $entry->summary;
-        $fullText = DangerKeywords::normalize($title . ' ' . $summary);
+        // Een ambulancerit is privé: alleen de plaats, op buurtniveau. Zelfde regel als bij de andere P2000-bronnen.
+        if ($this->isMedicalOnly($categories, $title.' '.$summary)) {
+            $city = preg_match('/\bin ([^.]+?)\.?(?: Ingezet| Gemeld|$)/u', $summary, $m) ? trim($m[1]) : '';
+            $title = $summary = trim('Ambulance'.($city !== '' ? " in {$city}" : ''));
+            ['latitude' => $lat, 'longitude' => $lon] = $this->geocoder->roundForPrivacy(['latitude' => $lat, 'longitude' => $lon, 'precision_m' => 0]);
+        }
 
         return [
             'id' => (string) $entry->id,
@@ -157,13 +163,29 @@ class P2000FeedService
             'description' => $summary ?: $title,
             'latitude' => $lat,
             'longitude' => $lon,
-            'category' => $this->detectCategory($fullText, $categories),
-            'subtype' => $this->detectSubtype($fullText, $categories),
-            'severity' => $this->detectSeverity($fullText, $categories),
+            ...$this->classify($title, $summary, $categories),
             'published_at' => (string) $entry->updated,
             'link' => (string) ($entry->link['href'] ?? ''),
             'source_feed' => 'zwaailicht',
             'raw_categories' => $categories,
+        ];
+    }
+
+    /**
+     * Categorie, soort en ernst uit een P2000-tekst. Gedeeld door alle P2000-feeds,
+     * zodat dezelfde alarmering uit verschillende bronnen gelijk wordt ingedeeld.
+     *
+     * @param  list<string>  $disciplines  bijv. ['ambulance'], ['brandweer'], ['politie']
+     * @return array{category: string, subtype: string, severity: int}
+     */
+    public function classify(string $title, string $summary, array $disciplines): array
+    {
+        $text = DangerKeywords::normalize($title.' '.$summary);
+
+        return [
+            'category' => $this->detectCategory($text, $disciplines),
+            'subtype' => $this->detectSubtype($text, $disciplines),
+            'severity' => $this->detectSeverity($text, $disciplines),
         ];
     }
 
@@ -192,6 +214,11 @@ class P2000FeedService
             return $threat[0];
         }
 
+        // Brandweer zonder brand (liftopsluiting, assistentie, water) is geen brand.
+        if ($this->isFireService($categories) && ! $this->mentionsFire($text)) {
+            return 'anders';
+        }
+
         // Check discipline from feed categories
         foreach ($categories as $cat) {
             if (isset(self::DISCIPLINE_MAP[$cat])) {
@@ -200,6 +227,29 @@ class P2000FeedService
         }
 
         return 'onveilig';
+    }
+
+    /** Alleen ambulance/traumaheli, zonder brandweer of politie en zonder geweld of dreiging. */
+    private function isMedicalOnly(array $categories, string $text): bool
+    {
+        $text = DangerKeywords::normalize($text);
+
+        return array_intersect($categories, ['ambulance', 'medisch', 'lifeliner', 'trauma'])
+            && ! array_intersect($categories, ['brandweer', 'brand', 'fire', 'politie', 'police'])
+            && ! $this->matchesAny($text, array_keys(self::VIOLENCE_INDICATORS)) && ! $this->threat($text);
+    }
+
+    private function isFireService(array $categories): bool
+    {
+        return (bool) array_intersect($categories, ['brandweer', 'brand', 'fire']);
+    }
+
+    /** Brand in de tekst; ruwe pagerteksten korten af tot 'BR' (bijv. "BR woning", "Grote BR"). */
+    private function mentionsFire(string $text): bool
+    {
+        $text = str_replace(['brandweer', 'brandmelding'], '', $text);
+
+        return (bool) preg_match('/brand|rook|vuur|\bbr\b|explosie|uitslaand/u', $text);
     }
 
     private function detectSubtype(string $text, array $categories): string
@@ -223,6 +273,12 @@ class P2000FeedService
         }
 
         // Default by discipline
+        if (in_array('knrm', $categories)) {
+            return 'Reddingsactie op het water';
+        }
+        if (in_array('lifeliner', $categories) || in_array('trauma', $categories)) {
+            return 'Traumahelikopter ingezet';
+        }
         if (in_array('ambulance', $categories) || in_array('medisch', $categories)) {
             return 'Medische noodsituatie';
         }
@@ -230,7 +286,7 @@ class P2000FeedService
             return 'Politie-inzet';
         }
         if (in_array('brandweer', $categories)) {
-            return 'Brand';
+            return $this->mentionsFire($text) ? 'Brand' : 'Brandweerinzet';
         }
 
         return 'P2000 melding';
@@ -259,6 +315,14 @@ class P2000FeedService
         // Violence is always high severity
         if ($this->matchesAny($text, array_keys(self::VIOLENCE_INDICATORS))) {
             return 5;
+        }
+        // Brandweerinzet zonder brand of dreiging: goed om te weten.
+        if ($this->isFireService($categories) && ! $this->mentionsFire($text)) {
+            return 2;
+        }
+        // Ruwe politieteksten beginnen met de prioriteit als los cijfer ("1 Ongeval", "4 Demonstratie").
+        if (array_intersect($categories, ['politie', 'police']) && preg_match('/^\s*([1-5])\s+\p{L}/u', $text, $priority)) {
+            return (int) $priority[1] <= 2 ? 3 : 2;
         }
 
         $fireText = str_replace(['brandweer', 'brandmelding', 'brandgerucht'], '', $text);

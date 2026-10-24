@@ -16,6 +16,9 @@ class IncidentPresenter
         'politie' => 'Politie',
         'p2000' => 'P2000',
         'p2000_zwaailicht' => 'Zwaailicht.nl',
+        'p2000_sirenes' => 'Sirenes',
+        'p2000_alarmeringen' => 'Alarmeringen.nl',
+        'p2000_monitor' => 'P2000 monitor',
         'nl_alert' => 'NL-Alert',
         'ns' => 'NS',
     ];
