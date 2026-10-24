@@ -1,6 +1,6 @@
 <script setup lang="ts">
-// Registreren gebeurt in de app-onboarding.
-navigateTo('/app/start', { replace: true });
+// Registreren en betalen gebeurt op de website.
+navigateTo('/aanmelden', { replace: true });
 </script>
 
 <template>

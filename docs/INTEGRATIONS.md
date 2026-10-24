@@ -8,7 +8,7 @@ serversleutels alleen in de secretstore van de backend/hostingomgeving.
 | OpenFreeMap + OpenStreetMap | De kaart | Nee | Actief via de publieke Liberty-style. Voor groot verkeer later eigen tile-hosting plannen. |
 | NDW Open Data SRTI | Verkeers- en veiligheidsberichten | Nee | Feed-URL staat als `NDW_OPEN_DATA_URL` in de backend. `veiligbuiten:ingest-ndw` normaliseert actuele puntmeldingen naar officiële verkeer-/blokkade-incidenten. |
 | KNMI Open Data | Weerwaarschuwingen | Ja, gratis API-key | Vul `KNMI_API_KEY` alleen in de backend in. |
-| RevenueCat | Abonnement € 0,99 per maand | Ja | Melden en kaartdata vereisen een actief abonnement; max. 3 meldingen per dag per account (`ReportQuota`). De oude CAPTCHA is vervallen. |
+| Stripe | Abonnement € 0,99 per maand, afgesloten op de website | Ja (`STRIPE_SECRET`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID`) | Melden en kaartdata vereisen een actief abonnement; max. 3 meldingen per dag per account (`ReportQuota`). De oude CAPTCHA is vervallen. |
 | Firebase Cloud Messaging | Android pushmeldingen | Ja | Vereist voor push. Firebase-project, Android-app `nl.veiligerbuiten.app`, `google-services.json` in Android en service-account JSON als backend-secret. |
 | Apple Push Notification service | iOS pushmeldingen | Ja | Vereist voor iOS-push. Apple Developer Program, Push Notifications capability, APNs `.p8` key, Key ID en Team ID. |
 | Google Play Console | Android publiceren | Geen API-key voor handmatige release | Vereist een Play Console-account en upload-keystore. Alleen CI-upload gebruikt later een service-account. |

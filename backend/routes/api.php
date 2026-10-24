@@ -47,6 +47,8 @@ Route::prefix('v1')->group(function () {
         Route::get('/me', [AccountController::class, 'show']);
         Route::put('/me/settings', [AccountController::class, 'updateSettings'])->middleware('throttle:30,1');
         Route::post('/me/subscription/refresh', [SubscriptionController::class, 'refresh'])->middleware('throttle:10,1');
+        Route::post('/me/subscription/checkout', [SubscriptionController::class, 'checkout'])->middleware('throttle:10,1');
+        Route::post('/me/subscription/portal', [SubscriptionController::class, 'portal'])->middleware('throttle:10,1');
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::post('/email/resend', [AuthController::class, 'resendVerification'])
             ->middleware('throttle:3,1');
@@ -94,8 +96,8 @@ Route::prefix('v1')->group(function () {
         Route::post('/me/ai/webhook/test', [AiConnectionController::class, 'testWebhook'])->middleware('throttle:5,1');
     });
 
-    // RevenueCat meldt aankopen, verlengingen en opzeggingen.
-    Route::post('/webhooks/revenuecat', [SubscriptionController::class, 'webhook'])->middleware('throttle:120,1');
+    // Stripe meldt betalingen, verlengingen en opzeggingen.
+    Route::post('/webhooks/stripe', [SubscriptionController::class, 'webhook'])->middleware('throttle:120,1');
 
     // Admin routes
     Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {

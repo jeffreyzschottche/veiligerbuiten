@@ -64,14 +64,12 @@
           <span class="row__icon"><Icon name="card" :size="18" /></span>
           <span class="row__main">
             <span class="row__title">{{ account.subscription.active ? t.account.active : t.account.inactive }}</span>
-            <span v-if="account.subscription.expires_at" class="row__sub">{{ fill(t.account.activeUntil, { date: new Date(account.subscription.expires_at).toLocaleDateString(locale === 'nl' ? 'nl-NL' : 'en-GB') }) }}</span>
+            <span v-if="account.subscription.expires_at && account.subscription.status !== 'active'" class="row__sub">{{ fill(t.account.activeUntil, { date: new Date(account.subscription.expires_at).toLocaleDateString(locale === 'nl' ? 'nl-NL' : 'en-GB') }) }}</span>
           </span>
-          <button v-if="billing.available" class="btn btn--soft btn--sm" @click="billing.manage()">{{ t.account.manage }}</button>
+          <button v-if="billing.available && account.subscription.status !== 'gift'" class="btn btn--soft btn--sm" :disabled="billing.busy.value" @click="billing.manage().catch(() => undefined)">{{ t.account.manage }}</button>
         </div>
-        <button v-if="billing.available" class="row" :disabled="billing.busy.value" @click="billing.restore().catch(() => undefined)">
-          <span class="row__main"><span class="row__title restore">{{ t.account.restore }}</span></span>
-        </button>
       </div>
+      <p v-if="!billing.available" class="group__help">{{ t.account.manageWeb }}</p>
     </div>
 
     <div class="card group">
@@ -175,7 +173,6 @@ async function remove() {
 .quiet { gap: 16px; }
 .quiet label { display: flex; flex: 1; align-items: center; gap: 8px; color: var(--vb-muted); font-size: 14px; }
 .input--time { min-height: 40px; padding: 0 10px; }
-.restore { color: var(--vb-brand); }
 .danger { color: var(--vb-danger); }
 .row__icon--danger { color: var(--vb-danger); background: #fdecec; }
 .foot { margin: 8px 0 0; color: var(--vb-subtle); font-size: 12px; text-align: center; }

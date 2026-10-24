@@ -7,13 +7,13 @@
 ### 1. Accounts en sleutels
 
 Alle code staat klaar (app, abonnement, push, achtergrondcontrole, AI-koppeling).
-Wat nog nodig is staat in `currentmission.md`: RevenueCat, APNs, Firebase, winkellinks.
+Wat nog nodig is staat in `currentmission.md`: Stripe, APNs, Firebase, winkellinks.
 
 ### 2. Testen op echte toestellen
 
 - [ ] Achtergrondcontrole op iOS en Android (draait niet in de simulator)
 - [ ] Pushes per ernst: geluid, Focus-modus, kanalen op Android
-- [ ] Aankoop en herstel via RevenueCat sandbox
+- [ ] Registreren en betalen op de site met Stripe in testmodus, daarna inloggen in de app
 
 ---
 
@@ -99,7 +99,7 @@ Dit voegt toe:
 | User dashboard | ✅ Done |
 | Admin panel | ✅ Done |
 | Nieuwe app (kaart, melden, plekken, account) | ✅ Done |
-| Abonnement € 0,99 (RevenueCat) | ⏳ Wacht op RevenueCat-account |
+| Abonnement € 0,99 (Stripe, via de website) | ⏳ Wacht op Stripe-sleutels |
 | Push (APNs direct, FCM) | ⏳ Wacht op sleutels |
 | Achtergrondcontrole (lokaal) | ✅ Done, testen op toestel |
 | AI-koppeling (MCP + webhook) | ✅ Done |

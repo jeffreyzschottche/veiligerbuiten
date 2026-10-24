@@ -198,6 +198,7 @@
               <p class="eyebrow eyebrow--light">{{ t.price.eyebrow }}</p>
               <p class="price__amount">{{ t.price.amount }}<span>{{ t.price.per }}</span></p>
               <h2>{{ t.price.title }}</h2>
+              <NuxtLink to="/aanmelden" class="price__cta">{{ t.price.cta }}</NuxtLink>
               <StoreButtons :copy="t" light />
               <p class="price__note">{{ t.price.note }}</p>
             </div>
@@ -418,6 +419,8 @@ h3 { font-size: 21px; letter-spacing: -.025em; }
 .price__amount { display: flex; align-items: baseline; gap: 12px; margin: 0 0 10px; font-size: clamp(64px, 10vw, 120px); letter-spacing: -.06em; line-height: 1; }
 .price__amount span { font-size: 18px; font-weight: 500; letter-spacing: 0; color: #a9aebb; }
 .price h2 { margin-bottom: 32px; font-size: clamp(26px, 3.2vw, 38px); }
+.price__cta { display: inline-flex; align-items: center; justify-content: center; height: 54px; margin: 0 0 14px; padding: 0 26px; border-radius: 14px; color: #fff; background: var(--vb-brand); font-size: 17px; font-weight: 620; text-decoration: none; transition: transform .2s var(--vb-ease); }
+.price__cta:hover { transform: translateY(-2px); }
 .price__note { margin: 16px 0 0; font-size: 14px; color: #a9aebb; }
 .price__list { position: relative; z-index: 1; display: grid; align-content: center; gap: 16px; margin: 0; padding: 0; list-style: none; }
 .price__list li { display: flex; align-items: center; gap: 12px; }

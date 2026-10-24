@@ -24,4 +24,24 @@ abstract class TestCase extends BaseTestCase
 
         return $user;
     }
+
+    /** Een Stripe-webhook met een geldige handtekening, zoals Stripe hem stuurt. */
+    protected function stripeWebhook(string $type, array $object, ?string $secret = null): \Illuminate\Testing\TestResponse
+    {
+        $body = json_encode(['id' => 'evt_'.uniqid(), 'type' => $type, 'data' => ['object' => $object]]);
+        $timestamp = time();
+        $signature = hash_hmac('sha256', "{$timestamp}.{$body}", $secret ?? (string) config('services.stripe.webhook_secret'));
+
+        return $this->call('POST', '/api/v1/webhooks/stripe', [], [], [], ['HTTP_STRIPE_SIGNATURE' => "t={$timestamp},v1={$signature}", 'CONTENT_TYPE' => 'application/json'], $body);
+    }
+
+    /** Een Stripe-abonnement zoals de API het teruggeeft (prijsperiode op het item, API 2025+). */
+    protected function stripeSubscription(User $user, array $overrides = []): array
+    {
+        return array_replace_recursive([
+            'id' => 'sub_1', 'customer' => 'cus_1', 'status' => 'active', 'cancel_at_period_end' => false, 'cancel_at' => null,
+            'metadata' => ['user_id' => (string) $user->id],
+            'items' => ['data' => [['current_period_end' => now()->addMonth()->getTimestamp(), 'price' => ['unit_amount' => 99, 'currency' => 'eur']]]],
+        ], $overrides);
+    }
 }

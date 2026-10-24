@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Services\Billing;
+use App\Services\Ops;
 use App\Models\IncidentReport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -71,6 +73,15 @@ class ProfileController extends Controller
         ]);
 
         $user = $request->user();
+
+        // Eerst het abonnement stoppen: lukt dat niet, dan blijft het account bestaan in plaats van dat iemand doorbetaalt.
+        try {
+            app(Billing::class)->forget($user);
+        } catch (\Throwable $exception) {
+            Ops::record('payment.forget_failed', Ops::ERROR, 'Abonnement niet gestopt bij verwijderen account', "Account #{$user->id}: ".mb_substr($exception->getMessage(), 0, 200), ['account' => $user->id], (string) $user->id);
+
+            return response()->json(['message' => 'Je abonnement kon nu niet worden stopgezet. Probeer het over een paar minuten opnieuw.'], 503);
+        }
 
         // Revoke all tokens
         $user->tokens()->delete();

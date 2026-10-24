@@ -25,14 +25,14 @@ export const legal: Record<'privacy' | 'terms', Record<Locale, Doc>> = {
           'Per toestel bewaren we een pushtoken, zodat we meldingen kunnen sturen.',
         ] },
         { title: 'Abonnement', body: [
-          'Betalen gaat via de App Store of Google Play. Wij zien geen betaalgegevens. RevenueCat verwerkt voor ons de status van je abonnement, gekoppeld aan je account-id.',
+          'Betalen gaat via Stripe op onze website. Stripe verwerkt je betaalgegevens; wij zien die niet. Wij krijgen van Stripe alleen of je abonnement loopt en tot wanneer, gekoppeld aan je account. Verwijder je je account, dan verwijderen we je ook als klant bij Stripe. Stripe bewaart betalingen zelf zo lang de wet dat vraagt.',
         ] },
         { title: 'AI-koppeling en webhooks', body: [
           'Als je zelf een AI-assistent of webhook koppelt, kan die via jouw persoonlijke koppeling de situaties rond je plekken opvragen. Wat de assistent met die gegevens doet, valt onder de voorwaarden van die aanbieder. Je kunt de koppeling altijd verbreken.',
         ] },
         { title: 'Delen met anderen', body: [
           'We verkopen geen gegevens. Meldingen op de kaart zijn anoniem: anderen zien niet wie iets meldde.',
-          'We gebruiken verwerkers voor hosting, pushberichten (Apple en Google) en abonnementen (RevenueCat). Kaarttegels komen van OpenFreeMap; dat ziet welk kaartgebied je bekijkt, net als bij elke online kaart.',
+          'We gebruiken verwerkers voor hosting, pushberichten (Apple en Google) en betalingen (Stripe). Kaarttegels komen van OpenFreeMap; dat ziet welk kaartgebied je bekijkt, net als bij elke online kaart.',
         ] },
         { title: 'Advertenties', body: [
           'In de app zie je af en toe een kleine advertentie onderin, geleverd door Google AdMob. Nooit als er gevaar in de buurt is en nooit tijdens het melden of bekijken van een situatie.',
@@ -60,14 +60,14 @@ export const legal: Record<'privacy' | 'terms', Record<Locale, Doc>> = {
           'For each device we store a push token, so we can send notifications.',
         ] },
         { title: 'Subscription', body: [
-          'Payment goes through the App Store or Google Play. We never see payment details. RevenueCat processes your subscription status for us, linked to your account id.',
+          'Payment goes through Stripe on our website. Stripe processes your payment details; we never see them. Stripe only tells us whether your subscription is running and until when, linked to your account. If you delete your account, we also delete you as a customer at Stripe. Stripe itself keeps payments as long as the law requires.',
         ] },
         { title: 'AI connection and webhooks', body: [
           'If you connect an AI assistant or webhook yourself, it can request the situations around your places through your personal connection. What the assistant does with that data falls under that provider’s terms. You can disconnect at any time.',
         ] },
         { title: 'Sharing', body: [
           'We do not sell data. Reports on the map are anonymous: others cannot see who reported something.',
-          'We use processors for hosting, push notifications (Apple and Google) and subscriptions (RevenueCat). Map tiles come from OpenFreeMap, which sees which map area you view, as with any online map.',
+          'We use processors for hosting, push notifications (Apple and Google) and payments (Stripe). Map tiles come from OpenFreeMap, which sees which map area you view, as with any online map.',
         ] },
         { title: 'Advertising', body: [
           'The app occasionally shows a small ad at the bottom, served by Google AdMob. Never when there is danger nearby, and never while you report or view a situation.',
@@ -96,7 +96,9 @@ export const legal: Record<'privacy' | 'terms', Record<Locale, Doc>> = {
           'Geen persoonsgegevens, beschuldigingen, reclame of scheldwoorden. Valse of misleidende meldingen kunnen leiden tot blokkering van je account.',
         ] },
         { title: 'Abonnement', body: [
-          'VeiligerBuiten kost € 0,99 per maand, zonder proefperiode. Het abonnement verlengt automatisch en is maandelijks op te zeggen via de App Store of Google Play.',
+          'VeiligerBuiten kost € 0,99 per maand (inclusief btw), zonder proefperiode. Je sluit het af op veiligerbuiten.nl en betaalt via Stripe. Het abonnement verlengt elke maand automatisch.',
+          'Opzeggen kan altijd op veiligerbuiten.nl/account. Je houdt toegang tot het einde van de maand waarvoor je betaald hebt.',
+          'Je hebt 14 dagen bedenktijd. Zeg je binnen 14 dagen na je eerste betaling op en mail je ons, dan krijg je die betaling terug.',
         ] },
         { title: 'Aansprakelijkheid', body: [
           'We doen ons best om de dienst betrouwbaar te houden, maar kunnen niet garanderen dat die altijd werkt of dat informatie klopt. We zijn niet aansprakelijk voor schade door het gebruik van, of vertrouwen op, de informatie in de app, behalve bij opzet of grove schuld.',
@@ -119,7 +121,9 @@ export const legal: Record<'privacy' | 'terms', Record<Locale, Doc>> = {
           'No personal data, accusations, advertising or abuse. False or misleading reports can lead to your account being blocked.',
         ] },
         { title: 'Subscription', body: [
-          'VeiligerBuiten costs €0.99 per month, with no trial. The subscription renews automatically and can be cancelled monthly in the App Store or Google Play.',
+          'VeiligerBuiten costs €0.99 per month (VAT included), with no trial. You subscribe at veiligerbuiten.nl and pay via Stripe. The subscription renews automatically every month.',
+          'You can cancel at any time at veiligerbuiten.nl/account. You keep access until the end of the month you paid for.',
+          'You have a 14-day cooling-off period. Cancel within 14 days of your first payment and email us, and we refund that payment.',
         ] },
         { title: 'Liability', body: [
           'We do our best to keep the service reliable, but cannot guarantee that it always works or that information is correct. We are not liable for damage caused by using or relying on the information in the app, except in case of intent or gross negligence.',

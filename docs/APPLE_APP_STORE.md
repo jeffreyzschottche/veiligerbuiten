@@ -26,6 +26,10 @@ locatietekst staat in `frontend/ios/App/App/Info.plist`.
 - Test op een fysiek iPhone-toestel: locatie toestaan/weigeren, kaart laden,
   incidentdetails, melding plaatsen, deeplinks en offline/error states.
 - Maak screenshots voor iPhone en, als iPad wordt ondersteund, iPad.
+- **Abonnement buiten de app.** Registreren en betalen gebeurt op veiligerbuiten.nl (Stripe); de app logt alleen in.
+  - In de app staat daarom **geen betaalknop, geen prijs en geen link** naar de betaalpagina, alleen de tekst dat je je account op veiligerbuiten.nl aanmaakt. Houd dat zo: een knop of link naar een betaalpagina is buiten de VS reden voor afwijzing.
+  - Geef de reviewer een testaccount met toegang (`php artisan veiligbuiten:gift <e-mail>`) en schrijf in de reviewnotities dat accounts op de website worden aangemaakt.
+  - Apple kan alsnog vragen om ook een in-app-aankoop aan te bieden (richtlijn 3.1.1). Gebeurt dat, dan is het antwoord óf een in-app-abonnement ernaast, óf de "External Purchase Link"-regeling voor de EU.
 
 ## Pushmeldingen
 

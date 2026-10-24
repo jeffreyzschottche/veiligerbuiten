@@ -73,8 +73,13 @@ Later kan er nog snelheid bij met Octane (worker-modus); dat vraagt een extra pa
 - de nieuwe gebeurtenissen sinds `?since=`.
 
 Welke gebeurtenissen:
-- **Betalingen:** nieuwe abonnee, verlenging, opzegging, betaalprobleem, verlopen.
-- **Betaalfouten:** een betaling zonder gekoppeld account en een geweigerde RevenueCat-webhook. Die tellen als fout.
+- **Betalingen (Stripe):**
+  - nieuwe abonnee, verlenging, opzegging, opzegging teruggedraaid;
+  - betaalprobleem, betaling alsnog gelukt, verlopen.
+- **Betaalfouten** (tellen als fout):
+  - een betaling zonder gekoppeld account;
+  - een Stripe-webhook met een verkeerde handtekening;
+  - een account dat verwijderd werd terwijl Stripe niet bereikbaar was (het account blijft dan bestaan).
 - **Nieuwe accounts.**
 - **Bronnen:** een bron die 3× op rij faalt, en een melding zodra hij weer werkt.
 - **Onverwachte fouten in de app**, met de foutsoort, het bestand en de regel. Dezelfde fout telt een uur lang op in plaats van te herhalen.

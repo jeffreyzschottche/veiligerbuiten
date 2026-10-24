@@ -117,18 +117,4 @@ class AccountFeaturesTest extends TestCase
             ->assertJsonPath('result.isError', false)
             ->assertJsonPath('result.structuredContent.situations.0.title', 'Bommelding');
     }
-
-    public function test_revenuecat_webhooks_update_the_subscription(): void
-    {
-        config(['services.revenuecat.webhook_secret' => 'rc-secret']);
-        $user = User::factory()->create();
-        $event = ['type' => 'INITIAL_PURCHASE', 'app_user_id' => (string) $user->id, 'expiration_at_ms' => now()->addMonth()->getTimestampMs()];
-
-        $this->postJson('/api/v1/webhooks/revenuecat', ['event' => $event])->assertUnauthorized();
-        $this->postJson('/api/v1/webhooks/revenuecat', ['event' => $event], ['Authorization' => 'Bearer rc-secret'])->assertOk();
-        $this->assertTrue($user->fresh()->hasActiveSubscription());
-
-        $this->postJson('/api/v1/webhooks/revenuecat', ['event' => ['type' => 'EXPIRATION', 'app_user_id' => (string) $user->id]], ['Authorization' => 'Bearer rc-secret'])->assertOk();
-        $this->assertFalse($user->fresh()->hasActiveSubscription());
-    }
 }

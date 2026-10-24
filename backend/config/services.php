@@ -72,10 +72,11 @@ return [
     ],
     // Zschot CMS haalt hiermee /api/v1/ops/status op. Leeg = endpoint uit.
     'ops' => ['token' => env('OPS_TOKEN')],
-    'revenuecat' => [
-        'secret_key' => env('REVENUECAT_SECRET_KEY'),
-        'webhook_secret' => env('REVENUECAT_WEBHOOK_SECRET'),
-        'entitlement' => env('REVENUECAT_ENTITLEMENT', 'premium'),
+    // Abonnement via Stripe Checkout op de website; de app logt alleen in.
+    'stripe' => [
+        'secret' => env('STRIPE_SECRET'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+        'price' => env('STRIPE_PRICE_ID'),
     ],
 
     /*

@@ -109,7 +109,7 @@ class OpsStatusController extends Controller
     private function metrics(): array
     {
         return rescue(fn () => [
-            'subscribers_active' => User::query()->whereIn('subscription_status', ['active', 'cancelled'])->where('subscription_expires_at', '>', now())->count(),
+            'subscribers_active' => User::query()->whereIn('subscription_status', ['active', 'cancelled', 'billing_issue'])->where('subscription_expires_at', '>', now())->count(),
             'accounts_new_24h' => User::query()->where('created_at', '>=', now()->subDay())->count(),
             'incidents_live' => Incident::query()->where('visibility', 'public')->whereNull('resolved_at')->where('expires_at', '>', now())->count(),
             // Gebieden waar telefoons de laatste uren om vroegen: een ruwe maat voor gebruik.

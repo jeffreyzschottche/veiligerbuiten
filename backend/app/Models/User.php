@@ -37,6 +37,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'ai_token',
         'ai_token_hash',
         'webhook_secret',
+        'stripe_customer_id',
+        'stripe_subscription_id',
     ];
 
     protected $casts = [

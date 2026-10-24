@@ -23,4 +23,7 @@ Review van 24 oktober 2026. Wat hieronder als "opgelost" staat, heeft een test i
 4. **MCP-token in de URL** (`/mcp/vb_…`). Het komt in de logs van de webserver en de proxy terecht; maskeer het daar.
 5. **Beveiligingsheaders** voor de website (HSTS, CSP, X-Frame-Options), in te stellen op de reverse proxy.
 6. **Resterende npm-meldingen.** MapLibre (alleen de popup-sanitiser, die de app niet gebruikt; de oplossing is de volgende hoofdversie) en `node-forge` (alleen in de lokale dev-server). Neem ze mee bij de volgende grote update.
-7. **RevenueCat-webhooks** kunnen in de verkeerde volgorde binnenkomen. Bij twijfel volgt een `refresh` via de API.
+7. **Stripe-webhooks:**
+   - Ze tellen alleen met een geldige `Stripe-Signature` (HMAC, hoogstens 5 minuten oud).
+   - Ze kunnen in de verkeerde volgorde binnenkomen. Daarom gebruiken we een event alleen als seintje en halen we het abonnement zelf opnieuw op bij Stripe.
+   - Een checkout-sessie telt alleen voor het account dat hem startte (`client_reference_id`).

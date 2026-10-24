@@ -166,7 +166,7 @@ return [
         'info_digest_minutes' => 60,
     ],
 
-    // Lokaal ontwikkelen zonder RevenueCat: alle accounts gelden als betalend.
+    // Lokaal ontwikkelen zonder Stripe: alle accounts gelden als betalend.
     'billing_bypass' => (bool) env('VB_BILLING_BYPASS', false),
 
 ];

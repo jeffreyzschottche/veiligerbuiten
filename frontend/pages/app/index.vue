@@ -242,7 +242,6 @@ async function onSubscribed() {
 async function logout() {
   await device.link(true);
   await auth.logout();
-  useBilling().reset();
   await sync.clear();
   navigateTo('/app/start', { replace: true });
 }

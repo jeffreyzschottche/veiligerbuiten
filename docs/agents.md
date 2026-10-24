@@ -12,7 +12,7 @@
 | Layer | Technology |
 |-------|------------|
 | Backend | Laravel 12, PHP 8.2+, PostgreSQL + PostGIS |
-| Frontend | Nuxt 4, Vue 3.5, MapLibre GL + OpenFreeMap, Capacitor 8 (Background Runner, RevenueCat) |
+| Frontend | Nuxt 4, Vue 3.5, MapLibre GL + OpenFreeMap, Capacitor 8 (Background Runner); abonnement via Stripe op de website |
 | Mobile | Capacitor 8 (iOS + Android) |
 | Auth | Laravel Sanctum (token-based) |
 | Queue | Redis + Laravel Queues |

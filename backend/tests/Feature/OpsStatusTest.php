@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\ScrapePlanner;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class OpsStatusTest extends TestCase
@@ -21,7 +22,7 @@ class OpsStatusTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        config(['services.ops.token' => 'geheim', 'services.revenuecat.webhook_secret' => 'rc']);
+        config(['services.ops.token' => 'geheim', 'services.stripe.webhook_secret' => 'whsec_test', 'services.stripe.secret' => 'sk_test', 'services.stripe.price' => 'price_1']);
     }
 
     public function test_the_endpoint_does_not_exist_without_a_token_and_refuses_a_wrong_one(): void
@@ -35,7 +36,9 @@ class OpsStatusTest extends TestCase
     public function test_a_payment_shows_up_as_an_event_without_personal_data_and_only_once(): void
     {
         $user = User::factory()->create(['email' => 'iemand@example.nl', 'name' => 'Iemand']);
-        $this->postJson('/api/v1/webhooks/revenuecat', ['event' => ['type' => 'INITIAL_PURCHASE', 'app_user_id' => (string) $user->id, 'store' => 'APP_STORE', 'price' => 0.99, 'currency' => 'EUR', 'expiration_at_ms' => now()->addMonth()->getTimestampMs()]], ['Authorization' => 'Bearer rc'])->assertOk();
+        Http::fake(['api.stripe.com/v1/subscriptions/sub_1' => Http::response($this->stripeSubscription($user))]);
+        $this->stripeWebhook('customer.subscription.created', ['id' => 'sub_1'])->assertOk();
+        $this->stripeWebhook('customer.subscription.updated', ['id' => 'sub_1'])->assertOk(); // dubbel of later event: geen tweede melding
 
         $first = $this->opsStatus()->assertOk()->assertJsonPath('events.0.type', 'payment.new')->assertJsonPath('events.0.title', 'Nieuwe abonnee')->assertJsonPath('metrics.subscribers_active', 1);
         $this->assertStringContainsString("Account #{$user->id}", $first->json('events.0.message'));
@@ -48,9 +51,9 @@ class OpsStatusTest extends TestCase
 
     public function test_money_without_an_account_and_a_wrong_webhook_secret_are_errors(): void
     {
-        $this->postJson('/api/v1/webhooks/revenuecat', ['event' => ['type' => 'RENEWAL', 'app_user_id' => '$RCAnonymousID:abc']], ['Authorization' => 'Bearer rc'])->assertOk();
-        $this->postJson('/api/v1/webhooks/revenuecat', ['event' => ['type' => 'RENEWAL']], ['Authorization' => 'Bearer fout'])->assertUnauthorized();
-        $this->postJson('/api/v1/webhooks/revenuecat', ['event' => ['type' => 'RENEWAL']], ['Authorization' => 'Bearer fout'])->assertUnauthorized();
+        $this->stripeWebhook('invoice.paid', ['id' => 'in_1', 'billing_reason' => 'subscription_cycle', 'customer' => 'cus_onbekend', 'amount_paid' => 99, 'currency' => 'eur'])->assertOk();
+        $this->stripeWebhook('invoice.paid', ['id' => 'in_2'], 'whsec_fout')->assertStatus(400);
+        $this->stripeWebhook('invoice.paid', ['id' => 'in_3'], 'whsec_fout')->assertStatus(400);
 
         $this->assertSame(['payment.unmatched', 'payment.webhook_rejected'], OpsEvent::orderBy('id')->pluck('type')->all());
         $this->assertSame(2, OpsEvent::where('type', 'payment.webhook_rejected')->value('occurrences'), 'the same problem counts up instead of repeating');

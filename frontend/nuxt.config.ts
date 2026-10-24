@@ -39,9 +39,6 @@ export default defineNuxtConfig({
       // Winkellinks volgen later; tot die tijd scrollen de knoppen naar #download.
       appStoreUrl: process.env.NUXT_PUBLIC_APP_STORE_URL || '',
       playStoreUrl: process.env.NUXT_PUBLIC_PLAY_STORE_URL || '',
-      // Publieke RevenueCat SDK-sleutels (appl_… / goog_…); geen geheimen.
-      revenuecatIosKey: process.env.NUXT_PUBLIC_REVENUECAT_IOS_KEY || '',
-      revenuecatAndroidKey: process.env.NUXT_PUBLIC_REVENUECAT_ANDROID_KEY || '',
       // AdMob banner-units (ca-app-pub-…/…). Leeg = geen advertenties; 'true' bij testing = Google-testadvertenties.
       admobBannerIos: process.env.NUXT_PUBLIC_ADMOB_BANNER_IOS || '',
       admobBannerAndroid: process.env.NUXT_PUBLIC_ADMOB_BANNER_ANDROID || '',

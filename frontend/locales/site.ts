@@ -188,8 +188,9 @@ const nl = {
     amount: '€ 0,99',
     per: 'per maand',
     title: 'Alles. Voor minder dan een euro.',
+    cta: 'Account aanmaken',
     items: ['Live kaart en meldingen', 'Al je plekken en filters', 'Ook zonder internet een seintje', 'Koppeling met je AI-assistent', 'Maandelijks opzegbaar'],
-    note: 'Geen proefperiode, geen kleine lettertjes.',
+    note: 'Je maakt je account en betaalt hier op de site, daarna log je in de app in. Geen proefperiode, geen kleine lettertjes.',
   },
   footer: { motto: 'Be safe.', emergency: 'Bij direct gevaar: bel altijd 112.', privacy: 'Privacy', terms: 'Voorwaarden', contact: 'Contact' },
   scene: {
@@ -399,8 +400,9 @@ const en: typeof nl = {
     amount: '€ 0.99',
     per: 'per month',
     title: 'Everything. For less than a euro.',
+    cta: 'Create account',
     items: ['Live map and alerts', 'All your places and filters', 'Heads-ups even without internet', 'Connect your AI assistant', 'Cancel any month'],
-    note: 'No trial, no fine print.',
+    note: 'You create your account and pay here on the site, then log in to the app. No trial, no fine print.',
   },
   footer: { motto: 'Be safe.', emergency: 'In immediate danger: always call 112.', privacy: 'Privacy', terms: 'Terms', contact: 'Contact' },
   scene: {

@@ -3,7 +3,7 @@
 > Dingen die jij (de developer) zelf moet regelen. De code staat klaar en
 > wacht alleen op accounts, sleutels en instellingen.
 
-Het model: **€ 0,99 per maand via RevenueCat, geen proefperiode, geen advertenties.**
+Het model: **€ 0,99 per maand via Stripe, geen proefperiode.** Registreren en betalen gebeurt op veiligerbuiten.nl (`/aanmelden`); de app logt alleen in.
 
 ## 1. Backend `.env`
 
@@ -13,25 +13,37 @@ APP_URL=https://api.veiligerbuiten.nl   # bepaalt ook de MCP-URL die gebruikers 
 VB_BILLING_BYPASS=false               # alleen lokaal op true om zonder abonnement te testen
 ```
 
-## 2. RevenueCat (abonnement)
+## 2. Stripe (abonnement)
 
-1. Maak in App Store Connect en Google Play Console een maandabonnement van € 0,99 aan, **zonder proefperiode**.
-2. Maak in RevenueCat een project, koppel beide winkels en maak het entitlement `premium` met dat product.
-3. Zet de standaard-offering met een `monthly`-package.
-4. Webhook: `https://api.veiligerbuiten.nl/api/v1/webhooks/revenuecat`, met een Authorization-header die je zelf kiest.
+1. **Product:** Stripe → Productcatalogus → product "VeiligerBuiten", prijs € 0,99, **terugkerend, maandelijks**. Kopieer de prijs-id (`price_…`).
+2. **Betaalmethoden:** Instellingen → Betaalmethoden: zet iDEAL en kaarten aan. iDEAL loopt bij een abonnement daarna automatisch door als SEPA-incasso.
+3. **Klantportaal:** Instellingen → Billing → Klantportaal: zet opzeggen (aan het einde van de periode), betaalmethode wijzigen en facturen aan.
+4. **Webhook:** Ontwikkelaars → Webhooks → endpoint `https://api.veiligerbuiten.nl/api/v1/webhooks/stripe` met deze events:
+   - `checkout.session.completed`
+   - `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`
+   - `invoice.paid`
+
+   Kopieer het ondertekeningsgeheim (`whsec_…`).
+5. **Sleutels in de backend:**
 
 ```env
-# backend/.env
-REVENUECAT_SECRET_KEY=sk_...           # REST-sleutel (geheim)
-REVENUECAT_WEBHOOK_SECRET=...           # zelfde waarde als de Authorization-header in RevenueCat
-REVENUECAT_ENTITLEMENT=premium
-
-# bij het bouwen van de app (publieke SDK-sleutels)
-NUXT_PUBLIC_REVENUECAT_IOS_KEY=appl_...
-NUXT_PUBLIC_REVENUECAT_ANDROID_KEY=goog_...
+STRIPE_SECRET=sk_live_...          # of een beperkte sleutel (rk_live_…) met schrijfrechten op Checkout, Customer portal, Customers en Subscriptions
+STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_PRICE_ID=price_...
+FRONTEND_URL=https://veiligerbuiten.nl   # Stripe stuurt bezoekers hierheen terug
 ```
 
-De app gebruikt het account-id als RevenueCat-gebruikers-id, zodat de webhook de aankoop aan het juiste account koppelt.
+Hoe het loopt:
+- Iemand maakt op `/aanmelden` een account en gaat naar de betaalpagina van Stripe.
+- Na het betalen vraagt de website de server meteen naar de betaling, zodat er niet op de webhook gewacht hoeft te worden.
+- Daarna logt de klant in de app in.
+- Opzeggen en de betaalmethode wijzigen gaan via `/account` (de beheerpagina van Stripe).
+- Bij het verwijderen van een account wordt de klant ook bij Stripe verwijderd; dat stopt het abonnement direct.
+
+**Testaccount voor Apple en Google:** de reviewers moeten kunnen inloggen.
+- Maak op de site een account aan en geef het gratis toegang: `php artisan veiligbuiten:gift review@veiligerbuiten.nl --days=365`.
+- Zet dat e-mailadres en wachtwoord bij de reviewnotities.
+- Leg daar ook uit dat accounts op de website worden aangemaakt.
 
 ## 3. Push: iOS (APNs, direct)
 
@@ -92,8 +104,9 @@ Zolang ze leeg zijn, springen de knoppen naar de prijs-sectie.
 | Taak | Status |
 |---|---|
 | `APP_KEY` en `APP_URL` | ⬜ |
-| RevenueCat + producten in beide winkels | ⬜ |
-| RevenueCat-sleutels in `.env` en bij de app-build | ⬜ |
+| Stripe: prijs, iDEAL, klantportaal, webhook | ⬜ |
+| Stripe-sleutels en `FRONTEND_URL` in `.env` | ⬜ |
+| Testaccount met `veiligbuiten:gift` voor de app-review | ⬜ |
 | APNs-key en Xcode-capabilities | ⬜ |
 | Firebase + `google-services.json` | ⬜ |
 | Winkellinks | ⬜ |
