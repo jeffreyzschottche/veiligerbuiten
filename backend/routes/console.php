@@ -15,18 +15,12 @@ Schedule::command('veiligbuiten:prune-incidents')->hourly()->withoutOverlapping(
 Schedule::command('veiligbuiten:risk-clusters')->everyTwoMinutes()->withoutOverlapping();
 Schedule::command('veiligbuiten:hotspots')->dailyAt('04:10')->timezone('Europe/Amsterdam')->withoutOverlapping();
 Schedule::command('veiligbuiten:prune-installation-locations')->hourly()->withoutOverlapping();
-Schedule::command('veiligbuiten:ingest-knmi')->hourly()->withoutOverlapping();
-Schedule::command('veiligbuiten:ingest-ndw')->everyFiveMinutes()->withoutOverlapping();
-Schedule::command('veiligbuiten:ingest-luchtmeetnet')->hourly()->withoutOverlapping();
+// Alle bronnen via de ophaalplanner: elke minuut kijkt hij welke bron aan de beurt is (tempo per bron,
+// zie config veiligbuiten.scrape). Twee rijen naast elkaar, zodat een trage bron P2000 nooit ophoudt.
+Schedule::command('veiligbuiten:scrape --lane=fast')->everyMinute()->withoutOverlapping(10)->runInBackground();
+Schedule::command('veiligbuiten:scrape --lane=slow')->everyMinute()->withoutOverlapping(30)->runInBackground();
 // Fifteen stations per run respects the public rate limit; the full national catalogue is built progressively.
 Schedule::command('veiligbuiten:sync-luchtmeetnet-stations')->everyTenMinutes()->withoutOverlapping();
-Schedule::command('veiligbuiten:ingest-rws-water')->hourly()->withoutOverlapping();
-// Politie Open Data: officieel en vrij herbruikbaar; elk kwartier is netjes en actueel genoeg.
-Schedule::command('veiligbuiten:ingest-police-news')->everyFifteenMinutes()->withoutOverlapping();
-// Zwaailicht cachet zelf 60 s; elke 2 minuten met If-None-Match is netjes en snel genoeg.
-Schedule::command('veiligbuiten:ingest-p2000')->everyTwoMinutes()->withoutOverlapping();
-Schedule::command('veiligbuiten:ingest-nl-alert')->everyTwoMinutes()->withoutOverlapping();
-Schedule::command('veiligbuiten:ingest-knmi-quakes')->everyTenMinutes()->withoutOverlapping();
 // Politiecijfers per buurt (CBS) verschijnen halverwege de maand; daarna één keer ophalen is genoeg.
 Schedule::command('veiligbuiten:neighbourhood-crime')->monthlyOn(20, '05:20')->timezone('Europe/Amsterdam')->withoutOverlapping();
 Schedule::command('veiligbuiten:queue-alerts')->everyMinute()->withoutOverlapping();

@@ -17,7 +17,7 @@ Review van 24 oktober 2026. Wat hieronder als "opgelost" staat, heeft een test i
 
 ## Nog te doen (keuzes voor de livegang)
 
-1. **Productieserver.** De Dockerfile start `php artisan serve`. Dat is PHP's ontwikkelserver: hij verwerkt één verzoek tegelijk en heeft geen TLS. Gebruik php-fpm met nginx (of FrankenPHP/Octane) achter HTTPS. Zet `APP_DEBUG=false`; met debug aan lekken foutpagina's SQL en paden. Voeg ook een `scheduler`-container toe (`php artisan schedule:work`), anders draaien imports en opruimen niet.
+1. **Productieserver.** De Dockerfile start `php artisan serve`. Dat is PHP's ontwikkelserver: hij verwerkt één verzoek tegelijk en heeft geen TLS. Gebruik php-fpm met nginx (of FrankenPHP/Octane) achter HTTPS. Zet `APP_DEBUG=false`; met debug aan lekken foutpagina's SQL en paden. De `scheduler`-container staat nu in `docker-compose.yml` (zie `docs/server-en-ophalen.md`).
 2. **Tokens verlopen nooit** (`sanctum.expiration = null`). Overweeg een vervaltermijn met stil verversen in de app.
 3. **Opslag op het toestel.** Het login-token staat in Capacitor Preferences en in de KV-opslag van de achtergrondrunner, en die zijn niet versleuteld. Overweeg Keychain/Keystore via een secure-storage-plugin.
 4. **MCP-token in de URL** (`/mcp/vb_…`). Het komt in de logs van de webserver en de proxy terecht; maskeer het daar.

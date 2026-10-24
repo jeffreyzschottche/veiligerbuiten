@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Services\IncidentLifecycle;
+use App\Services\AreaSync;
 use Illuminate\Console\Command;
 
 class ExpireIncidents extends Command
@@ -12,7 +13,9 @@ class ExpireIncidents extends Command
 
     public function handle(IncidentLifecycle $lifecycle): int
     {
-        $this->info($lifecycle->sweep().' meldingen verlopen.');
+        $expired = $lifecycle->sweep();
+        if ($expired > 0) AreaSync::bump(); // bulk-updates lopen buiten de model-events om
+        $this->info($expired.' meldingen verlopen.');
 
         return self::SUCCESS;
     }

@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Incident;
 use App\Services\ExternalIncidentIngestor;
 use App\Services\SourceIngestion;
+use App\Services\Sources\PoliteFetcher;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
@@ -20,7 +21,14 @@ class IngestNdwSafety extends Command
         $run = $tracking->start('ndw');
 
         try {
-            $compressed = Http::timeout(30)->retry(2, 500)->get(config('services.ndw.url'))->throw()->body();
+            // Met Last-Modified/ETag: is het bestand niet veranderd, dan een lege 304 in plaats van de hele download.
+            $compressed = app(PoliteFetcher::class)->get(config('services.ndw.url'), 30);
+            if ($compressed === null) {
+                $tracking->finish($run, 0, 0, 0);
+                $this->line('NDW: ongewijzigd');
+
+                return self::SUCCESS;
+            }
             $xml = gzdecode($compressed);
             if ($xml === false) {
                 throw new \RuntimeException('NDW-feed is geen geldig gzip-bestand.');

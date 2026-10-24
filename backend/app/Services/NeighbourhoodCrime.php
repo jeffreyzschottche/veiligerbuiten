@@ -82,6 +82,7 @@ class NeighbourhoodCrime
             NeighbourhoodRisk::query()->delete();
             foreach (array_chunk($rows, 200) as $chunk) NeighbourhoodRisk::query()->insert($chunk);
         });
+        AreaSync::bump();
 
         return ['count' => count($rows), 'from' => $from, 'to' => $to];
     }

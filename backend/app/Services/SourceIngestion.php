@@ -57,6 +57,8 @@ class SourceIngestion
             }
         }
 
+        if ($confirmedMissing->isNotEmpty()) AreaSync::bump(); // bulk-update, buiten de model-events om
+
         return $confirmedMissing->count();
     }
 

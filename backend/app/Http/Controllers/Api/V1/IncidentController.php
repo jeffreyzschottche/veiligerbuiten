@@ -45,23 +45,24 @@ class IncidentController extends Controller
         ]);
         [$latitude, $longitude] = $sync->snap((float) $data['latitude'], (float) $data['longitude']);
         $radius = config('veiligbuiten.sync.radius_km');
-        $etag = $sync->etag($latitude, $longitude, $radius, app()->getLocale());
+        ['etag' => $etag, 'cursor' => $cursor] = $sync->stamp($latitude, $longitude, $radius, app()->getLocale());
+        $sync->remember($latitude, $longitude, $radius, app()->getLocale(), $cursor);
         $headers = ['ETag' => $etag, 'Cache-Control' => 'private, no-cache', 'Vary' => 'Accept-Language, Authorization, Accept-Encoding'];
 
         if (in_array($etag, array_map('trim', explode(',', (string) $request->header('If-None-Match'))), true)) {
             return response('', 304, $headers);
         }
 
-        $cursor = now();
-        $delta = isset($data['since']) ? $sync->delta($latitude, $longitude, $radius, Carbon::createFromTimestamp((int) $data['since'])) : null;
+        $delta = isset($data['since']) ? $sync->sharedDelta($latitude, $longitude, $radius, Carbon::createFromTimestamp((int) $data['since']), $etag) : null;
         $payload = $delta ? ['mode' => 'delta', ...$delta] : ['mode' => 'full', ...$sync->full($latitude, $longitude, $radius, $etag), 'removed' => []];
 
         return response()->json([
             ...$payload,
             'center' => ['latitude' => $latitude, 'longitude' => $longitude],
             'radius_km' => $radius,
-            'cursor' => $cursor->getTimestamp(),
-            'generated_at' => $cursor->toIso8601String(),
+            // De staat zelf als cursor: telefoons met dezelfde staat delen hun volgende delta.
+            'cursor' => $cursor,
+            'generated_at' => now()->toIso8601String(),
             'next_sync_after' => $sync->nextSyncAfter($payload['data'] ?? $payload['changes']),
             'min_sync_after' => config('veiligbuiten.sync.min_interval_seconds'),
         ], 200, $headers);

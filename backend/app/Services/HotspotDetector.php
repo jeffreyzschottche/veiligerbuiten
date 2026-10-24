@@ -72,6 +72,7 @@ class HotspotDetector
             DangerHotspot::query()->delete();
             foreach (array_chunk($hotspots, 200) as $chunk) DangerHotspot::query()->insert($chunk);
         });
+        AreaSync::bump();
 
         return count($hotspots);
     }

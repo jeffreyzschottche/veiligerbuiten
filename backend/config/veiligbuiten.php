@@ -18,13 +18,17 @@ return [
      */
     'sync' => [
         'radius_km' => 30,
-        'interval_seconds' => 3600,
+        // Telefoons vragen standaard elk kwartier; bij gevaar in de buurt niet vaker dan de ondergrens.
+        'interval_seconds' => 900,
         'snap_degrees' => 0.05,
         // Ondergrens tussen automatische syncs; ophogen bij drukte (load shedding).
         'min_interval_seconds' => (int) env('VB_SYNC_MIN_INTERVAL', 900),
         // Hoe ver terug een delta mag gaan; ouder = volledige sync.
         'delta_window_hours' => 6,
         'response_cache_seconds' => 600,
+        // Gebieden waar telefoons de laatste uren om vroegen; na elke verandering zet de server hun antwoord klaar.
+        'warm_hours' => 3,
+        'warm_max_cells' => 400,
         'max_items' => 500,
     ],
 
@@ -77,6 +81,34 @@ return [
         'min_days' => 3,
         'half_life_days' => 10,
         'categories' => ['verkeer', 'geweld', 'onveilig', 'intimidatie'],
+    ],
+
+    /*
+     * Ophaalplanner (veiligbuiten:scrape, elke minuut via de scheduler). Per bron een interval
+     * in minuten tussen min en max: verandert er iets, dan terug naar min; blijft het gelijk,
+     * dan steeds ×1,5 ruimer tot max. Bij een fout steeds 2× langer wachten, tot backoff_max.
+     * 's Nachts (night) is het interval minstens min × factor, behalve bij 'night' => false.
+     * Twee rijen (lanes), zodat een trage bron de snelle P2000/NL-Alert nooit ophoudt.
+     */
+    'scrape' => [
+        'night' => ['from' => 1, 'to' => 6, 'factor' => 2],
+        'backoff_max' => 60,
+        'jitter' => 0.1,
+        'sources' => [
+            // NL-Alert kan levens redden: altijd elke 2 minuten, ook 's nachts.
+            'nl_alert' => ['lane' => 'fast', 'command' => 'veiligbuiten:ingest-nl-alert', 'min' => 2, 'max' => 2, 'night' => false],
+            'p2000_zwaailicht' => ['lane' => 'fast', 'command' => 'veiligbuiten:ingest-p2000', 'args' => ['--feed' => 'zwaailicht'], 'min' => 2, 'max' => 6],
+            'p2000_sirenes' => ['lane' => 'fast', 'command' => 'veiligbuiten:ingest-p2000', 'args' => ['--feed' => 'sirenes'], 'min' => 2, 'max' => 8],
+            'p2000_alarmeringen' => ['lane' => 'fast', 'command' => 'veiligbuiten:ingest-p2000', 'args' => ['--feed' => 'alarmeringen'], 'min' => 2, 'max' => 8],
+            'p2000_monitor' => ['lane' => 'fast', 'command' => 'veiligbuiten:ingest-p2000', 'args' => ['--feed' => 'monitor'], 'min' => 3, 'max' => 10],
+            'ndw' => ['lane' => 'slow', 'command' => 'veiligbuiten:ingest-ndw', 'min' => 5, 'max' => 15],
+            'politie' => ['lane' => 'slow', 'command' => 'veiligbuiten:ingest-police-news', 'min' => 15, 'max' => 30, 'enabled' => (bool) env('POLITIE_NEWS_ENABLED', true)],
+            'knmi_quakes' => ['lane' => 'slow', 'command' => 'veiligbuiten:ingest-knmi-quakes', 'min' => 10, 'max' => 30],
+            // Bronnen die uit staan (geen sleutel of niet ingeschakeld) worden helemaal overgeslagen.
+            'knmi' => ['lane' => 'slow', 'command' => 'veiligbuiten:ingest-knmi', 'min' => 60, 'max' => 120, 'enabled' => (bool) env('KNMI_API_KEY')],
+            'luchtmeetnet' => ['lane' => 'slow', 'command' => 'veiligbuiten:ingest-luchtmeetnet', 'min' => 60, 'max' => 120, 'enabled' => (bool) env('LUCHTMEETNET_ENABLED', false)],
+            'rws' => ['lane' => 'slow', 'command' => 'veiligbuiten:ingest-rws-water', 'min' => 60, 'max' => 180, 'enabled' => (bool) env('RWS_WATER_OBSERVATIONS_URL')],
+        ],
     ],
 
     // Buurtcijfers van de politie (via CBS): buurten met opvallend veel geweld en straatroof per km².

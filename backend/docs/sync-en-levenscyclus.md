@@ -1,5 +1,7 @@
 # Sync, levenscyclus en gevaarlijke plekken
 
+Hoe de server ophaalt en antwoorden klaarzet, en welke cron je nodig hebt: zie `server-en-ophalen.md`. ETag en cursor horen bij de staat van een gebied, dus telefoons met dezelfde staat delen hun delta.
+
 ## Zuinige sync (`GET /api/v1/incidents/sync`)
 
 1. **Raster.** De server legt het middelpunt op een raster van 0,05° (ongeveer 5 km). App en runner doen hetzelfde. Iedereen in dezelfde buurt vraagt dus precies hetzelfde gebied op, en de server ziet nooit een exacte positie.

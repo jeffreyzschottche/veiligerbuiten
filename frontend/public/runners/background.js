@@ -179,7 +179,7 @@ async function cacheFor(config, point, localOnly, offlineHint) {
   if (connected === false || offlineHint) return usableCache(cache, point, true);
   // Foreground location events only evaluate the snapshot; useSync owns their network refresh.
   if (localOnly) return usableCache(cache, point, connected !== true);
-  var interval = ([15, 30, 60].indexOf(config.interval) >= 0 ? config.interval : 60) * 60000;
+  var interval = ([15, 30, 60].indexOf(config.interval) >= 0 ? config.interval : 15) * 60000;
   // De server mag bij drukte een ruimer interval vragen.
   if (cache && cache.minSyncAfter) interval = Math.max(interval, cache.minSyncAfter * 1000);
   var fresh = cache && validPoint(cache.center) && now - cache.at >= 0 && now - cache.at < interval && distance(point, cache.center) < RESYNC_DISTANCE_M;
@@ -255,7 +255,7 @@ async function check(force, providedPosition, localOnly, offlineHint) {
   var now = Date.now();
   if (config.validUntil && (!isFinite(Date.parse(config.validUntil)) || Date.parse(config.validUntil) <= now)) return { checked: false, reason: 'subscription_expired' };
   var last = read('lastCheck', 0);
-  if (!force && now - last < (config.interval || 30) * 60000 - 60000) return { checked: false, reason: 'interval' };
+  if (!force && now - last < (config.interval || 15) * 60000 - 60000) return { checked: false, reason: 'interval' };
   write('lastCheck', now);
 
   var point = await position(providedPosition);

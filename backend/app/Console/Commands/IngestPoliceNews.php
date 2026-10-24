@@ -42,7 +42,9 @@ class IngestPoliceNews extends Command
                         'fromdate' => now()->subHours(self::MAX_AGE_HOURS)->format('Ymd'), 'todate' => now()->format('Ymd'),
                     ];
                     if ($area !== null) $query += ['lat' => $area['lat'], 'lon' => $area['lng'], 'radius' => 25];
-                    $response = Http::timeout(25)->retry(2, 500)->acceptJson()->withHeaders(['User-Agent' => PoliteFetcher::USER_AGENT])->get(config('services.politie.news_url'), $query);
+                    PoliteFetcher::guard(config('services.politie.news_url'));
+                    $response = Http::timeout(25)->acceptJson()->withHeaders(['User-Agent' => PoliteFetcher::USER_AGENT])->get(config('services.politie.news_url'), $query);
+                    PoliteFetcher::observe(config('services.politie.news_url'), $response);
                     if ($response->status() === 204) break;
                     $response->throw();
                     foreach ($response->json('nieuwsberichten', []) as $message) {

@@ -61,7 +61,7 @@ export function useSync() {
   const lastAttempt = useState<number>('sync-last-attempt', () => 0);
 
   function refreshInterval() {
-    const minutes = useAuthStore().account?.settings.check_interval_minutes ?? 60;
+    const minutes = useAuthStore().account?.settings.check_interval_minutes ?? 15;
     const chosen = ([15, 30, 60].includes(minutes) ? minutes : 60) * 60_000;
     return Math.max(chosen, (meta.value.minSyncAfter ?? 0) * 1000) * JITTER;
   }
