@@ -24,5 +24,6 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->appendToGroup('api', \App\Http\Middleware\SetLocale::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Onverwachte fouten ook naar het beheerlogboek (Zschot CMS); gewone 4xx niet.
+        $exceptions->report(fn (\Throwable $e) => \App\Services\Ops::exception($e));
     })->create();

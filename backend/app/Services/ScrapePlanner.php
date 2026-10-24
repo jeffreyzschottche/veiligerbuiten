@@ -26,6 +26,8 @@ class ScrapePlanner
     /** @return array<string, array> bron => resultaat van deze ronde (alleen bronnen die draaiden) */
     public function run(string $lane, bool $force = false): array
     {
+        // Hartslag: zo ziet /api/ops/status dat de scheduler nog leeft.
+        Cache::forever("vb:heartbeat:{$lane}", now()->getTimestamp());
         $results = [];
         foreach ($this->sources($lane) as $name => $source) {
             $state = $this->state($name);
@@ -63,7 +65,8 @@ class ScrapePlanner
 
         $config = config('veiligbuiten.scrape');
         $interval = (float) ($state['interval'] ?? $source['min']);
-        $failures = $ok ? 0 : ($state['failures'] ?? 0) + 1;
+        $previousFailures = $state['failures'] ?? 0;
+        $failures = $ok ? 0 : $previousFailures + 1;
         $interval = match (true) {
             ! $ok => min($config['backoff_max'], max($source['min'], $interval) * 2),
             $changed => $source['min'],
@@ -86,8 +89,19 @@ class ScrapePlanner
             'last_change_at' => $changed ? now()->getTimestamp() : ($state['last_change_at'] ?? null),
         ];
         Cache::forever($this->key($name), $state);
+        $this->reportHealth($name, $state, $previousFailures);
 
         return ['ok' => $ok, 'changed' => $changed, 'interval' => $state['interval'], 'error' => $error];
+    }
+
+    /** Pas na 3 fouten op rij een melding (één haperende keer is normaal), en één als hij weer werkt. */
+    private function reportHealth(string $name, array $state, int $previousFailures): void
+    {
+        if ($state['failures'] === 3) {
+            Ops::record('source.failing', Ops::WARNING, "Bron {$name} faalt", "3× op rij mislukt. Laatste fout: {$state['last_error']}", ['source' => $name], $name);
+        } elseif ($state['last_ok'] && $previousFailures >= 3) {
+            Ops::record('source.recovered', Ops::INFO, "Bron {$name} werkt weer", "Na {$previousFailures} mislukte pogingen.", ['source' => $name]);
+        }
     }
 
     /** @return array<string, array> */

@@ -70,6 +70,8 @@ return [
         'bundle_id' => env('APNS_BUNDLE_ID', 'nl.veiligerbuiten.app'),
         'production' => (bool) env('APNS_PRODUCTION', false),
     ],
+    // Zschot CMS haalt hiermee /api/v1/ops/status op. Leeg = endpoint uit.
+    'ops' => ['token' => env('OPS_TOKEN')],
     'revenuecat' => [
         'secret_key' => env('REVENUECAT_SECRET_KEY'),
         'webhook_secret' => env('REVENUECAT_WEBHOOK_SECRET'),

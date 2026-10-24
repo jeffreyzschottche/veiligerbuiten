@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Services\Ops;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\ForgotPasswordRequest;
@@ -30,6 +31,7 @@ class AuthController extends Controller
         ]);
 
         event(new Registered($user));
+        Ops::record('account.new', Ops::INFO, 'Nieuw account', "Account #{$user->id}");
 
         $token = $user->createToken('auth_token')->plainTextToken;
 

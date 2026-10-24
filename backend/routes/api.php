@@ -24,6 +24,8 @@ Route::prefix('v1')->group(function () {
     // Health & status (no throttle needed)
     Route::get('/health', HealthController::class);
     Route::get('/sources/status', SourceStatusController::class);
+    // Status en gebeurtenissen voor de beheer-CMS; beveiligd met OPS_TOKEN.
+    Route::get('/ops/status', \App\Http\Controllers\Api\V1\OpsStatusController::class)->middleware('throttle:30,1');
 
     // Categories config
     Route::get('/categories', CategoryController::class)->middleware('throttle:60,1');

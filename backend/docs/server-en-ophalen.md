@@ -53,6 +53,36 @@ We gedragen ons als een nette, herkenbare bezoeker, en dat is de beste beschermi
 
 Het echte risico is niet techniek maar **toestemming**: zie `bronnen-en-licenties.md`.
 
+## Webserver en image
+
+De image gebruikt **FrankenPHP**: PHP met een ingebouwde webserver (Caddy) in één programma, in plaats van `php artisan serve` (de ontwikkelserver van PHP).
+- Veel verzoeken tegelijk, met compressie en HTTP/2. HTTPS regelt Coolify ervoor.
+- **Niet als root:** alles draait als `www-data`.
+- **OPcache staat vast ingesteld:** de code verandert in een container nooit (`docker/php.ini`).
+- **Bij het opstarten:** `migrate --isolated` en `optimize`.
+- **Logs gaan naar stderr**, dus naar Coolify.
+- **`HEALTHCHECK` op `/api/v1/health`:** Coolify zet pas verkeer over als de nieuwe versie gezond is.
+
+Later kan er nog snelheid bij met Octane (worker-modus); dat vraagt een extra pakket en is nu niet nodig.
+
+## Meldingen in de Zschot CMS
+
+`GET /api/v1/ops/status` (met `Authorization: Bearer <OPS_TOKEN>`) geeft:
+- de status van database, ophalen, bronnen, pushberichten en fouten;
+- een paar cijfers;
+- de nieuwe gebeurtenissen sinds `?since=`.
+
+Welke gebeurtenissen:
+- **Betalingen:** nieuwe abonnee, verlenging, opzegging, betaalprobleem, verlopen.
+- **Betaalfouten:** een betaling zonder gekoppeld account en een geweigerde RevenueCat-webhook. Die tellen als fout.
+- **Nieuwe accounts.**
+- **Bronnen:** een bron die 3× op rij faalt, en een melding zodra hij weer werkt.
+- **Onverwachte fouten in de app**, met de foutsoort, het bestand en de regel. Dezelfde fout telt een uur lang op in plaats van te herhalen.
+
+Er gaan geen persoonsgegevens mee, alleen accountnummers. Gebeurtenissen blijven 30 dagen bewaard.
+
+In de CMS: project → **Koppelingen** → **App-status (eigen app)**. Vul daar de URL en de token in. De CMS haalt dit elke 5 minuten op. Nieuwe gebeurtenissen komen in de activiteiten, en de tab **Monitoring** toont de status. Omdat de CMS ophaalt, werkt het ook als de CMS alleen lokaal draait, en mis je niets als hij een tijd uit stond.
+
 ## Moet ik zelf een cron instellen?
 
 Ja, **één keer, één regel**. Laravel heeft een eigen planner (`routes/console.php`) die bijhoudt wat wanneer moet. De server hoeft alleen elke minuut "kijk even" te zeggen. Kies één van deze drie:
