@@ -112,6 +112,20 @@ export function openFromNotification(data: Record<string, unknown> | undefined) 
 
 export interface Position { latitude: number; longitude: number; accuracy: number }
 
+/** GPS can keep updating without internet while the map is open. */
+export async function watchCurrentPosition(onPosition: (position: Position) => void): Promise<() => void> {
+  const options = { enableHighAccuracy: false, timeout: 15_000, maximumAge: 30_000, minimumUpdateInterval: 15_000 };
+  if (Capacitor.isNativePlatform()) {
+    const id = await Geolocation.watchPosition(options, (position, error) => {
+      if (position && !error) onPosition(position.coords);
+    });
+    return () => { void Geolocation.clearWatch({ id }); };
+  }
+  if (!navigator.geolocation) return () => {};
+  const id = navigator.geolocation.watchPosition(({ coords }) => onPosition(coords), () => {}, options);
+  return () => navigator.geolocation.clearWatch(id);
+}
+
 export async function currentPosition(highAccuracy = false): Promise<Position> {
   if (Capacitor.isNativePlatform()) {
     const { coords } = await Geolocation.getCurrentPosition({ enableHighAccuracy: highAccuracy, timeout: 10_000, maximumAge: highAccuracy ? 0 : 120_000 });

@@ -26,7 +26,7 @@ provide(playingKey, usePlayInView(root));
 
 <style scoped>
 .phone { --w: var(--phone-w, 300px); position: relative; width: var(--w); aspect-ratio: 9 / 19.5; padding: calc(var(--w) * .035); border-radius: calc(var(--w) * .165); background: linear-gradient(145deg, #2b2f38, #0b0d12 40%, #1b1e25); box-shadow: inset 0 0 0 1.5px #3a3f4a, var(--vb-shadow-lg); flex: 0 0 auto; }
-.phone__screen { position: relative; width: 100%; height: 100%; overflow: hidden; border-radius: calc(var(--w) * .135); background: var(--vb-paper); color: var(--vb-ink); isolation: isolate; font-size: calc(var(--w) * .043); container-type: inline-size; }
+.phone__screen { position: relative; width: 100%; height: 100%; overflow: hidden; clip-path: inset(0 round calc(var(--w) * .135)); border-radius: calc(var(--w) * .135); background: var(--vb-paper); color: var(--vb-ink); isolation: isolate; font-size: calc(var(--w) * .043); container-type: inline-size; }
 .phone__status { position: absolute; z-index: 50; top: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; height: 11%; max-height: 54px; padding: 0 8.5% 0 11%; font-size: 1.02em; font-weight: 620; letter-spacing: -.01em; pointer-events: none; }
 .phone__island { position: absolute; top: 28%; left: 50%; width: 32%; height: 38%; transform: translateX(-50%); border-radius: 99px; background: #000; }
 .phone__icons { display: flex; align-items: center; gap: 5px; }

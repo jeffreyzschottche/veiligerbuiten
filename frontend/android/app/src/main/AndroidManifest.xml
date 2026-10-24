@@ -32,6 +32,10 @@
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="vb_warn" />
+        <!-- AdMob app-ID; vervang de Google-testwaarde in res/values/strings.xml vóór publicatie. -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="@string/admob_app_id" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

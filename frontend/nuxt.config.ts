@@ -1,3 +1,5 @@
+const mobileBuild = process.env.NUXT_MOBILE_BUILD === 'true';
+
 export default defineNuxtConfig({
   srcDir: '.',
   compatibilityDate: '2024-01-09',
@@ -26,27 +28,27 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
+    // Private: these values never enter the browser runtime config.
+    apiOrigin: process.env.NUXT_API_ORIGIN || process.env.NUXT_DEV_API_TARGET || 'http://127.0.0.1:8000',
+    siteStatsToken: '',
     public: {
       // Local web development uses Nitro's same-origin proxy. For a static
       // mobile build, provide an absolute HTTPS URL at build time through
       // NUXT_PUBLIC_API_BASE_URL (for example https://api.veiligbuiten.nl/api/v1).
-      apiBaseUrl: process.env.NUXT_PUBLIC_API_BASE_URL || '/api/v1',
+      apiBase: mobileBuild ? (process.env.NUXT_PUBLIC_API_BASE_URL || '/api/v1') : '/api/v1',
       // Winkellinks volgen later; tot die tijd scrollen de knoppen naar #download.
       appStoreUrl: process.env.NUXT_PUBLIC_APP_STORE_URL || '',
       playStoreUrl: process.env.NUXT_PUBLIC_PLAY_STORE_URL || '',
-      mcpUrl: process.env.NUXT_PUBLIC_MCP_URL || 'https://api.veiligbuiten.nl/mcp',
       // Publieke RevenueCat SDK-sleutels (appl_… / goog_…); geen geheimen.
       revenuecatIosKey: process.env.NUXT_PUBLIC_REVENUECAT_IOS_KEY || '',
       revenuecatAndroidKey: process.env.NUXT_PUBLIC_REVENUECAT_ANDROID_KEY || '',
+      // AdMob banner-units (ca-app-pub-…/…). Leeg = geen advertenties; 'true' bij testing = Google-testadvertenties.
+      admobBannerIos: process.env.NUXT_PUBLIC_ADMOB_BANNER_IOS || '',
+      admobBannerAndroid: process.env.NUXT_PUBLIC_ADMOB_BANNER_ANDROID || '',
+      admobTesting: process.env.NUXT_PUBLIC_ADMOB_TESTING === 'true',
       appVersion: process.env.npm_package_version || '1.0.0',
     },
   },
 
-  nitro: {
-    devProxy: {
-      '/api': { target: `${process.env.NUXT_DEV_API_TARGET || 'http://127.0.0.1:8000'}/api`, changeOrigin: true },
-    },
-  },
-
-  devtools: { enabled: true },
+  devtools: { enabled: process.env.NODE_ENV !== 'production' },
 });

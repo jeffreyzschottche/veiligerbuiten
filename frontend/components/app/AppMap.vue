@@ -4,11 +4,12 @@
 
 <script setup lang="ts">
 import type { Map as MapLibreMap, GeoJSONSource } from 'maplibre-gl';
-import type { Incident, Place } from '~/types/Incident';
+import type { Hotspot, Incident, Place } from '~/types/Incident';
 import type { Position } from '~/composables/useDevice';
 
 const props = defineProps<{
   incidents: Incident[];
+  hotspots?: Hotspot[];
   places: Place[];
   me: Position | null;
   selectedId: number | null;
@@ -45,7 +46,8 @@ const incidentData = computed(() => ({
   features: props.incidents.map((incident) => ({
     type: 'Feature' as const,
     id: incident.id,
-    properties: { id: incident.id, level: incident.level, scale: incident.dotScale ?? 1, selected: incident.id === props.selectedId ? 1 : 0, rank: { danger: 3, warn: 2, info: 1 }[incident.level] },
+    // fresh: oudere meldingen worden lichter getekend (0,45–1), zodat wat nu speelt opvalt.
+    properties: { id: incident.id, level: incident.level, scale: incident.dotScale ?? 1, selected: incident.id === props.selectedId ? 1 : 0, rank: { danger: 3, warn: 2, info: 1 }[incident.level], fresh: Math.max(0.45, Math.min(1, (incident.freshness ?? 1) * 1.4)) },
     geometry: { type: 'Point' as const, coordinates: [incident.longitude, incident.latitude] },
   })),
 }));
@@ -63,6 +65,12 @@ const placeData = computed(() => ({
     { ...circle(place.latitude, place.longitude, place.radius_m), properties: { kind: 'area', enabled: place.alerts_enabled ? 1 : 0 } },
     { type: 'Feature' as const, properties: { kind: 'label', name: place.name }, geometry: { type: 'Point' as const, coordinates: [place.longitude, place.latitude] } },
   ]),
+}));
+
+/** Bekende gevaarlijke plekken: alleen een gestippelde rand, rustig op de achtergrond. */
+const hotspotData = computed(() => ({
+  type: 'FeatureCollection' as const,
+  features: (props.hotspots ?? []).map((hotspot) => circle(hotspot.latitude, hotspot.longitude, hotspot.radius, 48)),
 }));
 
 const meData = computed(() => ({
@@ -92,6 +100,7 @@ onMounted(async () => {
   map.on('load', () => {
     if (!map) return;
     map.addSource('places', { type: 'geojson', data: placeData.value });
+    map.addSource('hotspots', { type: 'geojson', data: hotspotData.value });
     map.addSource('reach', { type: 'geojson', data: reachData.value });
     map.addSource('incidents', { type: 'geojson', data: incidentData.value });
     map.addSource('me', { type: 'geojson', data: meData.value });
@@ -99,6 +108,9 @@ onMounted(async () => {
     map.addLayer({ id: 'place-area', type: 'fill', source: 'places', filter: ['==', ['get', 'kind'], 'area'], paint: { 'fill-color': '#0b0d12', 'fill-opacity': ['case', ['==', ['get', 'enabled'], 1], 0.04, 0.015] } });
     map.addLayer({ id: 'place-line', type: 'line', source: 'places', filter: ['==', ['get', 'kind'], 'area'], paint: { 'line-color': '#0b0d12', 'line-opacity': 0.35, 'line-width': 1.2, 'line-dasharray': [2, 2] } });
     map.addLayer({ id: 'place-label', type: 'symbol', source: 'places', filter: ['==', ['get', 'kind'], 'label'], layout: { 'text-field': ['get', 'name'], 'text-font': ['Noto Sans Bold'], 'text-size': 12, 'text-letter-spacing': 0.02 }, paint: { 'text-color': '#0b0d12', 'text-halo-color': '#ffffff', 'text-halo-width': 1.6 } });
+
+    map.addLayer({ id: 'hotspot-fill', type: 'fill', source: 'hotspots', minzoom: 12, paint: { 'fill-color': '#0b0d12', 'fill-opacity': 0.035 } });
+    map.addLayer({ id: 'hotspot-line', type: 'line', source: 'hotspots', minzoom: 12, paint: { 'line-color': '#0b0d12', 'line-opacity': 0.28, 'line-width': 1.2, 'line-dasharray': [1, 2] } });
 
     map.addLayer({ id: 'reach-fill', type: 'fill', source: 'reach', paint: { 'fill-color': LEVEL_COLOR as any, 'fill-opacity': 0.08 } });
     map.addLayer({ id: 'reach-line', type: 'line', source: 'reach', paint: { 'line-color': LEVEL_COLOR as any, 'line-opacity': 0.6, 'line-width': 1.5, 'line-dasharray': [3, 2] } });
@@ -108,8 +120,8 @@ onMounted(async () => {
     const size = (base: number, extra: unknown = 0) => ['interpolate', ['linear'], ['zoom'],
       8, ['+', ['*', ['get', 'scale'], base * 0.6], extra],
       14, ['+', ['*', ['get', 'scale'], base], extra]];
-    map.addLayer({ id: 'incident-halo', type: 'circle', source: 'incidents', layout: { 'circle-sort-key': ['get', 'rank'] }, paint: { 'circle-radius': size(15, ['*', ['get', 'selected'], 6]) as any, 'circle-color': LEVEL_COLOR as any, 'circle-opacity': ['case', ['==', ['get', 'selected'], 1], 0.28, 0.16] } });
-    map.addLayer({ id: 'incident-dot', type: 'circle', source: 'incidents', layout: { 'circle-sort-key': ['get', 'rank'] }, paint: { 'circle-radius': size(6.5) as any, 'circle-color': LEVEL_COLOR as any, 'circle-stroke-color': '#ffffff', 'circle-stroke-width': ['case', ['==', ['get', 'selected'], 1], 3, 2] } });
+    map.addLayer({ id: 'incident-halo', type: 'circle', source: 'incidents', layout: { 'circle-sort-key': ['get', 'rank'] }, paint: { 'circle-radius': size(15, ['*', ['get', 'selected'], 6]) as any, 'circle-color': LEVEL_COLOR as any, 'circle-opacity': ['case', ['==', ['get', 'selected'], 1], 0.28, ['*', 0.16, ['get', 'fresh']]] } });
+    map.addLayer({ id: 'incident-dot', type: 'circle', source: 'incidents', layout: { 'circle-sort-key': ['get', 'rank'] }, paint: { 'circle-radius': size(6.5) as any, 'circle-color': LEVEL_COLOR as any, 'circle-stroke-color': '#ffffff', 'circle-stroke-width': ['case', ['==', ['get', 'selected'], 1], 3, 2], 'circle-opacity': ['case', ['==', ['get', 'selected'], 1], 1, ['get', 'fresh']] } });
 
     map.addLayer({ id: 'me-halo', type: 'circle', source: 'me', paint: { 'circle-radius': 18, 'circle-color': '#2f6bff', 'circle-opacity': 0.14 } });
     map.addLayer({ id: 'me-dot', type: 'circle', source: 'me', paint: { 'circle-radius': 7, 'circle-color': '#2f6bff', 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 3 } });
@@ -138,6 +150,7 @@ onBeforeUnmount(() => {
 watch(incidentData, (data) => source('incidents')?.setData(data));
 watch(reachData, (data) => source('reach')?.setData(data));
 watch(placeData, (data) => source('places')?.setData(data));
+watch(hotspotData, (data) => source('hotspots')?.setData(data));
 watch(meData, (data) => source('me')?.setData(data));
 watch(() => props.me, (me) => {
   if (me && !centeredOnMe && map) {
@@ -160,6 +173,13 @@ defineExpose({
     const lat = incident.alertRadius / 111_320;
     const lng = incident.alertRadius / (111_320 * Math.cos((incident.latitude * Math.PI) / 180));
     map.fitBounds([[incident.longitude - lng, incident.latitude - lat], [incident.longitude + lng, incident.latitude + lat]], { padding: padding(), maxZoom: 15.5, duration: 600 });
+  },
+  /** Zoomt naar een gebied (bijv. een bekende plek). */
+  showArea(latitude: number, longitude: number, meters: number) {
+    if (!map) return;
+    const lat = meters / 111_320;
+    const lng = meters / (111_320 * Math.cos((latitude * Math.PI) / 180));
+    map.fitBounds([[longitude - lng, latitude - lat], [longitude + lng, latitude + lat]], { padding: padding(), maxZoom: 16, duration: 600 });
   },
   center(): Position | null {
     if (!map) return null;

@@ -88,6 +88,7 @@
     <p class="foot">
       <a href="https://veiligbuiten.nl/privacy" target="_blank">{{ t.account.privacy }}</a> ·
       <a href="https://veiligbuiten.nl/voorwaarden" target="_blank">{{ t.account.terms }}</a> ·
+      <template v-if="ads.available"><a href="#" @click.prevent="ads.privacyOptions()">{{ t.account.adPrivacy }}</a> · </template>
       {{ fill(t.account.version, { v: version }) }}
     </p>
 
@@ -112,6 +113,7 @@ const emit = defineEmits<{ logout: []; deleted: [] }>();
 const { t, locale, fill } = useAppCopy();
 const auth = useAuthStore();
 const billing = useBilling();
+const ads = useAds();
 const { places } = usePlaces();
 const version = useRuntimeConfig().public.appVersion;
 

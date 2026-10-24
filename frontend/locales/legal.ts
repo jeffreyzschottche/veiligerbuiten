@@ -31,8 +31,12 @@ export const legal: Record<'privacy' | 'terms', Record<Locale, Doc>> = {
           'Als je zelf een AI-assistent of webhook koppelt, kan die via jouw persoonlijke koppeling de situaties rond je plekken opvragen. Wat de assistent met die gegevens doet, valt onder de voorwaarden van die aanbieder. Je kunt de koppeling altijd verbreken.',
         ] },
         { title: 'Delen met anderen', body: [
-          'We verkopen geen gegevens en tonen geen advertenties. Meldingen op de kaart zijn anoniem: anderen zien niet wie iets meldde.',
+          'We verkopen geen gegevens. Meldingen op de kaart zijn anoniem: anderen zien niet wie iets meldde.',
           'We gebruiken verwerkers voor hosting, pushberichten (Apple en Google) en abonnementen (RevenueCat). Kaarttegels komen van OpenFreeMap; dat ziet welk kaartgebied je bekijkt, net als bij elke online kaart.',
+        ] },
+        { title: 'Advertenties', body: [
+          'In de app zie je af en toe een kleine advertentie onderin, geleverd door Google AdMob. Nooit als er gevaar in de buurt is en nooit tijdens het melden of bekijken van een situatie.',
+          'Bij de eerste advertentie vragen we via Google om je toestemming. Google kan daarbij een advertentie-ID en apparaatgegevens gebruiken; zonder toestemming tonen we alleen niet-gepersonaliseerde advertenties of geen. Je locatie, plekken en meldingen delen we nooit met adverteerders. Je kunt je keuze altijd wijzigen via Account › Advertentie-instellingen.',
         ] },
         { title: 'Bewaren en verwijderen', body: [
           'Situaties verlopen vanzelf en worden daarna opgeruimd. Verwijder je je account in de app, dan verwijderen we je account, je plekken en je instellingen.',
@@ -62,8 +66,12 @@ export const legal: Record<'privacy' | 'terms', Record<Locale, Doc>> = {
           'If you connect an AI assistant or webhook yourself, it can request the situations around your places through your personal connection. What the assistant does with that data falls under that provider’s terms. You can disconnect at any time.',
         ] },
         { title: 'Sharing', body: [
-          'We do not sell data and show no ads. Reports on the map are anonymous: others cannot see who reported something.',
+          'We do not sell data. Reports on the map are anonymous: others cannot see who reported something.',
           'We use processors for hosting, push notifications (Apple and Google) and subscriptions (RevenueCat). Map tiles come from OpenFreeMap, which sees which map area you view, as with any online map.',
+        ] },
+        { title: 'Advertising', body: [
+          'The app occasionally shows a small ad at the bottom, served by Google AdMob. Never when there is danger nearby, and never while you report or view a situation.',
+          'Before the first ad, Google asks for your consent. Google may use an advertising ID and device data; without consent we show only non-personalised ads or none. We never share your location, places or reports with advertisers. You can change your choice at any time in Account › Ad settings.',
         ] },
         { title: 'Retention and deletion', body: [
           'Situations expire automatically and are then cleaned up. If you delete your account in the app, we delete your account, your places and your settings.',

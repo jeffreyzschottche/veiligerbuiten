@@ -3,7 +3,7 @@ import { ApiError } from './ApiError';
 
 function getApiBaseUrl(): string {
   const config = useRuntimeConfig();
-  return config.public.apiBaseUrl as string;
+  return config.public.apiBase as string;
 }
 
 function normalizeHeaders(headers?: HeadersInit): Record<string, string> {
@@ -41,35 +41,15 @@ function parseBody(body?: BodyInit | null): any {
   return body;
 }
 
-async function handleCapacitorRequest<T>(
-  url: string,
-  options: RequestInit,
-  headers: Record<string, string>
-): Promise<T> {
-  const response: HttpResponse = await CapacitorHttp.request({
-    url,
-    method: (options.method || 'GET') as any,
-    headers,
-    data: parseBody(options.body),
-  });
-
-  const data = response.data;
-
-  if (response.status < 200 || response.status >= 300) {
-    throw new ApiError(
-      (data as any)?.message || 'An error occurred',
-      response.status,
-      data
-    );
-  }
-
-  return data as T;
+export interface RawResponse<T> {
+  status: number;
+  data: T;
+  /** Kleine letters, zoals fetch ze ook teruggeeft. */
+  headers: Record<string, string>;
 }
 
-export async function apiFetch<T>(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<T> {
+/** Eén verzoek, zonder te gooien bij een foutstatus. Native via CapacitorHttp (comprimeert en decomprimeert zelf). */
+async function send<T>(endpoint: string, options: RequestInit = {}): Promise<RawResponse<T>> {
   const baseUrl = getApiBaseUrl();
   const url = endpoint.startsWith('http') ? endpoint : `${baseUrl}${endpoint}`;
   const headers = {
@@ -79,23 +59,46 @@ export async function apiFetch<T>(
   };
 
   if (Capacitor.isNativePlatform()) {
-    return handleCapacitorRequest<T>(url, options, headers);
+    const response: HttpResponse = await CapacitorHttp.request({
+      url,
+      method: (options.method || 'GET') as any,
+      headers,
+      data: parseBody(options.body),
+    });
+    const lower = Object.fromEntries(Object.entries(response.headers ?? {}).map(([key, value]) => [key.toLowerCase(), String(value)]));
+    return { status: response.status, data: response.data as T, headers: lower };
   }
 
-  const response = await fetch(url, {
-    ...options,
-    headers,
-  });
+  const response = await fetch(url, { ...options, headers });
+  const data = response.status === 304 ? null : await response.json().catch(() => null);
 
-  const data = await response.json().catch(() => null);
+  return { status: response.status, data: data as T, headers: Object.fromEntries(response.headers.entries()) };
+}
 
-  if (!response.ok) {
+export async function apiFetch<T>(
+  endpoint: string,
+  options: RequestInit = {}
+): Promise<T> {
+  const { status, data } = await send<T>(endpoint, options);
+
+  if (status < 200 || status >= 300) {
     throw new ApiError(
-      data?.message || 'An error occurred',
-      response.status,
+      (data as any)?.message || 'An error occurred',
+      status,
       data
     );
   }
 
-  return data as T;
+  return data;
+}
+
+/** Zoals apiFetch, maar een 304 (niets veranderd) is een geldig antwoord en de headers komen mee. */
+export async function apiFetchRaw<T>(endpoint: string, options: RequestInit = {}): Promise<RawResponse<T | null>> {
+  const response = await send<T>(endpoint, options);
+
+  if (response.status !== 304 && (response.status < 200 || response.status >= 300)) {
+    throw new ApiError((response.data as any)?.message || 'An error occurred', response.status, response.data);
+  }
+
+  return response.status === 304 ? { ...response, data: null } : response;
 }
