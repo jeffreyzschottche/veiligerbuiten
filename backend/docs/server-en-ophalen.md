@@ -57,9 +57,16 @@ Het echte risico is niet techniek maar **toestemming**: zie `bronnen-en-licentie
 
 Ja, **één keer, één regel**. Laravel heeft een eigen planner (`routes/console.php`) die bijhoudt wat wanneer moet. De server hoeft alleen elke minuut "kijk even" te zeggen. Kies één van deze drie:
 
-**1. Docker (zoals in `docker-compose.yml`).** Er staat een `scheduler`-container in die `php artisan schedule:work` draait. Met `docker compose up -d` loopt hij vanzelf; je hoeft niets in te stellen.
+**1. Docker of Coolify (de standaard).** De backend-image regelt het zelf. `docker/start.sh` werkt de database bij en start via supervisor drie processen in dezelfde container:
+- de API;
+- de scheduler (`schedule:work`);
+- de queue-worker.
 
-**2. Een gewone server (VPS) met crontab.** Open `crontab -e` en zet er deze regel in, met jouw pad:
+Crasht er één, dan start supervisor hem opnieuw. Je hoeft niets in te stellen. Draai je later meerdere backend-containers, zet dan in alle containers op één na `RUN_SCHEDULER=false`, anders haalt elke container zelf op. Met `RUN_QUEUE=false` zet je de queue-worker uit.
+
+Gebruik dan **niet ook** de "Scheduled Tasks" van Coolify; dan draait alles dubbel.
+
+**2. Een gewone server (VPS) zonder Docker, met crontab.** Open `crontab -e` en zet er deze regel in, met jouw pad:
 
 ```
 * * * * * cd /var/www/veiligerbuiten/backend && php artisan schedule:run >> /dev/null 2>&1

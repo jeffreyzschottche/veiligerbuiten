@@ -27,23 +27,8 @@ services:
       db: { condition: service_healthy }
       redis: { condition: service_healthy }
     ports: ["8000:8000"]
-  # Eén proces dat elke minuut de Laravel-scheduler draait: ophaalplanner, opruimen, meldingen.
-  # Zonder deze container komt er niets binnen.
-  scheduler:
-    build: ./backend
-    command: php artisan schedule:work
-    env_file: ./backend/.env.docker
+    # De backend-container draait zelf ook de scheduler en de queue-worker (docker/supervisord.conf).
     restart: unless-stopped
-    depends_on:
-      db: { condition: service_healthy }
-      redis: { condition: service_healthy }
-  queue:
-    build: ./backend
-    command: php artisan queue:work redis --sleep=1 --tries=3 --max-time=3600
-    env_file: ./backend/.env.docker
-    depends_on:
-      db: { condition: service_healthy }
-      redis: { condition: service_healthy }
 volumes:
   postgres-data:
   redis-data:
