@@ -34,6 +34,13 @@ class IngestP2000 extends Command
             if ($feed === 'all' || $feed === 'zwaailicht') {
                 $this->info('Fetching Zwaailicht.nl feed...');
                 $items = $feedService->fetchZwaailicht();
+                if ($items === null) {
+                    // 304: niets nieuws. Niet reconciliëren, anders lijken lopende meldingen verdwenen.
+                    $this->line('  Feed unchanged (304)');
+                    $tracking->finish($run, 0, 0, 0);
+
+                    return self::SUCCESS;
+                }
                 $this->line("  Found {$items->count()} items with coordinates");
 
                 foreach ($items as $item) {

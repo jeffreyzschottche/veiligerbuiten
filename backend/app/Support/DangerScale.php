@@ -37,7 +37,23 @@ class DangerScale
         $base = $config['base_radius_m'][self::level($incident)];
         $factor = min($config['max_radius_factor'], 1 + 0.5 * log(1 + self::weight($incident), 2) - 0.5);
 
-        return (int) round($base * max(1, $factor));
+        // Een waarschuwing voor een gebied (NL-Alert) reikt minstens tot de rand van dat gebied.
+        return max((int) round($base * max(1, $factor)), self::areaRadius($incident));
+    }
+
+    /** Grootste afstand van het middelpunt tot de rand van een polygoon, begrensd op 30 km. */
+    public static function areaRadius(Incident $incident): int
+    {
+        $geometry = $incident->geometry;
+        if (($geometry['type'] ?? null) !== 'Polygon' || empty($geometry['coordinates'][0])) {
+            return 0;
+        }
+        $furthest = 0.0;
+        foreach ($geometry['coordinates'][0] as [$longitude, $latitude]) {
+            $furthest = max($furthest, GeoUtils::distanceMeters($incident->latitude, $incident->longitude, (float) $latitude, (float) $longitude));
+        }
+
+        return (int) min(30_000, round($furthest));
     }
 
     /** 1.0 voor één melding, oplopend tot max_dot_scale. */

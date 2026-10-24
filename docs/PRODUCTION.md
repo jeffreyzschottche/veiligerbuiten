@@ -5,7 +5,7 @@
 - PostgreSQL met PostGIS is aanbevolen voor toekomstige geografische analyse;
   MySQL 8 werkt voor de huidige MVP ook. Gebruik Redis voor cache en rate limits.
 - Stel `APP_ENV=production`, `APP_DEBUG=false`, `DB_CONNECTION=pgsql`, `QUEUE_CONNECTION=redis` en `CACHE_STORE=redis` in.
-- Bewaar `KNMI_API_KEY`, `FCM_*`, APNs-credentials en broncredentials uitsluitend in de secret manager van de hoster. De eigen CAPTCHA gebruikt alleen de bestaande backend-`APP_KEY`.
+- Bewaar `KNMI_API_KEY`, `FCM_*`, APNs-credentials en broncredentials uitsluitend in de secret manager van de hoster. Ook `REVENUECAT_*` en `APNS_PRIVATE_KEY` horen daar; `APP_KEY` moet gezet zijn (AI-tokens worden ermee versleuteld).
 - De app gebruikt MapLibre met OpenFreeMap als kosteloze basemap. Plan voor groei een eigen OpenMapTiles/PMTiles-hosting in; zo blijft de kaartstack vendor-onafhankelijk.
 
 ## Release gates

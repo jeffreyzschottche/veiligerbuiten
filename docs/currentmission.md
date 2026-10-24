@@ -1,119 +1,100 @@
-# Current Mission - Handmatige Taken
+# Current mission: handmatige taken
 
-> Dit zijn dingen die JIJ (de developer) handmatig moet doen, niet de coding agent.
+> Dingen die jij (de developer) zelf moet regelen. De code staat klaar en
+> wacht alleen op accounts, sleutels en instellingen.
 
-## 1. Firebase Project (voor Push Notifications)
+Het model: **€ 0,99 per maand via RevenueCat, geen proefperiode, geen advertenties.**
 
-**Stappen**:
-1. Ga naar [Firebase Console](https://console.firebase.google.com/)
-2. Maak nieuw project "Veilig Buiten"
-3. Voeg Android app toe:
-   - Package name: `nl.veiligbuiten.app` (check `capacitor.config.json`)
-   - Download `google-services.json` → zet in `frontend/android/app/`
-4. Voeg iOS app toe:
-   - Bundle ID: `nl.veiligbuiten.app`
-   - Download `GoogleService-Info.plist` → zet in `frontend/ios/App/App/`
-5. Ga naar Project Settings → Cloud Messaging
-6. Kopieer Server Key en Sender ID
+## 1. Backend `.env`
 
-**In `.env` zetten**:
 ```env
-FIREBASE_PROJECT_ID=veilig-buiten-xxxxx
-FIREBASE_SERVER_KEY=AAAAxxxxxxx
-FIREBASE_SENDER_ID=123456789
+APP_KEY=            # php artisan key:generate (lokaal is hij nu leeg: AI-tokens versleutelen dan niet)
+APP_URL=https://api.veiligbuiten.nl   # bepaalt ook de MCP-URL die gebruikers zien
+VB_BILLING_BYPASS=false               # alleen lokaal op true om zonder abonnement te testen
 ```
 
----
+## 2. RevenueCat (abonnement)
 
-## 2. Apple Developer (voor iOS Push)
+1. Maak in App Store Connect en Google Play Console een maandabonnement van € 0,99 aan, **zonder proefperiode**.
+2. Maak in RevenueCat een project, koppel beide winkels en maak het entitlement `premium` met dat product.
+3. Zet de standaard-offering met een `monthly`-package.
+4. Webhook: `https://api.veiligbuiten.nl/api/v1/webhooks/revenuecat`, met een Authorization-header die je zelf kiest.
 
-**Stappen**:
-1. Ga naar [Apple Developer](https://developer.apple.com/)
-2. Certificates, Identifiers & Profiles → Keys
-3. Maak nieuwe Key met "Apple Push Notifications service (APNs)"
-4. Download `.p8` file
-5. Noteer Key ID en Team ID
+```env
+# backend/.env
+REVENUECAT_SECRET_KEY=sk_...           # REST-sleutel (geheim)
+REVENUECAT_WEBHOOK_SECRET=...           # zelfde waarde als de Authorization-header in RevenueCat
+REVENUECAT_ENTITLEMENT=premium
 
-**In `.env` zetten**:
+# bij het bouwen van de app (publieke SDK-sleutels)
+NUXT_PUBLIC_REVENUECAT_IOS_KEY=appl_...
+NUXT_PUBLIC_REVENUECAT_ANDROID_KEY=goog_...
+```
+
+De app gebruikt het account-id als RevenueCat-gebruikers-id, zodat de webhook de aankoop aan het juiste account koppelt.
+
+## 3. Push: iOS (APNs, direct)
+
+1. Apple Developer → Keys → nieuwe key met **Apple Push Notifications service**. Download de `.p8`.
+2. Zet in Xcode bij target App de capabilities **Push Notifications**, **Background Modes** (Background fetch, Background processing, Remote notifications) en **Time Sensitive Notifications** aan. `App.entitlements` en `Info.plist` staan al goed.
+
 ```env
 APNS_KEY_ID=XXXXXXXXXX
 APNS_TEAM_ID=XXXXXXXXXX
-APNS_KEY_PATH=/path/to/AuthKey_XXXXXX.p8
+APNS_PRIVATE_KEY=...        # inhoud van de .p8 (PEM of base64), nooit een pad in de repo
 APNS_BUNDLE_ID=nl.veiligbuiten.app
+APNS_PRODUCTION=true        # false voor builds uit Xcode
+PUSH_DELIVERY_DRIVER=live   # 'log' schrijft pushes alleen naar het log
 ```
 
----
+## 4. Push: Android (Firebase Cloud Messaging)
 
-## 3. AdMob Account (voor Ads)
+1. Firebase-project, Android-app `nl.veiligbuiten.app`, download `google-services.json` naar `frontend/android/app/`.
+2. Project settings → Service accounts → nieuwe private key (JSON).
 
-**Stappen**:
-1. Ga naar [AdMob](https://admob.google.com/)
-2. Maak account aan (of gebruik bestaand Google account)
-3. Maak nieuwe app aan:
-   - Platform: Android + iOS
-   - App name: Veilig Buiten
-4. Maak Ad Units aan:
-   - Banner ad (voor in de lijst)
-   - Interstitial ad (optioneel, na X acties)
-5. Noteer App ID en Ad Unit IDs
-
-**In `.env` zetten**:
 ```env
-ADMOB_APP_ID_ANDROID=ca-app-pub-xxxxxxxxxxxxxxxx~xxxxxxxxxx
-ADMOB_APP_ID_IOS=ca-app-pub-xxxxxxxxxxxxxxxx~xxxxxxxxxx
-ADMOB_BANNER_ID_ANDROID=ca-app-pub-xxxxxxxxxxxxxxxx/xxxxxxxxxx
-ADMOB_BANNER_ID_IOS=ca-app-pub-xxxxxxxxxxxxxxxx/xxxxxxxxxx
+FCM_SERVICE_ACCOUNT_JSON_BASE64=...   # base64 van dat JSON-bestand
 ```
 
-**In `capacitor.config.json`**:
-```json
-{
-  "plugins": {
-    "AdMob": {
-      "appId": "ca-app-pub-xxx"
-    }
-  }
-}
+De app maakt zelf drie kanalen: `vb_danger` (gevaar, met geluid), `vb_warn` (opletten) en `vb_info` (stil).
+
+## 5. Winkellinks op de site
+
+```env
+NUXT_PUBLIC_APP_STORE_URL=https://apps.apple.com/...
+NUXT_PUBLIC_PLAY_STORE_URL=https://play.google.com/store/apps/details?id=nl.veiligbuiten.app
 ```
 
----
+Zolang ze leeg zijn, springen de knoppen naar de prijs-sectie.
 
-## 4. App Store / Play Store voorbereiding
+## 6. Bronnen
 
-### Google Play Console
-- [ ] Developer account ($25 eenmalig)
-- [ ] App aanmaken
-- [ ] Privacy policy URL
-- [ ] Screenshots maken
+| Bron | Staat | Wat nodig |
+|---|---|---|
+| P2000 (Zwaailicht) | aan | niets; elke 2 min met ETag |
+| NL-Alert | aan | niets; feed van public-warning.app (geen officieel gedocumenteerde API, houd hem in de gaten) |
+| KNMI aardbevingen | aan | niets |
+| NDW | aan | niets |
+| KNMI weerwaarschuwingen | uit | `KNMI_API_KEY` (gratis, developer.dataplatform.knmi.nl) |
+| Politie.nl nieuws | uit | `POLITIE_NEWS_ENABLED=true` |
+| Luchtmeetnet | uit | `LUCHTMEETNET_ENABLED=true` |
+| Rijkswaterstaat | uit | `RWS_WATER_OBSERVATIONS_URL` na controle van het actuele contract |
+| NS storingen | niet gebouwd | gratis sleutel op apiportal.ns.nl; daarna kan het gebouwd en getest worden |
 
-### Apple App Store Connect
-- [ ] Developer account ($99/jaar)
-- [ ] App aanmaken
-- [ ] Privacy policy URL
-- [ ] Screenshots maken
+## 7. Juridisch
 
----
+`/privacy` en `/voorwaarden` beschrijven wat de app echt doet. Laat ze nalezen voordat je publiceert.
 
 ## Checklist
 
 | Taak | Status |
-|------|--------|
-| Firebase project aanmaken | ⬜ |
-| Android `google-services.json` | ⬜ |
-| iOS `GoogleService-Info.plist` | ⬜ |
-| Firebase credentials in `.env` | ⬜ |
-| Apple Developer APNs key | ⬜ |
-| APNs credentials in `.env` | ⬜ |
-| AdMob account aanmaken | ⬜ |
-| AdMob app registreren | ⬜ |
-| AdMob ad units maken | ⬜ |
-| AdMob IDs in `.env` | ⬜ |
-| Play Store account | ⬜ |
-| App Store account | ⬜ |
-
----
-
-**Als dit klaar is**, kan de coding agent:
-- Push notifications implementeren in frontend
-- Ads component bouwen
-- App builden voor stores
+|---|---|
+| `APP_KEY` en `APP_URL` | ⬜ |
+| RevenueCat + producten in beide winkels | ⬜ |
+| RevenueCat-sleutels in `.env` en bij de app-build | ⬜ |
+| APNs-key en Xcode-capabilities | ⬜ |
+| Firebase + `google-services.json` | ⬜ |
+| Winkellinks | ⬜ |
+| KNMI-sleutel, Politie en Luchtmeetnet aanzetten | ⬜ |
+| NS-sleutel aanvragen | ⬜ |
+| Privacy en voorwaarden laten nalezen | ⬜ |

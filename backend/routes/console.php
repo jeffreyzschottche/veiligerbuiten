@@ -18,7 +18,10 @@ Schedule::command('veiligbuiten:ingest-luchtmeetnet')->hourly()->withoutOverlapp
 Schedule::command('veiligbuiten:sync-luchtmeetnet-stations')->everyTenMinutes()->withoutOverlapping();
 Schedule::command('veiligbuiten:ingest-rws-water')->hourly()->withoutOverlapping();
 Schedule::command('veiligbuiten:ingest-police-news')->hourly()->withoutOverlapping();
-Schedule::command('veiligbuiten:ingest-p2000')->everyMinute()->withoutOverlapping();
+// Zwaailicht cachet zelf 60 s; elke 2 minuten met If-None-Match is netjes en snel genoeg.
+Schedule::command('veiligbuiten:ingest-p2000')->everyTwoMinutes()->withoutOverlapping();
+Schedule::command('veiligbuiten:ingest-nl-alert')->everyTwoMinutes()->withoutOverlapping();
+Schedule::command('veiligbuiten:ingest-knmi-quakes')->everyTenMinutes()->withoutOverlapping();
 Schedule::command('veiligbuiten:sync-cbs-police-metadata')->dailyAt('03:15')->withoutOverlapping();
 Schedule::command('veiligbuiten:queue-alerts')->everyMinute()->withoutOverlapping();
 Schedule::command('veiligbuiten:flush-digests')->everyFiveMinutes()->withoutOverlapping();

@@ -2,12 +2,14 @@
 
 namespace App\Services;
 
+use App\Services\Sources\PoliteFetcher;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class P2000FeedService
 {
+    public function __construct(private readonly PoliteFetcher $fetcher) {}
+
     private const ZWAAILICHT_FEED = 'https://zwaailicht.nl/feed/meldingen.xml';
 
     /** P2000 discipline → Veilig Buiten category. */
@@ -44,8 +46,28 @@ class P2000FeedService
         'bedreiging' => 'Bedreiging',
     ];
 
+    /** Dreiging en gevaar voor omstanders; gaat voor brand en medisch. */
+    private const THREAT_INDICATORS = [
+        'bommelding' => ['onveilig', 'Bommelding', 5],
+        'explosief' => ['onveilig', 'Verdacht object', 5],
+        'verdacht pakket' => ['onveilig', 'Verdacht object', 4],
+        'verdacht object' => ['onveilig', 'Verdacht object', 4],
+        'explosie' => ['brand', 'Explosie', 5],
+        'gaslek' => ['stoffen', 'Gaslucht / mogelijk gaslek', 4],
+        'gaslucht' => ['stoffen', 'Gaslucht', 4],
+        'gevaarlijke stof' => ['stoffen', 'Gevaarlijke stof', 4],
+        'ongeval wegvervoer' => ['verkeer', 'Verkeersongeval', 3],
+        'aanrijding' => ['verkeer', 'Verkeersongeval', 3],
+        'verkeersongeval' => ['verkeer', 'Verkeersongeval', 3],
+        'wateroverlast' => ['weer', 'Wateroverlast', 3],
+        'stormschade' => ['weer', 'Storm / extreme wind', 3],
+        'boom op weg' => ['blokkade', 'Boom op de weg', 3],
+        'dier te water' => ['dier', 'Loslopend gevaarlijk dier', 2],
+    ];
+
     /** Keywords that indicate fire type → maps to subtype. */
     private const FIRE_INDICATORS = [
+        'automatische brandmelding' => 'Automatische brandmelding',
         'zeer grote brand' => 'Zeer grote brand',
         'grote brand' => 'Grote brand',
         'middelbrand' => 'Middelbrand',
@@ -71,17 +93,15 @@ class P2000FeedService
         'brand' => 4,
     ];
 
-    public function fetchZwaailicht(): Collection
+    /**
+     * @return Collection|null null als de feed sinds de vorige keer niet is veranderd (304).
+     */
+    public function fetchZwaailicht(): ?Collection
     {
         try {
-            $response = Http::timeout(30)->get(self::ZWAAILICHT_FEED);
+            $body = $this->fetcher->get(self::ZWAAILICHT_FEED, 30);
 
-            if (!$response->successful()) {
-                Log::warning('P2000: Zwaailicht feed failed', ['status' => $response->status()]);
-                return collect();
-            }
-
-            return $this->parseAtomFeed($response->body());
+            return $body === null ? null : $this->parseAtomFeed($body);
         } catch (\Throwable $e) {
             Log::error('P2000: Zwaailicht error', ['error' => $e->getMessage()]);
             return collect();
@@ -97,9 +117,15 @@ class P2000FeedService
 
         $feed->registerXPathNamespace('georss', 'http://www.georss.org/georss');
 
-        return collect($feed->entry ?? [])
-            ->map(fn ($entry) => $this->parseEntry($entry))
-            ->filter(fn ($item) => $item !== null);
+        // Niet collect($feed->entry): dat maakt van alle entries één sleutel en houdt alleen de laatste over.
+        $items = [];
+        foreach ($feed->entry ?? [] as $entry) {
+            if ($item = $this->parseEntry($entry)) {
+                $items[] = $item;
+            }
+        }
+
+        return collect($items);
     }
 
     private function parseEntry(\SimpleXMLElement $entry): ?array
@@ -111,9 +137,10 @@ class P2000FeedService
             return null;
         }
 
-        $categories = collect($entry->category ?? [])
-            ->map(fn ($cat) => strtolower((string) ($cat['term'] ?? $cat)))
-            ->all();
+        $categories = [];
+        foreach ($entry->category ?? [] as $category) {
+            $categories[] = strtolower((string) ($category['term'] ?? $category));
+        }
 
         $title = $this->cleanTitle((string) $entry->title);
         $summary = (string) $entry->summary;
@@ -127,7 +154,7 @@ class P2000FeedService
             'longitude' => $lon,
             'category' => $this->detectCategory($fullText, $categories),
             'subtype' => $this->detectSubtype($fullText, $categories),
-            'severity' => $this->detectSeverity($fullText),
+            'severity' => $this->detectSeverity($fullText, $categories),
             'published_at' => (string) $entry->updated,
             'link' => (string) ($entry->link['href'] ?? ''),
             'source_feed' => 'zwaailicht',
@@ -156,6 +183,9 @@ class P2000FeedService
         if ($this->matchesAny($text, array_keys(self::VIOLENCE_INDICATORS))) {
             return 'geweld';
         }
+        if ($threat = $this->threat($text)) {
+            return $threat[0];
+        }
 
         // Check discipline from feed categories
         foreach ($categories as $cat) {
@@ -174,6 +204,10 @@ class P2000FeedService
             if (str_contains($text, $keyword)) {
                 return $subtype;
             }
+        }
+
+        if ($threat = $this->threat($text)) {
+            return $threat[1];
         }
 
         // Check fire indicators
@@ -197,8 +231,24 @@ class P2000FeedService
         return 'P2000 melding';
     }
 
-    private function detectSeverity(string $text): int
+    private function detectSeverity(string $text, array $categories = []): int
     {
+        if ($threat = $this->threat($text)) {
+            return $threat[2];
+        }
+        // Een automatische brandmelding is meestal loos alarm, en 'zonder spoed' is geen acuut gevaar:
+        // wel tonen, niet alarmeren.
+        if (str_contains($text, 'automatische brandmelding') || str_contains($text, 'zonder spoed')) {
+            return 2;
+        }
+        // Alleen ambulance (zonder brandweer of politie) is een medische rit: goed om te weten, geen gevaar,
+        // ook bij A1. De urgentie is medisch, niet voor omstanders.
+        $medical = array_intersect($categories, ['ambulance', 'medisch', 'lifeliner', 'trauma']);
+        if ($medical && ! array_intersect($categories, ['brandweer', 'brand', 'fire', 'politie', 'police'])
+            && ! $this->matchesAny($text, array_keys(self::VIOLENCE_INDICATORS))) {
+            return 2;
+        }
+
         foreach (self::SEVERITY_INDICATORS as $keyword => $severity) {
             if (str_contains($text, $keyword)) {
                 return $severity;
@@ -211,6 +261,18 @@ class P2000FeedService
         }
 
         return 3;
+    }
+
+    /** @return array{0: string, 1: string, 2: int}|null [categorie, subtype, ernst] */
+    private function threat(string $text): ?array
+    {
+        foreach (self::THREAT_INDICATORS as $keyword => $match) {
+            if (str_contains($text, $keyword)) {
+                return $match;
+            }
+        }
+
+        return null;
     }
 
     private function matchesAny(string $text, array $keywords): bool

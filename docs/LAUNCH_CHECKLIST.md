@@ -6,7 +6,7 @@ localhost.
 
 ## 1. Wat al in de code zit
 
-- [x] Accountloze installatie-identiteit, locatievalidatie en eigen proof-of-work CAPTCHA.
+- [x] Account met abonnement, installatie per toestel, locatievalidatie en dagquotum van 3 meldingen (CAPTCHA vervallen).
 - [x] Maximaal 3 nieuwe meldingen per uur en 10 per dag per installatie.
 - [x] Tekstregels voor meldingen: geen cijfers, links, e-mailadressen, promotie,
   privacygevoelige inhoud of bekende scheldwoorden.

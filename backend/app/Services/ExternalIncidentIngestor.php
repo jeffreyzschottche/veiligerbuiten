@@ -75,6 +75,40 @@ class ExternalIncidentIngestor
         ], 24);
     }
 
+    /** NL-Alert: altijd gevaar; het gebied van de waarschuwing wordt de geometrie. */
+    public function nlAlert(array $item): Incident
+    {
+        $incident = $this->upsertOfficial('nl_alert', $item, [
+            'category' => $item['category'], 'subtype' => 'NL-Alert', 'description' => $item['description'],
+            'severity' => 5, 'incident_type' => 'alert', 'fallback_hours' => 2,
+        ]);
+        if ($item['geometry'] ?? null) {
+            $incident->update(['geometry' => $item['geometry']]);
+        }
+        $this->record('nl_alert', $item);
+
+        return $incident->fresh();
+    }
+
+    /** Aardbeving (KNMI). Ernst volgt de magnitude; voelbaar vanaf ongeveer 2,0. */
+    public function quake(array $item): Incident
+    {
+        $magnitude = (float) $item['magnitude'];
+        $incident = $this->upsertOfficial('knmi_quakes', $item, [
+            'category' => 'anders', 'subtype' => 'Aardbeving', 'description' => $item['description'],
+            'severity' => match (true) { $magnitude >= 3.0 => 4, $magnitude >= 2.0 => 3, default => 2 },
+            'incident_type' => 'earthquake', 'fallback_hours' => 6,
+        ]);
+        $this->record('knmi_quakes', $item);
+
+        return $incident;
+    }
+
+    private function record(string $source, array $item): void
+    {
+        SourceRecord::updateOrCreate(['source' => $source, 'external_id' => $item['id']], ['payload_hash' => hash('sha256', json_encode($item)), 'payload' => $item, 'received_at' => now(), 'processed_at' => now(), 'status' => 'processed']);
+    }
+
     public function p2000(array $item): Incident
     {
         $source = 'p2000_' . ($item['source_feed'] ?? 'unknown');
@@ -186,6 +220,14 @@ class ExternalIncidentIngestor
                 'first_observed_at' => Carbon::parse($item['updated_at'] ?? now()),
             ]);
         } else {
+            // Samenvoegen met een ánder item op dezelfde plek mag de ernst nooit verlagen
+            // (een ambulancerit naast een bommelding blijft een bommelding).
+            if (! $existingObservation) {
+                $payload['severity'] = max($payload['severity'], (int) $incident->severity);
+                if ($payload['severity'] > $attributes['severity']) {
+                    unset($payload['category'], $payload['subtype'], $payload['description']);
+                }
+            }
             // The first official source becomes canonical; every later source remains an observation.
             if ($incident->source === 'user') $payload += ['source' => $source, 'source_reference' => (string) $item['id']];
             $incident->update($payload);

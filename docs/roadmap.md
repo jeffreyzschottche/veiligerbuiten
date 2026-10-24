@@ -4,42 +4,16 @@
 
 ## Prioriteit 0 - Moet voor launch
 
-### 1. Push Notifications afronden
+### 1. Accounts en sleutels
 
-**Status**: Backend klaar, frontend/mobile incompleet
+Alle code staat klaar (app, abonnement, push, achtergrondcontrole, AI-koppeling).
+Wat nog nodig is staat in `currentmission.md`: RevenueCat, APNs, Firebase, winkellinks.
 
-**Wat werkt**:
-- `AlertEngine` queue't notificaties
-- `PushDelivery` service bestaat
-- `Installation` model slaat push tokens op
+### 2. Testen op echte toestellen
 
-**Wat jij moet doen** (zie `currentmission.md`):
-- [ ] Firebase project aanmaken
-- [ ] `google-services.json` en `GoogleService-Info.plist` toevoegen
-- [ ] APNs key aanmaken (voor iOS)
-- [ ] Credentials in `.env` zetten
-
-**Wat de agent dan doet**:
-- [ ] `usePushNotifications.ts` uitbreiden met permission flow
-- [ ] Capacitor push plugin configureren
-- [ ] Deep link naar incident bij notification click
-
----
-
-### 2. Ads integratie
-
-**Status**: Niet geïmplementeerd
-
-**Wat jij moet doen** (zie `currentmission.md`):
-- [ ] AdMob account aanmaken
-- [ ] App registreren (Android + iOS)
-- [ ] Ad units maken (banner)
-- [ ] IDs noteren
-
-**Wat de agent dan doet**:
-- [ ] `@capacitor-community/admob` installeren
-- [ ] Banner component bouwen
-- [ ] GDPR consent popup
+- [ ] Achtergrondcontrole op iOS en Android (draait niet in de simulator)
+- [ ] Pushes per ernst: geluid, Focus-modus, kanalen op Android
+- [ ] Aankoop en herstel via RevenueCat sandbox
 
 ---
 
@@ -52,7 +26,7 @@
 - [x] Mijn meldingen overzicht
 - [x] Account verwijderen
 
-**Pagina**: `/dashboard`
+**Pagina**: in de app onder Account (de oude `/dashboard` is vervallen)
 
 ---
 
@@ -91,7 +65,7 @@ UPDATE users SET is_admin = true WHERE email = 'jouw@email.nl';
 - [ ] WebSocket/SSE voor live updates
 
 ### 7. Incident clustering
-- [ ] Leaflet.markercluster
+- [ ] MapLibre-clusters bij veel stippen
 
 ### 8. Search & filters
 - [ ] Tekst zoeken
@@ -124,5 +98,10 @@ Dit voegt toe:
 | Auth routes | ✅ Done |
 | User dashboard | ✅ Done |
 | Admin panel | ✅ Done |
-| Push notifications | ⏳ Wacht op Firebase credentials |
-| Ads | ⏳ Wacht op AdMob account |
+| Nieuwe app (kaart, melden, plekken, account) | ✅ Done |
+| Abonnement € 0,99 (RevenueCat) | ⏳ Wacht op RevenueCat-account |
+| Push (APNs direct, FCM) | ⏳ Wacht op sleutels |
+| Achtergrondcontrole (lokaal) | ✅ Done, testen op toestel |
+| AI-koppeling (MCP + webhook) | ✅ Done |
+| NL-Alert, KNMI aardbevingen | ✅ Done |
+| NS storingen | ⏳ Wacht op API-sleutel |

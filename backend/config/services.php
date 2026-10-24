@@ -22,11 +22,17 @@ return [
         // Add coverage centres as the product expands; each is queried with the official 25 km radius.
         'coverage_areas' => json_decode(env('POLITIE_NEWS_AREAS', '[{"lat":52.3000,"lng":4.6900}]'), true, flags: JSON_THROW_ON_ERROR),
     ],
+    // Publieke feeds; we vragen ze netjes op (ETag/Last-Modified, herkenbare User-Agent).
+    'nl_alert' => ['url' => env('NL_ALERT_URL', 'https://api.public-warning.app/api/v1/providers/nl-alert/alerts')],
+    'knmi_quakes' => ['url' => env('KNMI_QUAKES_URL', 'https://rdsa.knmi.nl/fdsnws/event/1/query')],
     'source_health' => [
         'ndw' => ['label' => 'NDW', 'enabled' => true, 'maximum_age_minutes' => 20],
         'knmi' => ['label' => 'KNMI', 'enabled' => (bool) env('KNMI_API_KEY'), 'maximum_age_minutes' => 180],
         'luchtmeetnet' => ['label' => 'Luchtmeetnet', 'enabled' => env('LUCHTMEETNET_ENABLED', false), 'maximum_age_minutes' => 180],
         'politie' => ['label' => 'Politie', 'enabled' => env('POLITIE_NEWS_ENABLED', false), 'maximum_age_minutes' => 180],
+        'p2000' => ['label' => 'P2000', 'enabled' => true, 'maximum_age_minutes' => 10],
+        'nl_alert' => ['label' => 'NL-Alert', 'enabled' => true, 'maximum_age_minutes' => 10],
+        'knmi_quakes' => ['label' => 'KNMI aardbevingen', 'enabled' => true, 'maximum_age_minutes' => 30],
         'rijkswaterstaat' => ['label' => 'Rijkswaterstaat', 'enabled' => (bool) env('RWS_WATER_OBSERVATIONS_URL'), 'maximum_age_minutes' => 180],
     ],
     'push' => [

@@ -52,7 +52,7 @@ class IncidentController extends Controller
             'radius_km' => $radius,
             'generated_at' => now()->toIso8601String(),
             'next_sync_after' => config('veiligbuiten.sync.interval_seconds'),
-        ])->header('Cache-Control', 'private, max-age=60');
+        ])->header('Cache-Control', 'private, max-age=60')->header('Vary', 'Accept-Language, Authorization');
     }
 
     public function geojson(Request $request): JsonResponse

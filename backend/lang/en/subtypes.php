@@ -34,7 +34,7 @@ return [
     // Bronnen
     'Schietincident' => 'Shooting', 'Overval of beroving' => 'Robbery', 'Geweldsincident' => 'Violent incident', 'Zeer grote brand' => 'Very large fire',
     'Grote brand' => 'Large fire', 'Middelbrand' => 'Medium fire', 'Woningbrand' => 'House fire', 'Voertuigbrand' => 'Vehicle fire', 'Containerbrand' => 'Container fire',
-    'Medische noodsituatie' => 'Medical emergency', 'Politie-inzet' => 'Police operation', 'P2000 melding' => 'Emergency services call', 'Bommelding' => 'Bomb threat',
+    'Medische noodsituatie' => 'Medical emergency', 'Automatische brandmelding' => 'Automatic fire alarm', 'Politie-inzet' => 'Police operation', 'P2000 melding' => 'Emergency services call', 'Bommelding' => 'Bomb threat',
     'Politiebericht' => 'Police notice', 'Politiebericht: brand / explosie' => 'Police notice: fire / explosion', 'Politiebericht: verkeersincident' => 'Police notice: traffic incident',
     'Politiebericht: geweldsincident' => 'Police notice: violent incident', 'Politiebericht: openbare orde' => 'Police notice: public order',
     'Gevaarlijke verkeerssituatie' => 'Dangerous traffic situation', 'Verkeerssituatie' => 'Traffic situation', 'Officiële weerwaarschuwing' => 'Official weather warning',

@@ -13,6 +13,7 @@ use App\Services\IncidentSafetyPolicy;
 use App\Services\InstallationTrust;
 use App\Services\ReportQuota;
 use App\Support\GeoUtils;
+use App\Support\IncidentPresenter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -66,7 +67,7 @@ class ReportController extends Controller
 
             return [$incident, $nearby];
         });
-        return response()->json(['data' => $incident->fresh(), 'duplicate' => (bool) $nearby, 'visibility' => $incident->visibility, 'quota' => $this->quota->summary($user)], $nearby ? 200 : 201);
+        return response()->json(['data' => IncidentPresenter::present($incident->fresh(), $data['user_latitude'], $data['user_longitude']), 'duplicate' => (bool) $nearby, 'visibility' => $incident->visibility, 'quota' => $this->quota->summary($user)], $nearby ? 200 : 201);
     }
 
     public function quota(Request $request): JsonResponse

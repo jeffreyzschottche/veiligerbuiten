@@ -8,12 +8,14 @@ serversleutels alleen in de secretstore van de backend/hostingomgeving.
 | OpenFreeMap + OpenStreetMap | De kaart | Nee | Actief via de publieke Liberty-style. Voor groot verkeer later eigen tile-hosting plannen. |
 | NDW Open Data SRTI | Verkeers- en veiligheidsberichten | Nee | Feed-URL staat als `NDW_OPEN_DATA_URL` in de backend. `veiligbuiten:ingest-ndw` normaliseert actuele puntmeldingen naar officiële verkeer-/blokkade-incidenten. |
 | KNMI Open Data | Weerwaarschuwingen | Ja, gratis API-key | Vul `KNMI_API_KEY` alleen in de backend in. |
-| Eigen proof-of-work CAPTCHA | CAPTCHA op nieuwe meldingen | Nee | Actief. De backend geeft een kortlevende, ondertekende challenge uit; een geldige oplossing is vereist vóór plaatsing. |
+| RevenueCat | Abonnement € 0,99 per maand | Ja | Melden en kaartdata vereisen een actief abonnement; max. 3 meldingen per dag per account (`ReportQuota`). De oude CAPTCHA is vervallen. |
 | Firebase Cloud Messaging | Android pushmeldingen | Ja | Vereist voor push. Firebase-project, Android-app `nl.veiligbuiten.app`, `google-services.json` in Android en service-account JSON als backend-secret. |
 | Apple Push Notification service | iOS pushmeldingen | Ja | Vereist voor iOS-push. Apple Developer Program, Push Notifications capability, APNs `.p8` key, Key ID en Team ID. |
 | Google Play Console | Android publiceren | Geen API-key voor handmatige release | Vereist een Play Console-account en upload-keystore. Alleen CI-upload gebruikt later een service-account. |
 | Apple Developer + App Store Connect | iOS/TestFlight publiceren | Geen algemene API-key voor handmatige release | Vereist Apple Developer-account, signing en App Store Connect. CI-upload kan later een App Store Connect API-key gebruiken. |
-| P2000/hulpdienstdata | Brandweer/politie-signalen | Niet automatisch gratis/beschikbaar | Niet via scraping koppelen. De officiële overheid heeft aangegeven dat P2000 niet als openbare API beschikbaar is; kies eerst een toegestane, gelicentieerde aanbieder. |
+| P2000 via Zwaailicht | Brandweer/politie/ambulance | Nee | Actief: de publieke Atom-feed elke 2 minuten, met ETag en herkenbare User-Agent. Ambulance-ritten tellen als 'goed om te weten'. |
+| NL-Alert | Overheidswaarschuwingen met gebied | Nee | Actief via public-warning.app (geen officieel gedocumenteerde API). |
+| KNMI aardbevingen | Bevingen vanaf M1,5 in NL | Nee | Actief via de FDSN-eventservice. |
 | Resend/Postmark | E-mail voor de oude account-reset/verify-routes | Alleen als die routes blijven | Optioneel. De kernapp is accountloos; verwijder deze starter-routes of configureer `RESEND_API_KEY`/`POSTMARK_API_KEY`. |
 | Sentry | Foutmonitoring | Ja, DSN | Sterk aanbevolen voor productie, maar nog niet geïmplementeerd. |
 
