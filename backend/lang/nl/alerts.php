@@ -9,5 +9,6 @@ return [
     'digest_body' => ':items',
     'digest_more' => ':items en :count andere',
     'level' => ['danger' => 'Gevaar', 'warn' => 'Opletten', 'info' => 'Goed om te weten'],
-    'webhook_test' => 'Testbericht van VeiligBuiten. Je koppeling werkt.',
+    'webhook_not_public' => 'Gebruik een openbaar https-adres. Interne adressen en localhost zijn niet toegestaan.',
+    'webhook_test' => 'Testbericht van VeiligerBuiten. Je koppeling werkt.',
 ];

@@ -16,7 +16,7 @@
     <div class="notif">
       <LogoMark :size="30" />
       <div>
-        <p><b>VEILIGBUITEN</b><span>{{ s.now }}</span></p>
+        <p><b>VEILIGERBUITEN</b><span>{{ s.now }}</span></p>
         <strong>{{ s.notifTitle }}</strong>
         <small>{{ s.notifBody }}</small>
       </div>

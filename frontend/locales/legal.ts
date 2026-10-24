@@ -12,7 +12,7 @@ export const legal: Record<'privacy' | 'terms', Record<Locale, Doc>> = {
     nl: {
       title: 'Privacy',
       updated: 'Laatst bijgewerkt: 24 oktober 2026',
-      intro: 'VeiligBuiten laat zien wat er in je buurt gebeurt. Daarvoor is zo min mogelijk over jou nodig. Hieronder staat precies wat we verwerken en waarom.',
+      intro: 'VeiligerBuiten laat zien wat er in je buurt gebeurt. Daarvoor is zo min mogelijk over jou nodig. Hieronder staat precies wat we verwerken en waarom.',
       sections: [
         { title: 'Je locatie', body: [
           'Je actuele locatie blijft op je telefoon. De app vraagt ongeveer eens per uur, of als je ver bent verplaatst, de situaties binnen 30 km op. Daarvoor stuurt de app een afgerond middelpunt (ongeveer 100 meter nauwkeurig) mee. Dat middelpunt koppelen we niet aan je account en bewaren we niet in onze database.',
@@ -40,14 +40,14 @@ export const legal: Record<'privacy' | 'terms', Record<Locale, Doc>> = {
         ] },
         { title: 'Bewaren en verwijderen', body: [
           'Situaties verlopen vanzelf en worden daarna opgeruimd. Verwijder je je account in de app, dan verwijderen we je account, je plekken en je instellingen.',
-          'Je hebt recht op inzage, correctie en verwijdering. Mail ons op hallo@veiligbuiten.nl. Je kunt ook een klacht indienen bij de Autoriteit Persoonsgegevens.',
+          'Je hebt recht op inzage, correctie en verwijdering. Mail ons op hallo@veiligerbuiten.nl. Je kunt ook een klacht indienen bij de Autoriteit Persoonsgegevens.',
         ] },
       ],
     },
     en: {
       title: 'Privacy',
       updated: 'Last updated: 24 October 2026',
-      intro: 'VeiligBuiten shows what is happening near you. That requires as little about you as possible. Here is exactly what we process and why.',
+      intro: 'VeiligerBuiten shows what is happening near you. That requires as little about you as possible. Here is exactly what we process and why.',
       sections: [
         { title: 'Your location', body: [
           'Your current location stays on your phone. About once an hour, or after you have moved far, the app fetches the situations within 30 km. To do so it sends a rounded centre point (accurate to about 100 metres). We do not link that point to your account or keep it in our database.',
@@ -75,7 +75,7 @@ export const legal: Record<'privacy' | 'terms', Record<Locale, Doc>> = {
         ] },
         { title: 'Retention and deletion', body: [
           'Situations expire automatically and are then cleaned up. If you delete your account in the app, we delete your account, your places and your settings.',
-          'You have the right to access, correct and delete your data. Email us at hallo@veiligbuiten.nl. You can also file a complaint with the Dutch Data Protection Authority (Autoriteit Persoonsgegevens).',
+          'You have the right to access, correct and delete your data. Email us at hallo@veiligerbuiten.nl. You can also file a complaint with the Dutch Data Protection Authority (Autoriteit Persoonsgegevens).',
         ] },
       ],
     },
@@ -84,10 +84,10 @@ export const legal: Record<'privacy' | 'terms', Record<Locale, Doc>> = {
     nl: {
       title: 'Voorwaarden',
       updated: 'Laatst bijgewerkt: 24 oktober 2026',
-      intro: 'Door VeiligBuiten te gebruiken ga je akkoord met deze voorwaarden.',
+      intro: 'Door VeiligerBuiten te gebruiken ga je akkoord met deze voorwaarden.',
       sections: [
         { title: 'Geen hulpdienst', body: [
-          'VeiligBuiten is een informatiedienst, geen hulpdienst. Bij direct gevaar bel je altijd 112.',
+          'VeiligerBuiten is een informatiedienst, geen hulpdienst. Bij direct gevaar bel je altijd 112.',
           'Informatie komt van openbare bronnen en van gebruikers. Die kan onvolledig, vertraagd of onjuist zijn. Dat er niets op de kaart staat, betekent niet dat het veilig is.',
         ] },
         { title: 'Melden', body: [
@@ -95,21 +95,21 @@ export const legal: Record<'privacy' | 'terms', Record<Locale, Doc>> = {
           'Geen persoonsgegevens, beschuldigingen, reclame of scheldwoorden. Valse of misleidende meldingen kunnen leiden tot blokkering van je account.',
         ] },
         { title: 'Abonnement', body: [
-          'VeiligBuiten kost € 0,99 per maand, zonder proefperiode. Het abonnement verlengt automatisch en is maandelijks op te zeggen via de App Store of Google Play.',
+          'VeiligerBuiten kost € 0,99 per maand, zonder proefperiode. Het abonnement verlengt automatisch en is maandelijks op te zeggen via de App Store of Google Play.',
         ] },
         { title: 'Aansprakelijkheid', body: [
           'We doen ons best om de dienst betrouwbaar te houden, maar kunnen niet garanderen dat die altijd werkt of dat informatie klopt. We zijn niet aansprakelijk voor schade door het gebruik van, of vertrouwen op, de informatie in de app, behalve bij opzet of grove schuld.',
         ] },
-        { title: 'Contact', body: ['Vragen? Mail hallo@veiligbuiten.nl. Op deze voorwaarden is Nederlands recht van toepassing.'] },
+        { title: 'Contact', body: ['Vragen? Mail hallo@veiligerbuiten.nl. Op deze voorwaarden is Nederlands recht van toepassing.'] },
       ],
     },
     en: {
       title: 'Terms',
       updated: 'Last updated: 24 October 2026',
-      intro: 'By using VeiligBuiten you agree to these terms.',
+      intro: 'By using VeiligerBuiten you agree to these terms.',
       sections: [
         { title: 'Not an emergency service', body: [
-          'VeiligBuiten is an information service, not an emergency service. In immediate danger, always call 112.',
+          'VeiligerBuiten is an information service, not an emergency service. In immediate danger, always call 112.',
           'Information comes from public sources and from users. It can be incomplete, delayed or wrong. An empty map does not mean it is safe.',
         ] },
         { title: 'Reporting', body: [
@@ -117,12 +117,12 @@ export const legal: Record<'privacy' | 'terms', Record<Locale, Doc>> = {
           'No personal data, accusations, advertising or abuse. False or misleading reports can lead to your account being blocked.',
         ] },
         { title: 'Subscription', body: [
-          'VeiligBuiten costs €0.99 per month, with no trial. The subscription renews automatically and can be cancelled monthly in the App Store or Google Play.',
+          'VeiligerBuiten costs €0.99 per month, with no trial. The subscription renews automatically and can be cancelled monthly in the App Store or Google Play.',
         ] },
         { title: 'Liability', body: [
           'We do our best to keep the service reliable, but cannot guarantee that it always works or that information is correct. We are not liable for damage caused by using or relying on the information in the app, except in case of intent or gross negligence.',
         ] },
-        { title: 'Contact', body: ['Questions? Email hallo@veiligbuiten.nl. These terms are governed by Dutch law.'] },
+        { title: 'Contact', body: ['Questions? Email hallo@veiligerbuiten.nl. These terms are governed by Dutch law.'] },
       ],
     },
   },

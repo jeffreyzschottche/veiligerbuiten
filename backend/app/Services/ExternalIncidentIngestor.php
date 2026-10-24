@@ -221,7 +221,9 @@ class ExternalIncidentIngestor
             'severity' => $attributes['severity'], 'confidence' => 1, 'incident_type' => $attributes['incident_type'],
             'last_confirmed_at' => $observedAt,
         ];
+        // Alleen echte webadressen; een feed mag nooit een javascript:- of intent:-link de app in sturen.
         $link = $item['link'] ?? $item['url'] ?? null;
+        $link = is_string($link) && preg_match('#^https?://[^\s]+$#i', $link) && mb_strlen($link) <= 500 ? $link : null;
 
         if (! $incident) {
             $incident = Incident::create($payload + [

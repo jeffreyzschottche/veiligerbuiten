@@ -6,7 +6,7 @@ import { storage } from '~/utils/storage';
 import { distanceMeters } from '~/composables/useGeo';
 import type { Position } from '~/composables/useDevice';
 
-const RUNNER = 'nl.veiligbuiten.app.check';
+const RUNNER = 'nl.veiligerbuiten.app.check';
 const CACHE_KEY = 'vb_sync';
 /** Snapshots are bounded even when an older report has no individual expiry. */
 const MAX_CACHE_AGE_MS = 6 * 60 * 60 * 1000;

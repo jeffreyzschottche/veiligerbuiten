@@ -40,6 +40,8 @@ return [
     'lifecycle' => [
         'categories' => [
             'geweld' => ['ttl' => 90, 'extend' => 45, 'idle' => 90, 'max' => 360, 'half_life' => 45],
+            // Een persoon die lastigvalt verplaatst zich: kort zichtbaar, snel minder zeker.
+            'intimidatie' => ['ttl' => 60, 'extend' => 30, 'idle' => 60, 'max' => 240, 'half_life' => 30],
             'onveilig' => ['ttl' => 120, 'extend' => 60, 'idle' => 120, 'max' => 480, 'half_life' => 60],
             'brand' => ['ttl' => 180, 'extend' => 90, 'idle' => 180, 'max' => 720, 'half_life' => 90],
             'stoffen' => ['ttl' => 240, 'extend' => 90, 'idle' => 240, 'max' => 720, 'half_life' => 120],
@@ -74,7 +76,7 @@ return [
         'min_incidents' => 3,
         'min_days' => 3,
         'half_life_days' => 10,
-        'categories' => ['verkeer', 'geweld', 'onveilig'],
+        'categories' => ['verkeer', 'geweld', 'onveilig', 'intimidatie'],
     ],
 
     // Toegestane achtergrondcontroles (minuten) die een gebruiker kan kiezen.
@@ -87,7 +89,7 @@ return [
     'danger_scale' => [
         // Bereik bij 'gevaar' per categorie; 'opletten' en 'goed om te weten' krijgen een deel daarvan.
         'category_radius_m' => [
-            'stoffen' => 1500, 'weer' => 3000, 'brand' => 1000, 'geweld' => 600, 'onveilig' => 500,
+            'stoffen' => 1500, 'weer' => 3000, 'brand' => 1000, 'geweld' => 600, 'onveilig' => 500, 'intimidatie' => 400,
             'verkeer' => 800, 'blokkade' => 500, 'drukte' => 600, 'dier' => 400, 'anders' => 800,
         ],
         'level_factor' => ['danger' => 1.0, 'warn' => 0.6, 'info' => 0.3],

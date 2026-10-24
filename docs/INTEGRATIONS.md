@@ -9,7 +9,7 @@ serversleutels alleen in de secretstore van de backend/hostingomgeving.
 | NDW Open Data SRTI | Verkeers- en veiligheidsberichten | Nee | Feed-URL staat als `NDW_OPEN_DATA_URL` in de backend. `veiligbuiten:ingest-ndw` normaliseert actuele puntmeldingen naar officiële verkeer-/blokkade-incidenten. |
 | KNMI Open Data | Weerwaarschuwingen | Ja, gratis API-key | Vul `KNMI_API_KEY` alleen in de backend in. |
 | RevenueCat | Abonnement € 0,99 per maand | Ja | Melden en kaartdata vereisen een actief abonnement; max. 3 meldingen per dag per account (`ReportQuota`). De oude CAPTCHA is vervallen. |
-| Firebase Cloud Messaging | Android pushmeldingen | Ja | Vereist voor push. Firebase-project, Android-app `nl.veiligbuiten.app`, `google-services.json` in Android en service-account JSON als backend-secret. |
+| Firebase Cloud Messaging | Android pushmeldingen | Ja | Vereist voor push. Firebase-project, Android-app `nl.veiligerbuiten.app`, `google-services.json` in Android en service-account JSON als backend-secret. |
 | Apple Push Notification service | iOS pushmeldingen | Ja | Vereist voor iOS-push. Apple Developer Program, Push Notifications capability, APNs `.p8` key, Key ID en Team ID. |
 | Google Play Console | Android publiceren | Geen API-key voor handmatige release | Vereist een Play Console-account en upload-keystore. Alleen CI-upload gebruikt later een service-account. |
 | Apple Developer + App Store Connect | iOS/TestFlight publiceren | Geen algemene API-key voor handmatige release | Vereist Apple Developer-account, signing en App Store Connect. CI-upload kan later een App Store Connect API-key gebruiken. |
@@ -60,7 +60,7 @@ wanneer iemand op de notificatie tikt.
 
 ### Android (Firebase Cloud Messaging)
 
-1. Maak een Firebase-project en voeg Android-package `nl.veiligbuiten.app` toe.
+1. Maak een Firebase-project en voeg Android-package `nl.veiligerbuiten.app` toe.
 2. Plaats het gedownloade `google-services.json` in `frontend/android/app/`.
 3. Maak in Google Cloud een service-account met Firebase Cloud Messaging-rechten.
 4. Base64-encode het volledige JSON-bestand en zet het uitsluitend als

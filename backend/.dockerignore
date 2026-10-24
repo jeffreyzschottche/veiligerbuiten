@@ -1,0 +1,18 @@
+# Geheimen en lokale gegevens horen nooit in een image.
+.env
+.env.*
+!.env.example
+database/*.sqlite
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+# De mappen zelf moeten blijven bestaan.
+!storage/logs/.gitignore
+!storage/framework/*/.gitignore
+# De image installeert zelf (zonder dev-pakketten); de lokale vendor zou dat overschrijven.
+vendor
+node_modules
+tests
+.git
+.phpunit.result.cache

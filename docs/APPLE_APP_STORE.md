@@ -2,11 +2,11 @@
 
 ## Release-identiteit
 
-De iOS-app heeft bundle-id `nl.veiligbuiten.app`, displaynaam **Veilig Buiten**,
+De iOS-app heeft bundle-id `nl.veiligerbuiten.app`, displaynaam **Veiliger Buiten**,
 minimum iOS 15 en gebruikt uitsluitend locatie tijdens gebruik. De verplichte
 locatietekst staat in `frontend/ios/App/App/Info.plist`.
 
-1. Registreer `nl.veiligbuiten.app` in het Apple Developer-account.
+1. Registreer `nl.veiligerbuiten.app` in het Apple Developer-account.
 2. Maak de app aan in App Store Connect met exact dezelfde bundle-id.
 3. Open `frontend/ios` in Xcode via `npm run cap:ios`, kies je Apple Team en laat
    Xcode automatisch signing beheren.
@@ -42,7 +42,7 @@ Na `npm run cap:build` kan een CI-machine met Xcode een archive maken:
 
 ```sh
 xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release \\
-  -archivePath build/VeiligBuiten.xcarchive archive
+  -archivePath build/VeiligerBuiten.xcarchive archive
 ```
 
 Gebruik voor export en upload een provisioning-profiel en App Store Connect API-key

@@ -9,5 +9,6 @@ return [
     'digest_body' => ':items',
     'digest_more' => ':items and :count more',
     'level' => ['danger' => 'Danger', 'warn' => 'Watch out', 'info' => 'Good to know'],
-    'webhook_test' => 'Test message from VeiligBuiten. Your connection works.',
+    'webhook_not_public' => 'Use a public https address. Internal addresses and localhost are not allowed.',
+    'webhook_test' => 'Test message from VeiligerBuiten. Your connection works.',
 ];

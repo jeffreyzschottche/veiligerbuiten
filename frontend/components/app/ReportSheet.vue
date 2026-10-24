@@ -82,7 +82,8 @@ const subtypeLabel = computed(() => {
   const match = category.value ? subtypes[category.value].find(([nl]) => nl === subtype.value) : null;
   return match ? (locale.value === 'nl' ? match[0] : match[1]) : '';
 });
-const needsNote = computed(() => category.value === 'anders');
+// De server vraagt een toelichting bij 'Anders' en bij elk 'Anders: …'-meldtype.
+const needsNote = computed(() => category.value === 'anders' || !!subtype.value?.startsWith('Anders:'));
 const mapAllowed = computed(() => !!(props.mapCenter && here.value && distanceMeters(here.value.latitude, here.value.longitude, props.mapCenter.latitude, props.mapCenter.longitude) <= 950));
 const resultText = computed(() => ({ placed: t.value.report.placedBody, merged: t.value.report.merged, review: t.value.report.review })[result.value]);
 

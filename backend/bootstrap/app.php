@@ -11,7 +11,7 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
         then: function (): void {
-            // MCP staat buiten /api: https://api.veiligbuiten.nl/mcp/{token}
+            // MCP staat buiten /api: https://api.veiligerbuiten.nl/mcp/{token}
             \Illuminate\Support\Facades\Route::middleware(['api', 'throttle:60,1'])->group(base_path('routes/mcp.php'));
         },
     )

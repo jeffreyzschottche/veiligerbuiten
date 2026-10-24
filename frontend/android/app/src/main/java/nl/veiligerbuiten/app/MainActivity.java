@@ -1,4 +1,4 @@
-package nl.veiligbuiten.app;
+package nl.veiligerbuiten.app;
 
 import com.getcapacitor.BridgeActivity;
 

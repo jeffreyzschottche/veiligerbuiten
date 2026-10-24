@@ -1,11 +1,11 @@
-# Veilig Buiten - Agent Documentation
+# Veiliger Buiten - Agent Documentation
 
 > Dit document is bedoeld voor AI coding agents die aan dit project werken.
 > **Lees ook: [roadmap.md](./roadmap.md)** voor openstaande taken.
 
 ## Project Overview
 
-**Veilig Buiten** is een Nederlandse veiligheidsapp die real-time incidenten toont op een kaart. Gebruikers kunnen incidenten melden, bevestigen en als opgelost markeren. De app combineert crowd-sourced meldingen met officiële databronnen (P2000, KNMI, NDW, etc.).
+**Veiliger Buiten** is een Nederlandse veiligheidsapp die real-time incidenten toont op een kaart. Gebruikers kunnen incidenten melden, bevestigen en als opgelost markeren. De app combineert crowd-sourced meldingen met officiële databronnen (P2000, KNMI, NDW, etc.).
 
 ## Tech Stack
 

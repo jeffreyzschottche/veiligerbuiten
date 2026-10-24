@@ -1,6 +1,6 @@
 # Externe databronnen
 
-VeiligBuiten importeert alleen actuele brondata via gedocumenteerde feeds of API's. Er wordt niet vanaf HTML-pagina's gescrapet.
+VeiligerBuiten importeert alleen actuele brondata via gedocumenteerde feeds of API's. Er wordt niet vanaf HTML-pagina's gescrapet.
 
 ## Actief
 

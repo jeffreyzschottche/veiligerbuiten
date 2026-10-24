@@ -11,7 +11,7 @@ class SyncCbsPoliceMetadata extends Command
 
     public function handle(): int
     {
-        $this->info('CBS-politiedata wordt bewust niet op de realtime VeiligBuiten-kaart geïmporteerd. Configureer eerst een gevalideerde actuele CBS-dataset voor analytics.');
+        $this->info('CBS-politiedata wordt bewust niet op de realtime VeiligerBuiten-kaart geïmporteerd. Configureer eerst een gevalideerde actuele CBS-dataset voor analytics.');
         return self::SUCCESS;
     }
 }

@@ -1,7 +1,7 @@
 <template>
   <span class="vb-logo" :class="{ 'vb-logo--inverse': inverse }">
     <LogoMark :size="size" :inverse="inverse" />
-    <span v-if="wordmark" class="vb-logo__word" :style="{ fontSize: `${Math.round(size * 0.66)}px` }">veiligbuiten</span>
+    <span v-if="wordmark" class="vb-logo__word" :style="{ fontSize: `${Math.round(size * 0.66)}px` }">veiligerbuiten</span>
   </span>
 </template>
 

@@ -1,6 +1,6 @@
 // Copy the values below into your local Xcode build settings or CI configuration.
 // Never commit Apple signing certificates, provisioning profiles or API keys.
-PRODUCT_BUNDLE_IDENTIFIER = nl.veiligbuiten.app
+PRODUCT_BUNDLE_IDENTIFIER = nl.veiligerbuiten.app
 MARKETING_VERSION = 1.0.0
 CURRENT_PROJECT_VERSION = 1
 DEVELOPMENT_TEAM = YOUR_APPLE_TEAM_ID

@@ -1,6 +1,7 @@
 export type IncidentCategory =
   | 'brand'
   | 'geweld'
+  | 'intimidatie'
   | 'verkeer'
   | 'blokkade'
   | 'weer'

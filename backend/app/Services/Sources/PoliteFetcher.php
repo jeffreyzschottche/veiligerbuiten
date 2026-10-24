@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Http;
  */
 class PoliteFetcher
 {
-    public const USER_AGENT = 'VeiligBuiten/1.0 (+https://veiligbuiten.nl; hallo@veiligbuiten.nl)';
+    public const USER_AGENT = 'VeiligerBuiten/1.0 (+https://veiligerbuiten.nl; hallo@veiligerbuiten.nl)';
 
     /** @return string|null De body, of null als de bron niets nieuws heeft. */
     public function get(string $url, int $timeout = 20, array $headers = []): ?string

@@ -107,7 +107,7 @@ class AccountFeaturesTest extends TestCase
         $this->postJson('/mcp/vb_wrong', ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/list'])->assertUnauthorized();
 
         $this->postJson("/mcp/{$token}", ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'initialize', 'params' => ['protocolVersion' => '2025-06-18']])
-            ->assertOk()->assertJsonPath('result.serverInfo.name', 'veiligbuiten');
+            ->assertOk()->assertJsonPath('result.serverInfo.name', 'veiligerbuiten');
         $this->postJson("/mcp/{$token}", ['jsonrpc' => '2.0', 'method' => 'notifications/initialized'])->assertStatus(202);
         $this->postJson("/mcp/{$token}", ['jsonrpc' => '2.0', 'id' => 2, 'method' => 'tools/list'])
             ->assertOk()->assertJsonPath('result.tools.0.name', 'get_situations_nearby');

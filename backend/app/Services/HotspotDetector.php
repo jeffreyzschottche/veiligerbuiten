@@ -81,7 +81,8 @@ class HotspotDetector
         return Incident::query()
             ->where('created_at', '>=', now()->subDays($config['window_days']))
             ->whereIn('category', $config['categories'])
-            ->where('severity', '>=', 3)
+            // Intimidatie telt vanaf 'goed om te weten': herhaald nafluiten op één plek is precies wat je wilt weten.
+            ->where(fn (Builder $q) => $q->where('severity', '>=', 3)->orWhere('category', 'intimidatie'))
             // Officieel, of door meerdere mensen bevestigd; weggestemde meldingen tellen nooit.
             ->where(fn (Builder $q) => $q->where('source', '!=', 'user')->orWhere('confirmations_count', '>=', 2))
             ->where(fn (Builder $q) => $q->where('source', '!=', 'user')->orWhere('status', '!=', 'opgelost'))

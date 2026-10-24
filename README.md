@@ -1,4 +1,4 @@
-# Veilig Buiten — Nuxt 4 + Laravel + Capacitor
+# Veiliger Buiten — Nuxt 4 + Laravel + Capacitor
 
 Een volledige starterkit met Laravel (Sanctum) API, Nuxt 4-frontend en Capacitor voor iOS en Android. Inclusief registratie, login, e-mailverificatie en wachtwoord-resetflows.
 
@@ -85,9 +85,9 @@ Voor een echte mobiele build moet `NUXT_PUBLIC_API_BASE_URL` een via HTTPS berei
 
 Alle routes bevinden zich onder `/api/v1`.
 
-## VeiligBuiten MVP
+## VeiligerBuiten MVP
 
-De startpagina is de kaart-first VeiligBuiten-MVP. Zonder actieve backend toont zij bewust gelabelde voorbeeldsituaties, zodat de interface direct bruikbaar is. Zodra Laravel draait en de migratie is uitgevoerd, haalt de app live incidenten op via de API.
+De startpagina is de kaart-first VeiligerBuiten-MVP. Zonder actieve backend toont zij bewust gelabelde voorbeeldsituaties, zodat de interface direct bruikbaar is. Zodra Laravel draait en de migratie is uitgevoerd, haalt de app live incidenten op via de API.
 
 ```bash
 # Terminal 1

@@ -119,8 +119,14 @@ class IncidentController extends Controller
         $data = $request->validate(['latitude' => 'nullable|numeric|between:50.5,53.7', 'longitude' => 'nullable|numeric|between:3.1,7.3']);
         $installation = Installation::where('token', $request->header('X-Installation-Token'))->firstOrFail();
         abort_unless($trust->mayContribute($installation), 403, 'Deze installatie kan tijdelijk niet stemmen.');
-        abort_if($incident->votes()->where('installation_id', $installation->id)->exists(), 409, 'Je hebt al een beoordeling gegeven.');
-        $incident = $engine->castVote($incident, $installation->id, $vote, $data['latitude'] ?? null, $data['longitude'] ?? null);
+        $user = $request->user();
+        // Het toestel moet van dit account zijn (of nog van niemand), anders kan één account met andermans of nieuwe installaties stemmen.
+        abort_if($installation->user_id !== null && $installation->user_id !== $user->id, 403, 'Deze installatie hoort bij een ander account.');
+        // Eén stem per account én per toestel; extra installaties aanmaken levert geen extra stemmen op.
+        abort_if($incident->votes()->where(fn ($q) => $q->where('installation_id', $installation->id)->orWhere('user_id', $user->id))->exists(), 409, 'Je hebt al een beoordeling gegeven.');
+        // Wie het zelf meldde, kan het niet ook nog 'bevestigen'.
+        abort_if($vote === 'present' && $incident->reports()->where('user_id', $user->id)->exists(), 409, 'Je hebt dit zelf gemeld.');
+        $incident = $engine->castVote($incident, $installation->id, $vote, $data['latitude'] ?? null, $data['longitude'] ?? null, $user->id);
         if ($incident->source !== 'user' && $vote === 'present') $trust->adjust($installation, 1, 'confirmed_official_incident', $incident->id);
         IncidentObservation::create(['incident_id' => $incident->id, 'installation_id' => $installation->id, 'source' => 'user', 'source_reference' => 'vote:'.$incident->id.':'.$installation->id, 'kind' => $vote, 'status' => 'accepted', 'category' => $incident->category, 'subtype' => $incident->subtype, 'latitude' => $data['latitude'] ?? null, 'longitude' => $data['longitude'] ?? null, 'observed_at' => now()]);
 

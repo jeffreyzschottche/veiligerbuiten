@@ -72,7 +72,8 @@ class IncidentEngine
         int $installationId,
         string $vote,
         ?float $latitude = null,
-        ?float $longitude = null
+        ?float $longitude = null,
+        ?int $userId = null
     ): Incident {
         $distance = null;
         if ($latitude !== null && $longitude !== null) {
@@ -84,6 +85,7 @@ class IncidentEngine
         IncidentVote::create([
             'incident_id' => $incident->id,
             'installation_id' => $installationId,
+            'user_id' => $userId,
             'vote' => $vote,
             'latitude' => $latitude,
             'longitude' => $longitude,

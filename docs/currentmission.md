@@ -9,7 +9,7 @@ Het model: **€ 0,99 per maand via RevenueCat, geen proefperiode, geen adverten
 
 ```env
 APP_KEY=            # php artisan key:generate (lokaal is hij nu leeg: AI-tokens versleutelen dan niet)
-APP_URL=https://api.veiligbuiten.nl   # bepaalt ook de MCP-URL die gebruikers zien
+APP_URL=https://api.veiligerbuiten.nl   # bepaalt ook de MCP-URL die gebruikers zien
 VB_BILLING_BYPASS=false               # alleen lokaal op true om zonder abonnement te testen
 ```
 
@@ -18,7 +18,7 @@ VB_BILLING_BYPASS=false               # alleen lokaal op true om zonder abonneme
 1. Maak in App Store Connect en Google Play Console een maandabonnement van € 0,99 aan, **zonder proefperiode**.
 2. Maak in RevenueCat een project, koppel beide winkels en maak het entitlement `premium` met dat product.
 3. Zet de standaard-offering met een `monthly`-package.
-4. Webhook: `https://api.veiligbuiten.nl/api/v1/webhooks/revenuecat`, met een Authorization-header die je zelf kiest.
+4. Webhook: `https://api.veiligerbuiten.nl/api/v1/webhooks/revenuecat`, met een Authorization-header die je zelf kiest.
 
 ```env
 # backend/.env
@@ -42,14 +42,14 @@ De app gebruikt het account-id als RevenueCat-gebruikers-id, zodat de webhook de
 APNS_KEY_ID=XXXXXXXXXX
 APNS_TEAM_ID=XXXXXXXXXX
 APNS_PRIVATE_KEY=...        # inhoud van de .p8 (PEM of base64), nooit een pad in de repo
-APNS_BUNDLE_ID=nl.veiligbuiten.app
+APNS_BUNDLE_ID=nl.veiligerbuiten.app
 APNS_PRODUCTION=true        # false voor builds uit Xcode
 PUSH_DELIVERY_DRIVER=live   # 'log' schrijft pushes alleen naar het log
 ```
 
 ## 4. Push: Android (Firebase Cloud Messaging)
 
-1. Firebase-project, Android-app `nl.veiligbuiten.app`, download `google-services.json` naar `frontend/android/app/`.
+1. Firebase-project, Android-app `nl.veiligerbuiten.app`, download `google-services.json` naar `frontend/android/app/`.
 2. Project settings → Service accounts → nieuwe private key (JSON).
 
 ```env
@@ -62,7 +62,7 @@ De app maakt zelf drie kanalen: `vb_danger` (gevaar, met geluid), `vb_warn` (opl
 
 ```env
 NUXT_PUBLIC_APP_STORE_URL=https://apps.apple.com/...
-NUXT_PUBLIC_PLAY_STORE_URL=https://play.google.com/store/apps/details?id=nl.veiligbuiten.app
+NUXT_PUBLIC_PLAY_STORE_URL=https://play.google.com/store/apps/details?id=nl.veiligerbuiten.app
 ```
 
 Zolang ze leeg zijn, springen de knoppen naar de prijs-sectie.

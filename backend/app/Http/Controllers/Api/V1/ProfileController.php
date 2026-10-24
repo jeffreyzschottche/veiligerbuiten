@@ -21,12 +21,19 @@ class ProfileController extends Controller
             'email' => ['sometimes', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
         ]);
 
-        // If email changed, require re-verification
-        if (isset($validated['email']) && $validated['email'] !== $user->email) {
-            $validated['email_verified_at'] = null;
+        $emailChanged = isset($validated['email']) && $validated['email'] !== $user->email;
+        // Een nieuw e-mailadres vraagt om het wachtwoord: anders is een gestolen token genoeg om
+        // het adres te wijzigen en daarna via 'wachtwoord vergeten' het account over te nemen.
+        if ($emailChanged) {
+            $request->validate(['current_password' => ['required', 'current_password']]);
         }
 
-        $user->update($validated);
+        $user->fill($validated);
+        if ($emailChanged) {
+            // email_verified_at staat niet in $fillable; daarom expliciet.
+            $user->forceFill(['email_verified_at' => null]);
+        }
+        $user->save();
 
         // Send new verification email if needed
         if (isset($validated['email']) && !$user->hasVerifiedEmail()) {
@@ -49,6 +56,8 @@ class ProfileController extends Controller
         $request->user()->update([
             'password' => Hash::make($validated['password']),
         ]);
+        // Andere toestellen uitloggen; dit toestel blijft ingelogd.
+        $request->user()->tokens()->whereKeyNot($request->user()->currentAccessToken()->id)->delete();
 
         return response()->json([
             'message' => 'Wachtwoord bijgewerkt',

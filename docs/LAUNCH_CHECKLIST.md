@@ -1,4 +1,4 @@
-# VeiligBuiten — livegang-checklist
+# VeiligerBuiten — livegang-checklist
 
 Deze checklist is de actuele bron voor een publieke release. Een vinkje betekent
 dat het aantoonbaar is getest in de productie-achtige omgeving, niet alleen op
@@ -25,8 +25,8 @@ localhost.
 
 ## 2. Eerst: domeinen, hosting en database
 
-- [ ] Kies en configureer `www.veiligbuiten.nl` voor de Nuxt-webapp en
-  `api.veiligbuiten.nl` voor Laravel. Maak DNS-records en HTTPS-certificaten.
+- [ ] Kies en configureer `www.veiligerbuiten.nl` voor de Nuxt-webapp en
+  `api.veiligerbuiten.nl` voor Laravel. Maak DNS-records en HTTPS-certificaten.
 - [ ] Host de Nuxt-output als statische site/CDN en de Laravel API op een
   afzonderlijke HTTPS-host. De API mag nooit alleen op `localhost` staan.
 - [ ] Provision een productiondatabase. PostgreSQL + PostGIS is aanbevolen voor
@@ -37,8 +37,8 @@ localhost.
 
 ### Backend productievariabelen
 
-- [ ] Zet minimaal: `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL=https://api.veiligbuiten.nl`,
-  `FRONTEND_URL=https://www.veiligbuiten.nl`, databasegegevens en
+- [ ] Zet minimaal: `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL=https://api.veiligerbuiten.nl`,
+  `FRONTEND_URL=https://www.veiligerbuiten.nl`, databasegegevens en
   `CACHE_STORE=redis`.
 - [ ] Draai één keer `php artisan key:generate --force`, vervolgens
   `php artisan migrate --force`, `php artisan config:cache` en
@@ -50,8 +50,8 @@ localhost.
   ```
 
   Gebruik bij meerdere backendinstances één aangewezen schedulerinstance.
-- [ ] Controleer na deploy `https://api.veiligbuiten.nl/api/v1/health` en
-  `https://api.veiligbuiten.nl/api/v1/sources/status`.
+- [ ] Controleer na deploy `https://api.veiligerbuiten.nl/api/v1/health` en
+  `https://api.veiligerbuiten.nl/api/v1/sources/status`.
 - [ ] Voeg foutmonitoring, uptime-monitoring en alerts toe voor een falende
   scheduler, een oude bronrun, 5xx-fouten en mislukte pushbezorging.
 
@@ -78,7 +78,7 @@ localhost.
 
 ### Android — nog door jou te koppelen
 
-- [ ] Maak een Firebase-project en voeg Android-app `nl.veiligbuiten.app` toe.
+- [ ] Maak een Firebase-project en voeg Android-app `nl.veiligerbuiten.app` toe.
 - [ ] Download `google-services.json` naar `frontend/android/app/` en houd het
   buiten Git.
 - [ ] Maak een server service-account met minimale Firebase Cloud Messaging
@@ -91,7 +91,7 @@ localhost.
 
 ### iOS — nog extern én server-side open
 
-- [ ] Apple Developer Program, App ID `nl.veiligbuiten.app` en de capability
+- [ ] Apple Developer Program, App ID `nl.veiligerbuiten.app` en de capability
   **Push Notifications** activeren.
 - [ ] Maak een APNs `.p8` authentication key en bewaar Key ID, Team ID en de
   key uitsluitend als secrets.
@@ -108,7 +108,7 @@ localhost.
 
   ```sh
   cd frontend
-  export NUXT_PUBLIC_API_BASE_URL=https://api.veiligbuiten.nl/api/v1
+  export NUXT_PUBLIC_API_BASE_URL=https://api.veiligerbuiten.nl/api/v1
   npm ci
   npm run generate
   npx cap sync
@@ -152,5 +152,5 @@ localhost.
 Ga pas publiek als alle relevante vakjes hierboven af zijn, `/health` groen is,
 bronstatus vers is, push op echte toestellen werkt (of bewust uit staat), en een
 verantwoordelijke bereikbaar is voor moderatie en incidenten. Start met een
-begrensde pilot; VeiligBuiten mag nooit als vervanging voor 112 worden
+begrensde pilot; VeiligerBuiten mag nooit als vervanging voor 112 worden
 gepositioneerd.

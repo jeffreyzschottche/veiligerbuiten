@@ -20,7 +20,7 @@
             </div>
           </Transition></div>
           <div class="example-notification" aria-hidden="true">
-            <div class="example-notification__bar"><LogoMark :size="28" /><span>VEILIGBUITEN<small>{{ copy.reported }}</small></span><Icon name="bell" :size="16" /></div>
+            <div class="example-notification__bar"><LogoMark :size="28" /><span>VEILIGERBUITEN<small>{{ copy.reported }}</small></span><Icon name="bell" :size="16" /></div>
             <div class="example-notification__body"><span class="example-notification__icon"><Icon :name="scenes[active]!.icon" :size="21" /></span><div><strong>{{ current.title }}</strong><small>{{ current.meta }}</small></div></div>
             <div class="example-notification__foot"><i />{{ current.category }}<span>↗</span></div>
           </div>

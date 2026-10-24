@@ -1,9 +1,9 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">VeiligBuiten</string>
-    <string name="title_activity_main">VeiligBuiten</string>
-    <string name="package_name">nl.veiligbuiten.app</string>
-    <string name="custom_url_scheme">nl.veiligbuiten.app</string>
+    <string name="app_name">VeiligerBuiten</string>
+    <string name="title_activity_main">VeiligerBuiten</string>
+    <string name="package_name">nl.veiligerbuiten.app</string>
+    <string name="custom_url_scheme">nl.veiligerbuiten.app</string>
     <!-- Google's officiële test-app-ID. Vervang door je eigen AdMob app-ID (ca-app-pub-…~…) vóór publicatie. -->
     <string name="admob_app_id">ca-app-pub-3940256099942544~3347511713</string>
 </resources>

@@ -1,6 +1,6 @@
 {
-  "appId": "nl.veiligbuiten.app",
-  "appName": "VeiligBuiten",
+  "appId": "nl.veiligerbuiten.app",
+  "appName": "VeiligerBuiten",
   "webDir": ".output/public",
   "backgroundColor": "#f4f5f7",
   "server": {
@@ -18,7 +18,7 @@
       "iconColor": "#2F6BFF"
     },
     "BackgroundRunner": {
-      "label": "nl.veiligbuiten.app.check",
+      "label": "nl.veiligerbuiten.app.check",
       "src": "runners/background.js",
       "event": "checkIn",
       "repeat": true,

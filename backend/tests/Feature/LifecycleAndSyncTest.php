@@ -219,6 +219,6 @@ class LifecycleAndSyncTest extends TestCase
         $this->assertSame('geweld', $incident->category);
         $this->assertSame('danger', DangerScale::level($incident));
         $this->assertSame('https://www.politie.nl/nieuws/a.html', $incident->source_url);
-        Http::assertSent(fn ($request) => str_contains($request->header('User-Agent')[0] ?? '', 'VeiligBuiten'));
+        Http::assertSent(fn ($request) => str_contains($request->header('User-Agent')[0] ?? '', 'VeiligerBuiten'));
     }
 }

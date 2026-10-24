@@ -2,10 +2,10 @@ import type { Locale } from '~/composables/useLocale';
 
 const nl = {
   meta: {
-    title: 'VeiligBuiten — De Flitsmeister voor gevaar',
+    title: 'VeiligerBuiten — De Flitsmeister voor gevaar',
     description: 'Weet wat er om je heen gebeurt. Live meldingen over brand, verkeer en noodweer uit officiële bronnen en van mensen in je buurt. € 0,99 per maand.',
   },
-  nav: { sources: 'Onze meldingen', how: 'Hoe het werkt', alerts: 'Meldingen', ai: 'AI', price: 'Prijs', download: 'Download' },
+  nav: { sources: 'Onze meldingen', how: 'Hoe het werkt', women: 'Voor vrouwen', alerts: 'Meldingen', ai: 'AI', price: 'Prijs', download: 'Download' },
   stores: { appleTop: 'Download in de', googleTop: 'Ontdek het op' },
   hero: {
     eyebrow: 'Een gerust gevoel begint bij weten',
@@ -57,6 +57,29 @@ const nl = {
       { tag: 'Goed om te weten', title: 'Veel politie', text: 'Krijg context bij wat er op straat te zien is. Houd rekening met mogelijke hinder en kijk wat er over de situatie bekend is.', category: 'In de buurt', meta: 'In de straat · melding uit de buurt' },
     ],
   },
+  women: {
+    eyebrow: 'Voor vrouwen',
+    title: 'Met een gerust gevoel\nde straat op.',
+    lead: 'Nagefloten, nageroepen, gevolgd of betast worden: het gebeurt vaker dan je denkt, en vaak op dezelfde plekken. Met VeiligerBuiten meld je het in een paar tikken en weet je waar je extra kunt opletten.',
+    points: [
+      { title: 'Melden in een paar tikken', text: 'Kies wat er gebeurt, van nafluiten tot iemand die je volgt. Anoniem: anderen zien niet wie het meldde.' },
+      { title: 'Een seintje onderweg', text: 'Kom je in de buurt van een recente melding, dan krijg je een seintje. Jij kiest waarvoor: alleen het ernstige, of ook nafluiten en naroepen.' },
+      { title: 'Weten waar het vaker gebeurt', text: 'Plekken waar mensen herhaaldelijk worden lastiggevallen zie je op de kaart. Zo kies je zelf hoe je loopt.' },
+    ],
+    sheetTitle: 'Wat gebeurt er?',
+    sheetCategory: 'Intimidatie',
+    types: ['Handtastelijke persoon', 'Nafluiten / naroepen', 'Seksuele opmerkingen', 'Iemand volgt mij', 'Potloodventer / exhibitionist', 'Ongewenst gefilmd'],
+    anonymous: 'Anoniem: niemand ziet wie het meldde',
+    help: {
+      title: 'Hulp nodig?',
+      items: [
+        { value: '112', label: 'Direct gevaar', href: 'tel:112' },
+        { value: '0800-0188', label: 'Centrum Seksueel Geweld · gratis, dag en nacht', href: 'tel:08000188' },
+        { value: '0900-8844', label: 'Politie · aangifte doen', href: 'tel:09008844' },
+      ],
+      law: 'Seksuele intimidatie op straat is sinds 1 juli 2024 strafbaar. Een melding in de app waarschuwt anderen, maar is geen aangifte.',
+    },
+  },
   offline: {
     eyebrow: 'Voor onderweg, ook zonder bereik',
     title: 'Even geen internet.\nWel je omgeving mee.',
@@ -106,18 +129,18 @@ const nl = {
     lead: 'Neem je omgeving mee in je gesprek met ChatGPT, Claude of een andere geschikte AI-assistent. Koppel je account vanuit de app en stel je vraag. Je assistent kan de meldingen rond jouw plekken erbij pakken.',
     endpoint: 'Alles verbonden',
     webhook: 'Webhook',
-    webhookValue: 'https://jouw-agent.nl/hooks/veiligbuiten',
+    webhookValue: 'https://jouw-agent.nl/hooks/veiligerbuiten',
     chat: {
       assistant: 'Je assistent',
       question: 'Is het rustig rond Amsterdam Centraal? Ik ben er over 20 minuten.',
-      tool: 'veiligbuiten · situaties in de buurt',
+      tool: 'veiligerbuiten · situaties in de buurt',
       answer: 'Er is 12 minuten geleden een brand gemeld in de buurt van de oostelijke ingang (Brandweer, 12× bevestigd). Houd rekening met mogelijke hinder en volg de aanwijzingen ter plaatse.',
     },
   },
   trust: [
     { title: 'Je locatie blijft bij jou', text: 'De app haalt meldingen uit je omgeving op en vergelijkt ze op je telefoon met je locatie. Ook zonder internet kan dat met eerder opgeslagen meldingen. Je wordt niet continu gevolgd.' },
     { title: 'Zuinig', text: 'Weinig verzoeken, weinig batterij. Jij bepaalt hoe vaak er op de achtergrond wordt gecontroleerd.' },
-    { title: 'Bel 112 bij direct gevaar', text: 'VeiligBuiten helpt je vooruit te kijken. Bij direct gevaar bel je altijd 112.' },
+    { title: 'Bel 112 bij direct gevaar', text: 'VeiligerBuiten helpt je vooruit te kijken. Bij direct gevaar bel je altijd 112.' },
   ],
   price: {
     eyebrow: 'Prijs',
@@ -149,10 +172,10 @@ const nl = {
 
 const en: typeof nl = {
   meta: {
-    title: 'VeiligBuiten — Live safety alerts around you',
+    title: 'VeiligerBuiten — Live safety alerts around you',
     description: 'Know what is happening around you. Live alerts on fires, traffic and severe weather from official sources and people nearby. € 0.99 per month.',
   },
-  nav: { sources: 'Our alerts', how: 'How it works', alerts: 'Alerts', ai: 'AI', price: 'Pricing', download: 'Download' },
+  nav: { sources: 'Our alerts', how: 'How it works', women: 'For women', alerts: 'Alerts', ai: 'AI', price: 'Pricing', download: 'Download' },
   stores: { appleTop: 'Download on the', googleTop: 'Get it on' },
   hero: {
     eyebrow: 'A little knowledge. A lot of peace of mind.',
@@ -204,6 +227,29 @@ const en: typeof nl = {
       { tag: 'Good to know', title: 'Police presence', text: 'Get context for what you see on the street. Allow for possible disruption and check what is known about the situation.', category: 'Nearby', meta: 'In the street · community report' },
     ],
   },
+  women: {
+    eyebrow: 'For women',
+    title: 'Head out with\npeace of mind.',
+    lead: 'Being catcalled, followed or groped happens more often than you think, and often in the same places. With VeiligerBuiten you report it in a few taps and know where to take extra care.',
+    points: [
+      { title: 'Report in a few taps', text: 'Choose what is happening, from catcalling to someone following you. Anonymous: others cannot see who reported it.' },
+      { title: 'A heads-up on the way', text: 'Getting close to a recent report? You get a heads-up. You choose what for: only serious situations, or catcalling too.' },
+      { title: 'Know where it happens more often', text: 'Places where people are harassed repeatedly show up on the map, so you can decide how you walk.' },
+    ],
+    sheetTitle: 'What is happening?',
+    sheetCategory: 'Harassment',
+    types: ['Groping / unwanted touching', 'Catcalling', 'Sexual comments', 'Someone is following me', 'Indecent exposure', 'Filmed without consent'],
+    anonymous: 'Anonymous: nobody sees who reported it',
+    help: {
+      title: 'Need help?',
+      items: [
+        { value: '112', label: 'Immediate danger', href: 'tel:112' },
+        { value: '0800-0188', label: 'Sexual Assault Centre (CSG) · free, 24/7', href: 'tel:08000188' },
+        { value: '0900-8844', label: 'Police · file a report', href: 'tel:09008844' },
+      ],
+      law: 'Sexual harassment in public has been a criminal offence in the Netherlands since 1 July 2024. A report in the app warns others but is not a police report.',
+    },
+  },
   offline: {
     eyebrow: 'For the journey, even without a signal',
     title: 'No internet for a bit.\nYour area comes along.',
@@ -253,18 +299,18 @@ const en: typeof nl = {
     lead: 'Bring your surroundings into your conversation with ChatGPT, Claude or another compatible AI assistant. Connect your account from the app and ask away. Your assistant can check reports around your saved places.',
     endpoint: 'Everything connected',
     webhook: 'Webhook',
-    webhookValue: 'https://your-agent.app/hooks/veiligbuiten',
+    webhookValue: 'https://your-agent.app/hooks/veiligerbuiten',
     chat: {
       assistant: 'Your assistant',
       question: 'Is it calm around Amsterdam Centraal? I will be there in 20 minutes.',
-      tool: 'veiligbuiten · situations nearby',
+      tool: 'veiligerbuiten · situations nearby',
       answer: 'A fire was reported near the east entrance 12 minutes ago (fire service, confirmed 12×). Allow for possible disruption and follow instructions on site.',
     },
   },
   trust: [
     { title: 'Your location stays with you', text: 'The app fetches nearby reports and compares them with your location on your phone. Saved reports can also be checked offline. Your location is not continuously tracked.' },
     { title: 'Light on battery', text: 'Few requests, little battery. You decide how often it checks in the background.' },
-    { title: 'Call 112 in an emergency', text: 'VeiligBuiten helps you look ahead. In immediate danger, always call 112.' },
+    { title: 'Call 112 in an emergency', text: 'VeiligerBuiten helps you look ahead. In immediate danger, always call 112.' },
   ],
   price: {
     eyebrow: 'Pricing',

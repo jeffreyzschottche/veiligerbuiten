@@ -65,7 +65,7 @@
 
 <script setup lang="ts">
 definePageMeta({ layout: false });
-useHead({ title: 'VeiligBuiten', meta: [{ name: 'theme-color', content: '#0b0d12' }] });
+useHead({ title: 'VeiligerBuiten', meta: [{ name: 'theme-color', content: '#0b0d12' }] });
 
 type Step = 'welcome' | 'signup' | 'login' | 'permissions';
 const route = useRoute();

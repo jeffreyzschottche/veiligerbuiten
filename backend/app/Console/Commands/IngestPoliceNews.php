@@ -104,6 +104,8 @@ class IngestPoliceNews extends Command
         }
 
         $match = match (true) {
+            // Eerst: zo'n bericht noemt vaak ook 'geweld', maar hoort bij intimidatie.
+            $this->mentions($text, ['aanrand', 'aangerand', 'zedendelict', 'zedenmisdrijf', 'seksuele intimidatie', 'straatintimidatie', 'potloodvent', 'exhibitionis', 'schennis', 'achtervolgd', 'lastiggevallen', 'betast']) => ['intimidatie', 'Politiebericht: aanranding of seksuele intimidatie', 3],
             $this->mentions($text, ['schiet', 'schoten', 'vuurwapen', 'steekpartij', 'steekincident', 'neergestoken', 'gestoken', 'overval', 'beroving', 'straatroof', 'mishandel', 'geweld', 'bedreig', 'ontvoer', 'gijzel']) => ['geweld', 'Politiebericht: geweldsincident', 3],
             $this->mentions($text, ['explosie', 'explosief', 'bommelding', 'handgranaat', 'verdacht pakket', 'verdacht object']) => ['onveilig', 'Politiebericht: explosief of verdacht object', 4],
             $this->mentions($text, ['brand', 'rook']) => ['brand', 'Politiebericht: brand', 3],

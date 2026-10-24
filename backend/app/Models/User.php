@@ -16,7 +16,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     /** Standaard: alles behalve losse info-meldingen. */
     public const DEFAULT_ALERT_FILTERS = [
-        'categories' => ['brand', 'geweld', 'onveilig', 'verkeer', 'blokkade', 'weer', 'stoffen', 'drukte', 'dier', 'anders'],
+        'categories' => ['brand', 'geweld', 'intimidatie', 'onveilig', 'verkeer', 'blokkade', 'weer', 'stoffen', 'drukte', 'dier', 'anders'],
         'min_level' => 'warn',
     ];
 

@@ -25,7 +25,7 @@ class ReportController extends Controller
     public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'category' => 'required|in:brand,geweld,onveilig,verkeer,blokkade,weer,stoffen,drukte,dier,anders',
+            'category' => 'required|in:brand,geweld,intimidatie,onveilig,verkeer,blokkade,weer,stoffen,drukte,dier,anders',
             'subtype' => 'required|string|max:80', 'description' => 'nullable|string|max:180',
             'latitude' => 'required|numeric|between:50.5,53.7', 'longitude' => 'required|numeric|between:3.1,7.3',
             'user_latitude' => 'nullable|numeric|between:50.5,53.7', 'user_longitude' => 'nullable|numeric|between:3.1,7.3',
@@ -40,6 +40,7 @@ class ReportController extends Controller
         }
         $installation = Installation::where('token', $request->header('X-Installation-Token'))->firstOrFail();
         abort_unless($this->trust->mayContribute($installation), 403, 'Deze installatie kan tijdelijk geen meldingen plaatsen.');
+        abort_if($installation->user_id !== null && $installation->user_id !== $request->user()->id, 403, 'Deze installatie hoort bij een ander account.');
         abort_unless(isset($data['user_latitude'], $data['user_longitude']), 422, 'We hebben je actuele locatie nodig om een melding te plaatsen.');
         abort_if(($data['location_accuracy_m'] ?? 0) > 250, 422, 'Je locatie is nog niet nauwkeurig genoeg. Probeer het buiten opnieuw.');
         abort_if(GeoUtils::distanceMeters($data['latitude'], $data['longitude'], $data['user_latitude'], $data['user_longitude']) > 1000, 422, 'Een melding moet binnen 1 km van je actuele locatie liggen.');
@@ -47,8 +48,10 @@ class ReportController extends Controller
         // Eén transactie onder een lock per gebruiker: het dagquotum kan niet worden omzeild.
         [$incident, $nearby] = $this->quota->consume($user, function () use ($data, $description, $installation, $user) {
             $nearby = $this->engine->findDuplicate($data['category'], $data['latitude'], $data['longitude']);
+            // Dezelfde situatie twee keer melden (of melden wat je al bevestigde) telt niet dubbel.
+            abort_if($nearby && ($nearby->reports()->where('user_id', $user->id)->exists() || $nearby->votes()->where('user_id', $user->id)->exists()), 409, 'Je hebt deze situatie al gemeld of bevestigd.');
             $visibility = $this->policy->initialVisibility($data['category']);
-            $incident = $nearby ?: Incident::create([...$data, 'status' => 'gemeld', 'visibility' => $visibility, 'source' => 'user', 'incident_type' => $this->incidentType($data['category']), 'severity' => $this->severity($data['category']), 'confidence' => .20, 'confirmations_count' => 0, 'last_confirmed_at' => now(), 'first_observed_at' => now(), 'last_activity_at' => now(), 'location_precision_m' => isset($data['location_accuracy_m']) ? min(5000, (int) $data['location_accuracy_m']) : null, 'expires_at' => $this->lifecycle->initialExpiry($data['category'])]);
+            $incident = $nearby ?: Incident::create([...$data, 'status' => 'gemeld', 'visibility' => $visibility, 'source' => 'user', 'incident_type' => $this->incidentType($data['category']), 'severity' => $this->severity($data['category'], $data['subtype']), 'confidence' => .20, 'confirmations_count' => 0, 'last_confirmed_at' => now(), 'first_observed_at' => now(), 'last_activity_at' => now(), 'location_precision_m' => isset($data['location_accuracy_m']) ? min(5000, (int) $data['location_accuracy_m']) : null, 'expires_at' => $this->lifecycle->initialExpiry($data['category'])]);
             if ($nearby) $this->lifecycle->touch($nearby);
             $report = IncidentReport::create([
                 ...$data,
@@ -91,6 +94,21 @@ class ReportController extends Controller
         return null;
     }
 
-    private function severity(string $category): int { return match ($category) { 'brand', 'stoffen', 'geweld' => 4, 'weer', 'blokkade', 'verkeer' => 3, default => 2 }; }
+    /** Intimidatie per soort: handtastelijk of volgen is ernstiger dan nafluiten, maar alles telt. */
+    private const HARASSMENT_SEVERITY = [
+        'Handtastelijke persoon' => 4, 'Iemand volgt mij' => 4, 'Potloodventer / exhibitionist' => 3,
+        'Seksuele opmerkingen / verbale intimidatie' => 3, 'Ongewenst gefilmd of gefotografeerd' => 3,
+        'Intimiderende groep' => 3, 'Blijft opdringerig aanspreken' => 3, 'Nafluiten / naroepen' => 2,
+        'Voelt onveilig: donker of verlaten' => 2,
+    ];
+
+    private function severity(string $category, string $subtype = ''): int
+    {
+        if ($category === 'intimidatie') {
+            return self::HARASSMENT_SEVERITY[$subtype] ?? 3;
+        }
+
+        return match ($category) { 'brand', 'stoffen', 'geweld' => 4, 'weer', 'blokkade', 'verkeer' => 3, default => 2 };
+    }
     private function incidentType(string $category): string { return match ($category) { 'weer', 'drukte' => 'area_condition', 'blokkade', 'verkeer' => 'hazard', default => 'event' }; }
 }

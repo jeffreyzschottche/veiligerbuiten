@@ -26,7 +26,7 @@ class PushDelivery
         $level = $payload['level'] ?? $delivery->level ?? 'warn';
 
         if (config('services.push.driver') === 'log') {
-            Log::info('VeiligBuiten push (development driver)', ['delivery_id' => $delivery->id, 'platform' => $installation->push_platform, 'payload' => $payload]);
+            Log::info('VeiligerBuiten push (development driver)', ['delivery_id' => $delivery->id, 'platform' => $installation->push_platform, 'payload' => $payload]);
             $delivery->update(['status' => 'simulated', 'sent_at' => now(), 'reason' => 'development_log_driver']);
 
             return 'simulated';
@@ -100,7 +100,7 @@ class PushDelivery
                     'sound' => $level === 'info' ? null : 'default',
                     'interruption-level' => self::IOS_INTERRUPTION[$level] ?? 'active',
                     'relevance-score' => ['danger' => 1.0, 'warn' => 0.6, 'info' => 0.2][$level] ?? 0.5,
-                    'thread-id' => 'veiligbuiten',
+                    'thread-id' => 'veiligerbuiten',
                 ], fn ($value) => $value !== null),
                 ...$payload['data'],
             ])->throw();

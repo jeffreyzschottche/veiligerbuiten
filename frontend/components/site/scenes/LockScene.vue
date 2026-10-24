@@ -7,15 +7,15 @@
     <div class="stack">
       <article class="note note--danger n3">
         <LogoMark :size="28" inverse />
-        <div><p><b>VEILIGBUITEN</b><span>{{ now }}</span></p><strong>{{ l.n3 }}</strong><small>{{ l.n3b }}</small></div>
+        <div><p><b>VEILIGERBUITEN</b><span>{{ now }}</span></p><strong>{{ l.n3 }}</strong><small>{{ l.n3b }}</small></div>
       </article>
       <article class="note n2">
         <LogoMark :size="28" inverse />
-        <div><p><b>VEILIGBUITEN</b><span>4 min</span></p><strong>{{ l.n2 }}</strong><small>{{ l.n2b }}</small></div>
+        <div><p><b>VEILIGERBUITEN</b><span>4 min</span></p><strong>{{ l.n2 }}</strong><small>{{ l.n2b }}</small></div>
       </article>
       <article class="note n1">
         <LogoMark :size="28" inverse />
-        <div><p><b>VEILIGBUITEN</b><span>12 min</span></p><strong>{{ l.n1 }}</strong><small>{{ l.n1b }}</small></div>
+        <div><p><b>VEILIGERBUITEN</b><span>12 min</span></p><strong>{{ l.n1 }}</strong><small>{{ l.n1b }}</small></div>
       </article>
     </div>
   </div>

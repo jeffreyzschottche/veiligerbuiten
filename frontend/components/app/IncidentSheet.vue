@@ -26,9 +26,9 @@
           <span class="inc-meter" :aria-label="certaintyText"><span :style="{ width: `${Math.round((incident.confidence ?? 0.5) * 100)}%` }" /></span>
         </div>
         <!-- Bronvermelding met link per item: verplicht in de hergebruikvoorwaarden van o.a. Zwaailicht.nl. -->
-        <a v-if="incident.sourceUrl" class="row inc-source" :href="incident.sourceUrl" target="_blank" rel="noopener" @click.prevent="openSource">
+        <a v-if="sourceUrl" class="row inc-source" :href="sourceUrl" target="_blank" rel="noopener noreferrer" @click.prevent="openSource">
           <span class="row__icon"><Icon name="external" :size="16" /></span>
-          <span class="row__main"><span class="row__title">{{ fill(t.incident.via, { s: incident.sourceName ?? hostOf(incident.sourceUrl) }) }}</span></span>
+          <span class="row__main"><span class="row__title">{{ fill(t.incident.via, { s: incident.sourceName ?? hostOf(sourceUrl) }) }}</span></span>
         </a>
         <div class="row">
           <span class="row__icon"><Icon name="bell" :size="18" /></span>
@@ -90,8 +90,14 @@ function hostOf(url: string) {
   try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return url; }
 }
 
+/** Alleen http(s): een link uit een externe feed mag nooit code uitvoeren in de app. */
+const sourceUrl = computed(() => {
+  const url = props.incident?.sourceUrl;
+  return url && /^https?:\/\/\S+$/i.test(url) ? url : null;
+});
+
 function openSource() {
-  if (props.incident?.sourceUrl) window.open(props.incident.sourceUrl, '_system');
+  if (sourceUrl.value) window.open(sourceUrl.value, '_system');
 }
 
 function route() {
@@ -106,7 +112,7 @@ function route() {
 async function share() {
   if (!props.incident) return;
   const text = fill(t.value.incident.shareText, { title: props.incident.title });
-  const url = `https://veiligbuiten.nl/app?incident=${props.incident.id}`;
+  const url = `https://veiligerbuiten.nl/app?incident=${props.incident.id}`;
   if (Capacitor.isNativePlatform()) await Share.share({ text, url }).catch(() => undefined);
   else if (navigator.share) await navigator.share({ text, url }).catch(() => undefined);
   else await navigator.clipboard?.writeText(`${text} ${url}`);

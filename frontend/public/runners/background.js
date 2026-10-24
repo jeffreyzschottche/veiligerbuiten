@@ -1,5 +1,5 @@
 /*
- * VeiligBuiten achtergrondcontrole.
+ * VeiligerBuiten achtergrondcontrole.
  *
  * Draait buiten de WebView (Capacitor Background Runner), zonder DOM en
  * zonder imports. Het besturingssysteem start 'checkIn' ongeveer elke 15
@@ -148,7 +148,7 @@ async function position(provided) {
       return point;
     }
   } catch (error) {
-    console.warn('VeiligBuiten: background location unavailable');
+    console.warn('VeiligerBuiten: background location unavailable');
   }
   var last = read('lastPosition', null);
   return validPoint(last) && last.at && Date.now() - last.at >= 0 && Date.now() - last.at <= MAX_POSITION_AGE_MS ? last : null;
@@ -236,8 +236,8 @@ function notification(id, title, body, level, incidentId) {
     channelId: level === 'danger' ? 'vb_danger' : level === 'warn' ? 'vb_warn' : 'vb_info',
     // iOS speelt alleen geluid met een 'sound'; een onbekende naam geeft het standaardgeluid.
     sound: level === 'info' ? undefined : 'default',
-    threadIdentifier: 'veiligbuiten',
-    group: 'veiligbuiten',
+    threadIdentifier: 'veiligerbuiten',
+    group: 'veiligerbuiten',
     autoCancel: true,
     extra: incidentId ? { incident_id: String(incidentId) } : {},
   };
@@ -389,7 +389,7 @@ addEventListener('checkIn', async function (resolve, reject, args) {
   try {
     resolve(await check(!!(args && args.force), args && args.position, !!(args && args.localOnly), !!(args && args.offline)));
   } catch (error) {
-    console.error('VeiligBuiten check failed', String(error));
+    console.error('VeiligerBuiten check failed', String(error));
     resolve({ checked: false, reason: 'error' });
   }
 });

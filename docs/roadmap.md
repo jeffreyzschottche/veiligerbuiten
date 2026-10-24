@@ -1,4 +1,4 @@
-# Veilig Buiten - Roadmap
+# Veiliger Buiten - Roadmap
 
 > Overzicht van wat nog moet gebeuren.
 

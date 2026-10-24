@@ -7,7 +7,9 @@ use App\Jobs\SendAgentWebhook;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Support\SafeUrl;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 /** Koppeling met ChatGPT, Claude en andere assistenten (MCP) en eigen agents (webhook). */
 class AiConnectionController extends Controller
@@ -36,6 +38,10 @@ class AiConnectionController extends Controller
         $data = $request->validate(['webhook_url' => 'nullable|url:https|max:500']);
         $user = $request->user();
         $url = $data['webhook_url'] ?? null;
+        // Alleen publieke adressen: nooit localhost, het interne netwerk of cloud-metadata (SSRF).
+        if ($url && ! SafeUrl::resolve($url)) {
+            throw ValidationException::withMessages(['webhook_url' => __('alerts.webhook_not_public')]);
+        }
         $user->forceFill([
             'webhook_url' => $url,
             // Een nieuw adres krijgt een nieuw geheim, zodat oude ontvangers niets meer kunnen verifiëren.
@@ -49,7 +55,12 @@ class AiConnectionController extends Controller
     {
         $user = $request->user();
         abort_unless($user->webhook_url, 422, 'Er is nog geen webhook ingesteld.');
-        SendAgentWebhook::dispatchSync($user->id, ['event' => 'test', 'message' => __('alerts.webhook_test', [], $user->locale)]);
+        try {
+            SendAgentWebhook::dispatchSync($user->id, ['event' => 'test', 'message' => __('alerts.webhook_test', [], $user->locale)]);
+        } catch (\Throwable) {
+            // Geen details terug (statuscode, foutmelding): dat zou de server tot een netwerkscanner maken.
+            return response()->json(['data' => ['sent' => false]]);
+        }
 
         return response()->json(['data' => ['sent' => true]]);
     }

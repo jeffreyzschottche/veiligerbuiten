@@ -38,7 +38,7 @@ class VeiligBuitenTools
             [
                 'name' => 'list_places',
                 'title' => 'Opgeslagen plekken',
-                'description' => 'De plekken die de gebruiker in VeiligBuiten heeft opgeslagen (zoals Thuis of Werk), met de straal waarbinnen meldingen komen.',
+                'description' => 'De plekken die de gebruiker in VeiligerBuiten heeft opgeslagen (zoals Thuis of Werk), met de straal waarbinnen meldingen komen.',
                 'inputSchema' => ['type' => 'object', 'properties' => new \stdClass],
                 'annotations' => $readOnly,
             ],

@@ -14,7 +14,7 @@
         <svg class="offline-demo__route" viewBox="0 0 480 500" fill="none" aria-hidden="true"><path class="route-shadow" d="M100 370H210Q250 370 250 330V200Q250 160 290 160H340" /><path class="route-line" d="M100 370H210Q250 370 250 330V200Q250 160 290 160H340" /></svg>
         <span class="offline-demo__person"><i /><span>{{ copy.you }}</span></span>
         <span class="offline-demo__incident"><i /><span>{{ copy.report }}</span></span>
-        <div class="offline-notification"><LogoMark :size="31" /><div><span>VEILIGBUITEN <small>{{ copy.example }}</small></span><strong>{{ copy.notification }}</strong><p>{{ copy.notificationBody }}</p></div></div>
+        <div class="offline-notification"><LogoMark :size="31" /><div><span>VEILIGERBUITEN <small>{{ copy.example }}</small></span><strong>{{ copy.notification }}</strong><p>{{ copy.notificationBody }}</p></div></div>
         <span class="offline-demo__connection"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="m3 3 18 18M2 8.5a16 16 0 0 1 3.6-2.2M8.8 5.3A16 16 0 0 1 22 8.5M5 12a11 11 0 0 1 3.2-1.8M12.8 9.8A11 11 0 0 1 19 12M8.5 15.5a5.5 5.5 0 0 1 6.9 0M12 19h.01" /></svg>{{ copy.connection }}</span>
       </div>
       <p class="offline-note"><Icon name="info" :size="16" /><span>{{ copy.note }}</span></p>

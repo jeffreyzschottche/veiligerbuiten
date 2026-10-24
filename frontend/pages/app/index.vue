@@ -51,7 +51,7 @@ import { currentPosition, watchCurrentPosition, openFromNotification, type Posit
 import { storage } from '~/utils/storage';
 
 definePageMeta({ layout: false });
-useHead({ title: 'VeiligBuiten', meta: [{ name: 'theme-color', content: '#f4f5f7' }] });
+useHead({ title: 'VeiligerBuiten', meta: [{ name: 'theme-color', content: '#f4f5f7' }] });
 
 /** "In je buurt" in de lijst: binnen 5 km, of binnen het meldbereik van iets groots. */
 const NEARBY_M = 5000;

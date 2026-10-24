@@ -63,8 +63,8 @@ class McpController extends Controller
             'initialize' => $this->result($id, [
                 'protocolVersion' => in_array($params['protocolVersion'] ?? null, self::PROTOCOL_VERSIONS, true) ? $params['protocolVersion'] : self::PROTOCOL_VERSIONS[0],
                 'capabilities' => ['tools' => ['listChanged' => false]],
-                'serverInfo' => ['name' => 'veiligbuiten', 'title' => 'VeiligBuiten', 'version' => '1.0.0'],
-                'instructions' => 'VeiligBuiten geeft actuele veiligheidssituaties in Nederland uit officiële bronnen en van gebruikers. Gebruik get_situations_nearby voor vragen als "is het rustig bij ...". Noem altijd de bron en hoe recent iets is. Bij direct gevaar: adviseer 112 te bellen.',
+                'serverInfo' => ['name' => 'veiligerbuiten', 'title' => 'VeiligerBuiten', 'version' => '1.0.0'],
+                'instructions' => 'VeiligerBuiten geeft actuele veiligheidssituaties in Nederland uit officiële bronnen en van gebruikers. Gebruik get_situations_nearby voor vragen als "is het rustig bij ...". Noem altijd de bron en hoe recent iets is. Bij direct gevaar: adviseer 112 te bellen.',
             ]),
             'ping' => $this->result($id, new \stdClass),
             'tools/list' => $this->result($id, ['tools' => $this->tools->definitions()]),

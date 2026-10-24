@@ -1,7 +1,7 @@
 <template>
   <main class="legal">
     <nav class="legal__nav">
-      <NuxtLink to="/" aria-label="VeiligBuiten"><Logo /></NuxtLink>
+      <NuxtLink to="/" aria-label="VeiligerBuiten"><Logo /></NuxtLink>
       <div class="legal__lang">
         <button :aria-pressed="locale === 'nl'" @click="setLocale('nl')">NL</button>
         <button :aria-pressed="locale === 'en'" @click="setLocale('en')">EN</button>
@@ -25,7 +25,7 @@ import { legal } from '~/locales/legal';
 const props = defineProps<{ kind: 'privacy' | 'terms' }>();
 const { locale, setLocale } = useLocale();
 const doc = computed(() => legal[props.kind][locale.value]);
-useHead(() => ({ title: `${doc.value.title} · VeiligBuiten`, htmlAttrs: { lang: locale.value } }));
+useHead(() => ({ title: `${doc.value.title} · VeiligerBuiten`, htmlAttrs: { lang: locale.value } }));
 </script>
 
 <style scoped>

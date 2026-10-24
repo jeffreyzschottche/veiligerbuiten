@@ -46,7 +46,7 @@ return [
         'team_id' => env('APNS_TEAM_ID'),
         // Inhoud van de .p8-key (PEM of base64), nooit een pad in de repo.
         'private_key' => env('APNS_PRIVATE_KEY'),
-        'bundle_id' => env('APNS_BUNDLE_ID', 'nl.veiligbuiten.app'),
+        'bundle_id' => env('APNS_BUNDLE_ID', 'nl.veiligerbuiten.app'),
         'production' => (bool) env('APNS_PRODUCTION', false),
     ],
     'revenuecat' => [

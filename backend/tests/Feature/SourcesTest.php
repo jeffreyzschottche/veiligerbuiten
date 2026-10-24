@@ -33,7 +33,7 @@ class SourcesTest extends TestCase
         // Het gebied is ~1,1 × 1,4 km; het bereik moet minstens tot de hoeken gaan.
         $this->assertGreaterThanOrEqual(DangerScale::areaRadius($incident), DangerScale::alertRadius($incident));
         $this->assertGreaterThan(800, DangerScale::areaRadius($incident));
-        Http::assertSent(fn ($request) => str_contains($request->header('User-Agent')[0] ?? '', 'VeiligBuiten'));
+        Http::assertSent(fn ($request) => str_contains($request->header('User-Agent')[0] ?? '', 'VeiligerBuiten'));
     }
 
     public function test_an_unchanged_feed_is_not_downloaded_again_and_keeps_running_alerts(): void

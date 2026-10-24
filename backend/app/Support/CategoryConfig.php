@@ -22,6 +22,16 @@ class CategoryConfig
             'default_severity' => 5,
             'default_hours' => 2,
         ],
+        // Intimidatie op straat: handtastelijkheden, nafluiten, volgen. Vooral voor vrouwen een
+        // reden om zich onveilig te voelen; daarom een eigen categorie, eigen filter en eigen meldtypes.
+        'intimidatie' => [
+            'label' => 'Intimidatie',
+            'icon' => 'hand',
+            'color' => '#db2777',
+            'incident_type' => 'harassment',
+            'default_severity' => 3,
+            'default_hours' => 1,
+        ],
         'onveilig' => [
             'label' => 'Onveilig',
             'icon' => 'alert-circle',

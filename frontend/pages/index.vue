@@ -2,9 +2,10 @@
   <div ref="siteEl" class="site">
     <header class="nav" :class="{ 'nav--scrolled': scrolled }">
       <div class="wrap nav__inner">
-        <a href="#top" class="nav__logo" aria-label="VeiligBuiten"><Logo :size="30" /></a>
+        <a href="#top" class="nav__logo" aria-label="VeiligerBuiten"><Logo :size="30" /></a>
         <nav class="nav__links" aria-label="Secties">
           <a href="#how">{{ t.nav.how }}</a>
+          <a href="#women">{{ t.nav.women }}</a>
           <a href="#sources">{{ t.nav.sources }}</a>
           <a href="#alerts">{{ t.nav.alerts }}</a>
           <a href="#ai">{{ t.nav.ai }}</a>
@@ -83,6 +84,9 @@
       </section>
 
       <AlertExamples :copy="t.examples" />
+
+      <!-- Voor vrouwen: intimidatie op straat -->
+      <WomenSafety :copy="t.women" />
 
       <section id="sources" class="section intelligence">
         <div class="wrap">
@@ -216,8 +220,8 @@
         <nav class="footer__links">
           <a href="/privacy">{{ t.footer.privacy }}</a>
           <a href="/voorwaarden">{{ t.footer.terms }}</a>
-          <a href="mailto:hallo@veiligbuiten.nl">{{ t.footer.contact }}</a>
-          <span>© {{ year }} VeiligBuiten</span>
+          <a href="mailto:hallo@veiligerbuiten.nl">{{ t.footer.contact }}</a>
+          <span>© {{ year }} VeiligerBuiten</span>
         </nav>
       </div>
     </footer>
@@ -275,7 +279,7 @@ onMounted(async () => {
     gsap.from('.hero__visual', { y: 50, rotation: 4, opacity: 0, duration: 1.4, ease: 'power3.out', clearProps: 'all' });
     gsap.from('.hero__community, .hero__bottom', { opacity: 0, y: 12, delay: .6, duration: 1, clearProps: 'all' });
     gsap.to('.hero__backdrop img', { yPercent: 12, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: 1 } });
-    gsap.utils.toArray<HTMLElement>('.section__head, .step, .split__copy, .split__visual, .signal-map, .sync-intro, .sync-steps li, .trust article, .price, .offline-story, .alert-examples').forEach((element) => {
+    gsap.utils.toArray<HTMLElement>('.section__head, .women-copy, .women-sheet, .women-help, .step, .split__copy, .split__visual, .signal-map, .sync-intro, .sync-steps li, .trust article, .price, .offline-story, .alert-examples').forEach((element) => {
       gsap.from(element, { y: 36, opacity: 0, duration: .85, ease: 'power2.out', clearProps: 'all', scrollTrigger: { trigger: element, start: 'top 92%', once: true } });
     });
     gsap.from('.signal-map__paths path', { strokeDashoffset: 420, duration: 2.4, ease: 'power2.inOut', scrollTrigger: { trigger: '.signal-map', start: 'top 80%', once: true } });

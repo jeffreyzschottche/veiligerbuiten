@@ -34,7 +34,7 @@ export default defineNuxtConfig({
     public: {
       // Local web development uses Nitro's same-origin proxy. For a static
       // mobile build, provide an absolute HTTPS URL at build time through
-      // NUXT_PUBLIC_API_BASE_URL (for example https://api.veiligbuiten.nl/api/v1).
+      // NUXT_PUBLIC_API_BASE_URL (for example https://api.veiligerbuiten.nl/api/v1).
       apiBase: mobileBuild ? (process.env.NUXT_PUBLIC_API_BASE_URL || '/api/v1') : '/api/v1',
       // Winkellinks volgen later; tot die tijd scrollen de knoppen naar #download.
       appStoreUrl: process.env.NUXT_PUBLIC_APP_STORE_URL || '',

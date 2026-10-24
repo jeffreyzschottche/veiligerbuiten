@@ -14,6 +14,13 @@ return new class extends Migration {
             $table->index(['updated_at']);
         });
 
+        // Eén stem per account per melding, niet per installatie: nieuwe installaties
+        // aanmaken mag nooit extra stemmen opleveren.
+        Schema::table('incident_votes', function (Blueprint $table) {
+            $table->foreignId('user_id')->nullable()->after('installation_id')->constrained()->nullOnDelete();
+            $table->unique(['incident_id', 'user_id']);
+        });
+
         Schema::create('danger_hotspots', function (Blueprint $table) {
             $table->id();
             $table->string('key', 40)->unique();
@@ -33,6 +40,10 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::dropIfExists('danger_hotspots');
+        Schema::table('incident_votes', function (Blueprint $table) {
+            $table->dropUnique(['incident_id', 'user_id']);
+            $table->dropConstrainedForeignId('user_id');
+        });
         Schema::table('incidents', function (Blueprint $table) {
             $table->dropIndex(['updated_at']);
             $table->dropColumn('source_url');

@@ -1,6 +1,6 @@
 <template>
   <div class="auth">
-    <NuxtLink to="/" class="auth__logo" aria-label="VeiligBuiten"><Logo /></NuxtLink>
+    <NuxtLink to="/" class="auth__logo" aria-label="VeiligerBuiten"><Logo /></NuxtLink>
     <div class="auth__card">
       <slot />
     </div>

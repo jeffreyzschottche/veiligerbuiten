@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Validation\ValidationException;
 
@@ -40,11 +41,21 @@ class AuthController extends Controller
 
     public function login(LoginRequest $request): JsonResponse
     {
+        // Per e-mailadres beperken, niet alleen per IP: anders kan een botnet één account blijven proberen.
+        $key = 'login:'.sha1(mb_strtolower((string) $request->email));
+        if (RateLimiter::tooManyAttempts($key, 5)) {
+            throw ValidationException::withMessages([
+                'email' => ['Te veel pogingen. Probeer het over '.RateLimiter::availableIn($key).' seconden opnieuw.'],
+            ])->status(429);
+        }
+
         if (!Auth::attempt($request->only('email', 'password'))) {
+            RateLimiter::hit($key, 15 * 60);
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);
         }
+        RateLimiter::clear($key);
 
         $user = User::where('email', $request->email)->firstOrFail();
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -71,13 +82,13 @@ class AuthController extends Controller
     {
         $status = Password::sendResetLink($request->only('email'));
 
-        if ($status !== Password::RESET_LINK_SENT) {
-            throw ValidationException::withMessages([
-                'email' => [__($status)],
-            ]);
+        // Altijd hetzelfde antwoord: anders kan iedereen uitzoeken welke e-mailadressen een account hebben.
+        // Alleen 'te vaak geprobeerd' melden we wel, want dat zegt niets over het bestaan van een account.
+        if ($status === Password::RESET_THROTTLED) {
+            throw ValidationException::withMessages(['email' => [__($status)]]);
         }
 
-        return response()->json(['message' => __($status)]);
+        return response()->json(['message' => __(Password::RESET_LINK_SENT)]);
     }
 
     public function resetPassword(ResetPasswordRequest $request): JsonResponse
@@ -88,6 +99,8 @@ class AuthController extends Controller
                 $user->forceFill([
                     'password' => Hash::make($password)
                 ])->save();
+                // Een gestolen token mag een wachtwoordreset niet overleven.
+                $user->tokens()->delete();
 
                 event(new PasswordReset($user));
             }

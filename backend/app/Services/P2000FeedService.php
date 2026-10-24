@@ -13,7 +13,7 @@ class P2000FeedService
 
     private const ZWAAILICHT_FEED = 'https://zwaailicht.nl/feed/meldingen.xml';
 
-    /** P2000 discipline → Veilig Buiten category. */
+    /** P2000 discipline → Veiliger Buiten category. */
     private const DISCIPLINE_MAP = [
         'brandweer' => 'brand',
         'fire' => 'brand',

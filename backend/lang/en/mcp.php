@@ -8,8 +8,8 @@ return [
     'no_places' => 'No places have been saved yet.',
     'no_alerts' => 'No alerts in the last :hours hours.',
     'not_found' => 'Situation not found or no longer active.',
-    'nl_only' => 'VeiligBuiten only covers the Netherlands.',
+    'nl_only' => 'VeiligerBuiten only covers the Netherlands.',
     'place_not_found' => 'No place found. Pass coordinates, or use list_places.',
-    'inactive' => 'This user\'s VeiligBuiten subscription is not active.',
-    'invalid_token' => 'Invalid or revoked VeiligBuiten token.',
+    'inactive' => 'This user\'s VeiligerBuiten subscription is not active.',
+    'invalid_token' => 'Invalid or revoked VeiligerBuiten token.',
 ];

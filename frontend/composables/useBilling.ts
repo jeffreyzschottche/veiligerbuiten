@@ -69,7 +69,7 @@ export function useBilling() {
   async function manage() {
     const url = Capacitor.getPlatform() === 'ios'
       ? 'https://apps.apple.com/account/subscriptions'
-      : 'https://play.google.com/store/account/subscriptions?package=nl.veiligbuiten.app';
+      : 'https://play.google.com/store/account/subscriptions?package=nl.veiligerbuiten.app';
     window.open(url, '_system');
   }
 
