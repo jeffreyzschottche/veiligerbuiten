@@ -6,13 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\Incident;
 use App\Models\Installation;
 use App\Models\IncidentObservation;
+use App\Services\AreaSync;
 use App\Services\IncidentEngine;
 use App\Services\InstallationTrust;
-use App\Support\GeoUtils;
 use App\Support\IncidentPresenter;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 class IncidentController extends Controller
@@ -30,29 +31,40 @@ class IncidentController extends Controller
     }
 
     /**
-     * Alles binnen 30 km in één keer, voor de lokale cache van de app. De app
-     * synchroniseert ieder uur (of bij een grote verplaatsing) en controleert
-     * daartussen zelf; zo blijft het aantal verzoeken laag.
+     * Alles binnen 30 km voor de lokale cache van de app. De app synchroniseert
+     * op de gekozen frequentie (of na een grote verplaatsing) en controleert
+     * daartussen zelf. Zie AreaSync: gedeelde cache per buurt, 304 als er niets
+     * veranderde en alleen wijzigingen als de app een cursor meestuurt.
      */
-    public function sync(Request $request): JsonResponse
+    public function sync(Request $request, AreaSync $sync): Response|JsonResponse
     {
         $data = $request->validate([
             'latitude' => 'required|numeric|between:50.5,53.7',
             'longitude' => 'required|numeric|between:3.1,7.3',
+            'since' => 'nullable|integer|min:0',
         ]);
+        [$latitude, $longitude] = $sync->snap((float) $data['latitude'], (float) $data['longitude']);
         $radius = config('veiligbuiten.sync.radius_km');
-        $incidents = $this->activeWithin((float) $data['latitude'], (float) $data['longitude'], $radius)
-            ->take(500)
-            ->map(fn (Incident $incident) => IncidentPresenter::present($incident))
-            ->values();
+        $etag = $sync->etag($latitude, $longitude, $radius, app()->getLocale());
+        $headers = ['ETag' => $etag, 'Cache-Control' => 'private, no-cache', 'Vary' => 'Accept-Language, Authorization, Accept-Encoding'];
+
+        if (in_array($etag, array_map('trim', explode(',', (string) $request->header('If-None-Match'))), true)) {
+            return response('', 304, $headers);
+        }
+
+        $cursor = now();
+        $delta = isset($data['since']) ? $sync->delta($latitude, $longitude, $radius, Carbon::createFromTimestamp((int) $data['since'])) : null;
+        $payload = $delta ? ['mode' => 'delta', ...$delta] : ['mode' => 'full', ...$sync->full($latitude, $longitude, $radius, $etag), 'removed' => []];
 
         return response()->json([
-            'data' => $incidents,
-            'center' => ['latitude' => (float) $data['latitude'], 'longitude' => (float) $data['longitude']],
+            ...$payload,
+            'center' => ['latitude' => $latitude, 'longitude' => $longitude],
             'radius_km' => $radius,
-            'generated_at' => now()->toIso8601String(),
-            'next_sync_after' => config('veiligbuiten.sync.interval_seconds'),
-        ])->header('Cache-Control', 'private, max-age=60')->header('Vary', 'Accept-Language, Authorization');
+            'cursor' => $cursor->getTimestamp(),
+            'generated_at' => $cursor->toIso8601String(),
+            'next_sync_after' => $sync->nextSyncAfter($payload['data'] ?? $payload['changes']),
+            'min_sync_after' => config('veiligbuiten.sync.min_interval_seconds'),
+        ], 200, $headers);
     }
 
     public function geojson(Request $request): JsonResponse
@@ -95,21 +107,10 @@ class IncidentController extends Controller
         ];
     }
 
-    /** Actieve, publieke incidenten binnen een echte cirkel, zwaarste eerst. */
+    /** Actieve, publieke incidenten binnen een echte cirkel (gebieden tot hun rand), zwaarste eerst. */
     private function activeWithin(float $latitude, float $longitude, int $radiusKm): Collection
     {
-        $latDelta = $radiusKm / 111;
-        $lonDelta = $radiusKm / (111 * max(.1, cos(deg2rad($latitude))));
-
-        return Incident::query()
-            ->where('visibility', 'public')->where('expires_at', '>', now())
-            ->whereNull('resolved_at')
-            ->where('resolved_count', '<', 3)
-            ->whereBetween('latitude', [$latitude - $latDelta, $latitude + $latDelta])
-            ->whereBetween('longitude', [$longitude - $lonDelta, $longitude + $lonDelta])
-            ->tap(fn (Builder $query) => $query->orderByDesc('severity')->latest('last_confirmed_at'))
-            ->get()
-            ->filter(fn (Incident $incident) => GeoUtils::distanceMeters($latitude, $longitude, $incident->latitude, $incident->longitude) <= $radiusKm * 1000);
+        return app(AreaSync::class)->active($latitude, $longitude, $radiusKm);
     }
 
     private function vote(Request $request, Incident $incident, string $vote, IncidentEngine $engine, InstallationTrust $trust): JsonResponse

@@ -15,7 +15,7 @@ class IncidentPresenter
         'rijkswaterstaat' => 'Rijkswaterstaat',
         'politie' => 'Politie',
         'p2000' => 'P2000',
-        'p2000_zwaailicht' => 'P2000',
+        'p2000_zwaailicht' => 'Zwaailicht.nl',
         'nl_alert' => 'NL-Alert',
         'ns' => 'NS',
     ];
@@ -38,9 +38,14 @@ class IncidentPresenter
             'weight' => DangerScale::weight($incident),
             'dotScale' => DangerScale::dotScale($incident),
             'alertRadius' => DangerScale::alertRadius($incident),
+            'confidence' => DangerScale::confidence($incident),
+            'freshness' => DangerScale::freshness($incident),
+            'cluster' => DangerScale::cluster($incident),
             'official' => $incident->source !== 'user',
             'source' => $incident->source,
             'sourceName' => self::SOURCE_LABELS[$incident->source] ?? null,
+            // Bronvermelding met link per item; verplicht volgens de hergebruikvoorwaarden van o.a. Zwaailicht.
+            'sourceUrl' => $incident->source_url,
             'description' => $incident->description,
             'geometry' => $incident->geometry,
             'latitude' => $incident->latitude,
@@ -50,6 +55,21 @@ class IncidentPresenter
             'updatedAt' => ($incident->last_activity_at ?? $incident->updated_at)?->toIso8601String(),
             'expiresAt' => $incident->expires_at?->toIso8601String(),
         ];
+    }
+
+    /**
+     * Voor de sync naar de telefoon: alleen wat de app gebruikt, zonder lege
+     * velden. Bij honderden meldingen en duizenden telefoons scheelt dat veel.
+     */
+    public static function compact(Incident $incident): array
+    {
+        $data = self::present($incident);
+        unset($data['distance'], $data['weight'], $data['resolvedReports']);
+        if (($data['geometry']['type'] ?? null) === 'Point') {
+            unset($data['geometry']);
+        }
+
+        return array_filter($data, fn ($value) => $value !== null);
     }
 
     /** Subtypes zijn Nederlands opgeslagen; Engelse gebruikers krijgen een vertaling. */

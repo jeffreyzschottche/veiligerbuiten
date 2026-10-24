@@ -9,6 +9,7 @@ use App\Models\Installation;
 use App\Models\IncidentObservation;
 use App\Models\ModerationEvent;
 use App\Services\IncidentEngine;
+use App\Services\IncidentLifecycle;
 use App\Services\IncidentSafetyPolicy;
 use App\Services\InstallationTrust;
 use App\Services\ReportQuota;
@@ -20,7 +21,7 @@ use Illuminate\Validation\ValidationException;
 
 class ReportController extends Controller
 {
-    public function __construct(private readonly IncidentEngine $engine, private readonly IncidentSafetyPolicy $policy, private readonly InstallationTrust $trust, private readonly ReportQuota $quota) {}
+    public function __construct(private readonly IncidentEngine $engine, private readonly IncidentSafetyPolicy $policy, private readonly InstallationTrust $trust, private readonly ReportQuota $quota, private readonly IncidentLifecycle $lifecycle) {}
     public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
@@ -47,7 +48,8 @@ class ReportController extends Controller
         [$incident, $nearby] = $this->quota->consume($user, function () use ($data, $description, $installation, $user) {
             $nearby = $this->engine->findDuplicate($data['category'], $data['latitude'], $data['longitude']);
             $visibility = $this->policy->initialVisibility($data['category']);
-            $incident = $nearby ?: Incident::create([...$data, 'status' => 'gemeld', 'visibility' => $visibility, 'source' => 'user', 'incident_type' => $this->incidentType($data['category']), 'severity' => $this->severity($data['category']), 'confidence' => .20, 'confirmations_count' => 0, 'last_confirmed_at' => now(), 'first_observed_at' => now(), 'last_activity_at' => now(), 'location_precision_m' => isset($data['location_accuracy_m']) ? min(5000, (int) $data['location_accuracy_m']) : null, 'expires_at' => now()->addHours(min(24, $this->policy->expiryHours($data['category'], $data['subtype'])))]);
+            $incident = $nearby ?: Incident::create([...$data, 'status' => 'gemeld', 'visibility' => $visibility, 'source' => 'user', 'incident_type' => $this->incidentType($data['category']), 'severity' => $this->severity($data['category']), 'confidence' => .20, 'confirmations_count' => 0, 'last_confirmed_at' => now(), 'first_observed_at' => now(), 'last_activity_at' => now(), 'location_precision_m' => isset($data['location_accuracy_m']) ? min(5000, (int) $data['location_accuracy_m']) : null, 'expires_at' => $this->lifecycle->initialExpiry($data['category'])]);
+            if ($nearby) $this->lifecycle->touch($nearby);
             $report = IncidentReport::create([
                 ...$data,
                 'incident_id' => $incident->id,

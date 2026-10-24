@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'subscribed' => \App\Http\Middleware\EnsureSubscribed::class,
+            'gzip' => \App\Http\Middleware\CompressResponse::class,
         ]);
         $middleware->appendToGroup('api', \App\Http\Middleware\SetLocale::class);
     })

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Services\Sources\PoliteFetcher;
+use App\Support\DangerKeywords;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
@@ -59,9 +60,10 @@ class P2000FeedService
         'ongeval wegvervoer' => ['verkeer', 'Verkeersongeval', 3],
         'aanrijding' => ['verkeer', 'Verkeersongeval', 3],
         'verkeersongeval' => ['verkeer', 'Verkeersongeval', 3],
-        'wateroverlast' => ['weer', 'Wateroverlast', 3],
-        'stormschade' => ['weer', 'Storm / extreme wind', 3],
-        'boom op weg' => ['blokkade', 'Boom op de weg', 3],
+        // Weer en schade: goed om te weten, geen direct gevaar voor omstanders.
+        'wateroverlast' => ['weer', 'Wateroverlast', 2],
+        'stormschade' => ['weer', 'Storm / extreme wind', 2],
+        'boom op weg' => ['blokkade', 'Boom op de weg', 2],
         'dier te water' => ['dier', 'Loslopend gevaarlijk dier', 2],
     ];
 
@@ -78,19 +80,22 @@ class P2000FeedService
         'containerbrand' => 'Containerbrand',
     ];
 
-    /** Priority keywords → severity level. */
+    /** Brandomvang → ernst. 'brandweer' en 'brandmelding' worden vóór het zoeken weggehaald. */
     private const SEVERITY_INDICATORS = [
         'grip' => 5,
         'zeer grote brand' => 5,
         'grote brand' => 5,
-        'prio1' => 5,
-        'p1' => 5,
-        'a1' => 5,
-        'prio2' => 4,
-        'p2' => 4,
-        'a2' => 4,
+        'uitslaande brand' => 5,
         'middelbrand' => 4,
+        'woningbrand' => 4,
         'brand' => 4,
+    ];
+
+    /** Prioriteitscodes als los woord (niet 'a1' in 'A10' of 'p1' in een ritnummer). */
+    private const PRIORITY_SEVERITY = [
+        '/\b(?:prio|p)\s?1\b/' => 4,
+        '/\b(?:prio|p)\s?2\b/' => 3,
+        '/\b(?:prio|p)\s?[3-5]\b/' => 2,
     ];
 
     /**
@@ -144,7 +149,7 @@ class P2000FeedService
 
         $title = $this->cleanTitle((string) $entry->title);
         $summary = (string) $entry->summary;
-        $fullText = strtolower($title . ' ' . $summary);
+        $fullText = DangerKeywords::normalize($title . ' ' . $summary);
 
         return [
             'id' => (string) $entry->id,
@@ -233,8 +238,10 @@ class P2000FeedService
 
     private function detectSeverity(string $text, array $categories = []): int
     {
+        $calm = str_contains($text, 'zonder spoed') || str_contains($text, 'gepland vervoer');
         if ($threat = $this->threat($text)) {
-            return $threat[2];
+            // Een gaslekkage 'zonder spoed' is meestal klein: één stap lager, maar nooit genegeerd.
+            return $calm && $threat[2] >= 4 ? $threat[2] - 1 : $threat[2];
         }
         // Een automatische brandmelding is meestal loos alarm, en 'zonder spoed' is geen acuut gevaar:
         // wel tonen, niet alarmeren.
@@ -249,18 +256,24 @@ class P2000FeedService
             return 2;
         }
 
-        foreach (self::SEVERITY_INDICATORS as $keyword => $severity) {
-            if (str_contains($text, $keyword)) {
-                return $severity;
-            }
-        }
-
         // Violence is always high severity
         if ($this->matchesAny($text, array_keys(self::VIOLENCE_INDICATORS))) {
             return 5;
         }
 
-        return 3;
+        $fireText = str_replace(['brandweer', 'brandmelding', 'brandgerucht'], '', $text);
+        foreach (self::SEVERITY_INDICATORS as $keyword => $severity) {
+            if (str_contains($fireText, $keyword)) {
+                return $calm ? min(3, $severity) : $severity;
+            }
+        }
+        foreach (self::PRIORITY_SEVERITY as $pattern => $severity) {
+            if (preg_match($pattern, $text)) {
+                return $severity;
+            }
+        }
+
+        return $calm ? 2 : 3;
     }
 
     /** @return array{0: string, 1: string, 2: int}|null [categorie, subtype, ernst] */

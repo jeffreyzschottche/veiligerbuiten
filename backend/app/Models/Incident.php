@@ -10,7 +10,7 @@ class Incident extends Model
     use HasFactory;
 
     protected $fillable = [
-        'category', 'subtype', 'description', 'status', 'source', 'source_reference', 'latitude',
+        'category', 'subtype', 'description', 'status', 'source', 'source_reference', 'source_url', 'latitude',
         'longitude', 'confirmations_count', 'resolved_count', 'last_confirmed_at', 'expires_at',
         'severity', 'confidence', 'incident_type', 'geometry', 'resolved_at', 'visibility',
         'first_observed_at', 'last_activity_at', 'archived_at', 'location_precision_m', 'risk_flags',

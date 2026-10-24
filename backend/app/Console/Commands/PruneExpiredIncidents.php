@@ -2,22 +2,19 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Incident;
+use App\Services\IncidentLifecycle;
 use Illuminate\Console\Command;
 
 class PruneExpiredIncidents extends Command
 {
     protected $signature = 'veiligbuiten:prune-incidents';
-    protected $description = 'Verwijder incidenten zodra hun actuele levensduur is verlopen.';
+    protected $description = 'Verwijder oude archieven, bronrecords en logregels na de bewaartermijn.';
 
-    public function handle(): int
+    public function handle(IncidentLifecycle $lifecycle): int
     {
-        $count = Incident::query()
-            ->where('expires_at', '<=', now())
-            ->whereNull('archived_at')
-            ->update(['status' => 'verlopen', 'visibility' => 'archived', 'archived_at' => now()]);
-
-        $this->info("{$count} verlopen incidenten gearchiveerd.");
+        $lifecycle->sweep();
+        $removed = $lifecycle->purge();
+        $this->info(collect($removed)->map(fn ($count, $what) => "{$what}: {$count}")->implode(', '));
 
         return self::SUCCESS;
     }

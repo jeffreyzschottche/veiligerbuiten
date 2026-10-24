@@ -15,8 +15,9 @@ return [
         'max_measurement_age_minutes' => (int) env('LUCHTMEETNET_MAX_MEASUREMENT_AGE_MINUTES', 90),
     ],
     'rws' => ['water_observations_url' => env('RWS_WATER_OBSERVATIONS_URL')],
+    // Officiële Politie Open Data API (CC-0, commercieel hergebruik toegestaan; zie docs/bronnen-en-licenties.md).
     'politie' => [
-        'enabled' => env('POLITIE_NEWS_ENABLED', false),
+        'enabled' => env('POLITIE_NEWS_ENABLED', true),
         'news_url' => env('POLITIE_NEWS_URL', 'https://api.politie.nl/v4/nieuws'),
         'nationwide' => env('POLITIE_NEWS_NATIONWIDE', true),
         // Add coverage centres as the product expands; each is queried with the official 25 km radius.
@@ -29,7 +30,7 @@ return [
         'ndw' => ['label' => 'NDW', 'enabled' => true, 'maximum_age_minutes' => 20],
         'knmi' => ['label' => 'KNMI', 'enabled' => (bool) env('KNMI_API_KEY'), 'maximum_age_minutes' => 180],
         'luchtmeetnet' => ['label' => 'Luchtmeetnet', 'enabled' => env('LUCHTMEETNET_ENABLED', false), 'maximum_age_minutes' => 180],
-        'politie' => ['label' => 'Politie', 'enabled' => env('POLITIE_NEWS_ENABLED', false), 'maximum_age_minutes' => 180],
+        'politie' => ['label' => 'Politie', 'enabled' => env('POLITIE_NEWS_ENABLED', true), 'maximum_age_minutes' => 45],
         'p2000' => ['label' => 'P2000', 'enabled' => true, 'maximum_age_minutes' => 10],
         'nl_alert' => ['label' => 'NL-Alert', 'enabled' => true, 'maximum_age_minutes' => 10],
         'knmi_quakes' => ['label' => 'KNMI aardbevingen', 'enabled' => true, 'maximum_age_minutes' => 30],

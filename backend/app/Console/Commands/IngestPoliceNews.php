@@ -6,6 +6,8 @@ use App\Models\Incident;
 use App\Services\ExternalIncidentIngestor;
 use App\Services\SourceIngestion;
 use Carbon\Carbon;
+use App\Services\Sources\PoliteFetcher;
+use App\Support\DangerKeywords;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 
@@ -13,6 +15,15 @@ class IngestPoliceNews extends Command
 {
     protected $signature = 'veiligbuiten:ingest-police-news {--lat= : Eenmalige latitude voor een lokale test} {--lng= : Eenmalige longitude voor een lokale test}';
     protected $description = 'Haal recente, lokale, geolocatie-gekoppelde politieberichten op via de officiële Politie API.';
+
+    /** Politienieuws komt achteraf; ouder dan dit is geen actueel gevaar meer. */
+    private const MAX_AGE_HOURS = 12;
+
+    /** De dreiging loopt nog: iemand is voortvluchtig, gewapend of de politie vraagt alert te zijn. */
+    private const ONGOING = ['voortvluchtig', 'op de vlucht', 'nog niet aangehouden', 'wees alert', 'niet benaderen', 'bel direct 112', 'bel 112', 'gevaarlijk', 'gewapend', 'vuurwapen', 'afgezet', 'afzetting', 'ontruimd', 'ontruiming', 'gaslek', 'explosief'];
+
+    /** Geen gevaar (meer): aanhoudingen, rechtszaken, cijfers, preventie. */
+    private const NOT_A_DANGER = ['aangehouden', 'aanhouding', 'veroordeeld', 'rechtbank', 'rechter', 'cijfers', 'seizoen', 'jaarverslag', 'campagne', 'preventie', 'tips', 'vacature', 'cold case', 'jaar geleden', 'herdenking', 'opgerold', 'in beslag', 'controle', 'oefening', 'vermist', 'teruggevonden', 'overleden aangetroffen'];
 
     public function handle(ExternalIncidentIngestor $ingestor, SourceIngestion $tracking): int
     {
@@ -28,26 +39,28 @@ class IngestPoliceNews extends Command
                 for ($offset = 0; $offset < 200; $offset += 25) {
                     $query = [
                         'language' => 'nl', 'maxnumberofitems' => 25, 'offset' => $offset,
-                        'fromdate' => now()->subDay()->format('Ymd'), 'todate' => now()->format('Ymd'),
+                        'fromdate' => now()->subHours(self::MAX_AGE_HOURS)->format('Ymd'), 'todate' => now()->format('Ymd'),
                     ];
                     if ($area !== null) $query += ['lat' => $area['lat'], 'lon' => $area['lng'], 'radius' => 25];
-                    $response = Http::timeout(25)->retry(2, 500)->acceptJson()->get(config('services.politie.news_url'), $query);
+                    $response = Http::timeout(25)->retry(2, 500)->acceptJson()->withHeaders(['User-Agent' => PoliteFetcher::USER_AGENT])->get(config('services.politie.news_url'), $query);
                     if ($response->status() === 204) break;
                     $response->throw();
                     foreach ($response->json('nieuwsberichten', []) as $message) {
-                    $publishedAt = Carbon::parse($message['publicatieDatum'] ?? $message['publicatiedatum'] ?? now());
-                    if ($publishedAt->lt(now()->subDay())) continue;
+                    $publishedAt = Carbon::parse($message['publicatieDatum'] ?? $message['publicatiedatum'] ?? now(), config('veiligbuiten.timezone'));
+                    if ($publishedAt->lt(now()->subHours(self::MAX_AGE_HOURS))) continue;
                     $id = (string) ($message['uid'] ?? $message['canonicalHandleUuid'] ?? '');
                     $location = $message['locaties'][0] ?? null;
                     $latitude = data_get($location, 'latitude'); $longitude = data_get($location, 'longitude');
                     if ($id === '' || ! is_numeric($latitude) || ! is_numeric($longitude)) continue;
 
-                    [$category, $subtype, $severity] = $this->classify((string) ($message['titel'] ?? ''), (string) ($message['introductie'] ?? ''));
+                    $classified = $this->classify((string) ($message['titel'] ?? ''), (string) ($message['introductie'] ?? ''));
+                    if ($classified === null) continue;
+                    [$category, $subtype, $severity, $hours] = $classified;
                     $item = [
                         'id' => $id, 'latitude' => (float) $latitude, 'longitude' => (float) $longitude,
                         'category' => $category, 'subtype' => $subtype, 'severity' => $severity,
                         'description' => trim((string) ($message['introductie'] ?? 'Actueel lokaal bericht van de politie.')),
-                        'updated_at' => $publishedAt->toIso8601String(), 'ends_at' => $publishedAt->addDay()->toIso8601String(),
+                        'updated_at' => $publishedAt->toIso8601String(), 'ends_at' => $publishedAt->copy()->addHours($hours)->toIso8601String(),
                         'url' => $message['url'] ?? null, 'title' => $message['titel'] ?? null,
                     ];
                     $seen->push($id);
@@ -78,15 +91,38 @@ class IngestPoliceNews extends Command
         return config('services.politie.nationwide') ? [null] : config('services.politie.coverage_areas');
     }
 
-    private function classify(string $title, string $intro): array
+    /**
+     * @return array{0: string, 1: string, 2: int, 3: int}|null [categorie, subtype, ernst, uren zichtbaar];
+     *         null als het bericht niet over (lopend) gevaar gaat.
+     */
+    private function classify(string $title, string $intro): ?array
     {
-        $text = mb_strtolower("{$title} {$intro}");
-        return match (true) {
-            str_contains($text, 'brand') || str_contains($text, 'rook') || str_contains($text, 'explos') => ['brand', 'Politiebericht: brand / explosie', 4],
-            str_contains($text, 'ongeval') || str_contains($text, 'aanrijding') || str_contains($text, 'verkeers') => ['verkeer', 'Politiebericht: verkeersincident', 3],
-            str_contains($text, 'beroving') || str_contains($text, 'overval') || str_contains($text, 'steek') || str_contains($text, 'schiet') || str_contains($text, 'mishandel') || str_contains($text, 'geweld') => ['geweld', 'Politiebericht: geweldsincident', 4],
-            str_contains($text, 'demonstr') || str_contains($text, 'onrust') || str_contains($text, 'rell') => ['drukte', 'Politiebericht: openbare orde', 3],
-            default => ['onveilig', 'Politiebericht', 2],
+        $text = DangerKeywords::normalize("{$title} {$intro}");
+        $ongoing = $this->mentions($text, self::ONGOING);
+        if (! $ongoing && $this->mentions(DangerKeywords::normalize($title), self::NOT_A_DANGER)) {
+            return null;
+        }
+
+        $match = match (true) {
+            $this->mentions($text, ['schiet', 'schoten', 'vuurwapen', 'steekpartij', 'steekincident', 'neergestoken', 'gestoken', 'overval', 'beroving', 'straatroof', 'mishandel', 'geweld', 'bedreig', 'ontvoer', 'gijzel']) => ['geweld', 'Politiebericht: geweldsincident', 3],
+            $this->mentions($text, ['explosie', 'explosief', 'bommelding', 'handgranaat', 'verdacht pakket', 'verdacht object']) => ['onveilig', 'Politiebericht: explosief of verdacht object', 4],
+            $this->mentions($text, ['brand', 'rook']) => ['brand', 'Politiebericht: brand', 3],
+            $this->mentions($text, ['verward', 'onrustig', 'agressie', 'agressief']) => ['onveilig', 'Politiebericht: verward of agressief persoon', 3],
+            $this->mentions($text, ['demonstr', 'onrust', 'rellen', 'relschopper', 'noodbevel', 'noodverordening']) => ['drukte', 'Politiebericht: openbare orde', 3],
+            $this->mentions($text, ['ongeval', 'aanrijding', 'doorgereden']) => ['verkeer', 'Politiebericht: verkeersincident', 2],
+            $this->mentions($text, ['inbraak', 'inbrek', 'zakkenroller', 'oplichting', 'babbeltruc']) => ['onveilig', 'Politiebericht: inbraak of diefstal', 2],
+            default => null,
         };
+        if ($match === null) {
+            return null;
+        }
+
+        // Loopt het nog, dan één stap ernstiger en langer zichtbaar; anders een korte heads-up achteraf.
+        return $ongoing ? [$match[0], $match[1], min(5, $match[2] + 1), 6] : [...$match, 4];
+    }
+
+    private function mentions(string $normalized, array $words): bool
+    {
+        return DangerKeywords::first($normalized, $words) !== null;
     }
 }

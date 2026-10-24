@@ -9,7 +9,7 @@ use Carbon\Carbon;
 
 class ExternalIncidentIngestor
 {
-    public function __construct(private readonly IncidentEngine $engine) {}
+    public function __construct(private readonly IncidentEngine $engine, private readonly IncidentLifecycle $lifecycle) {}
 
     public function ndw(array $item): Incident
     {
@@ -197,7 +197,14 @@ class ExternalIncidentIngestor
         );
     }
 
-    /** Store each source record separately, but merge compatible active situations into one incident. */
+    /**
+     * Store each source record separately, but merge compatible active situations into one incident.
+     *
+     * Levensduur: heeft de bron een eindtijd, dan die (max. 24 uur). Zo niet (P2000,
+     * politieberichten), dan het ritme van de categorie; elk nieuw bericht over
+     * dezelfde situatie houdt hem in leven. Een ongewijzigd item dat bij de volgende
+     * ophaalronde opnieuw voorbijkomt, schrijft niets: dat houdt de sync-delta's klein.
+     */
     private function upsertOfficial(string $source, array $item, array $attributes): Incident
     {
         $existingObservation = IncidentObservation::query()
@@ -205,34 +212,62 @@ class ExternalIncidentIngestor
         $incident = $existingObservation ? Incident::find($existingObservation->incident_id) : null;
         $category = $attributes['category'];
         if (! $incident) $incident = $this->engine->findDuplicate($category, (float) $item['latitude'], (float) $item['longitude']);
+        $observedAt = Carbon::parse($item['updated_at'] ?? now());
+        $endsAt = $item['ends_at'] ?? null;
 
         $payload = [
             'category' => $category, 'subtype' => $attributes['subtype'], 'description' => $attributes['description'],
             'status' => 'officieel', 'visibility' => 'public', 'latitude' => $item['latitude'], 'longitude' => $item['longitude'],
             'severity' => $attributes['severity'], 'confidence' => 1, 'incident_type' => $attributes['incident_type'],
-            'last_confirmed_at' => Carbon::parse($item['updated_at'] ?? now()), 'last_activity_at' => now(),
-            'expires_at' => $this->expiry($item['ends_at'] ?? null, $attributes['fallback_hours']),
+            'last_confirmed_at' => $observedAt,
         ];
+        $link = $item['link'] ?? $item['url'] ?? null;
 
         if (! $incident) {
             $incident = Incident::create($payload + [
-                'source' => $source, 'source_reference' => (string) $item['id'], 'confirmations_count' => 0,
-                'first_observed_at' => Carbon::parse($item['updated_at'] ?? now()),
+                'source' => $source, 'source_reference' => (string) $item['id'], 'source_url' => $link, 'confirmations_count' => 0,
+                'first_observed_at' => $observedAt, 'last_activity_at' => now(),
+                'expires_at' => $endsAt ? $this->expiry($endsAt, $attributes['fallback_hours']) : $this->lifecycle->initialExpiry($category, $observedAt->min(now())),
             ]);
-        } else {
-            // Samenvoegen met een ánder item op dezelfde plek mag de ernst nooit verlagen
-            // (een ambulancerit naast een bommelding blijft een bommelding).
-            if (! $existingObservation) {
-                $payload['severity'] = max($payload['severity'], (int) $incident->severity);
-                if ($payload['severity'] > $attributes['severity']) {
-                    unset($payload['category'], $payload['subtype'], $payload['description']);
-                }
-            }
-            // The first official source becomes canonical; every later source remains an observation.
-            if ($incident->source === 'user') $payload += ['source' => $source, 'source_reference' => (string) $item['id']];
-            $incident->update($payload);
+            $this->recordObservation($incident, $source, $item);
+
+            return $incident;
         }
+
+        if ($existingObservation) {
+            // Hetzelfde item opnieuw: alleen bijwerken wat echt veranderde.
+            $payload['last_confirmed_at'] = $observedAt->max($incident->last_confirmed_at ?? $observedAt);
+            if ($endsAt) $payload['expires_at'] = $this->expiry($endsAt, $attributes['fallback_hours']);
+            $incident->fill($payload);
+            if ($incident->isDirty()) {
+                $incident->last_activity_at = now();
+                $incident->save();
+            }
+            $this->recordObservation($incident, $source, $item);
+
+            return $incident;
+        }
+
+        // Samenvoegen met een ánder item op dezelfde plek mag de ernst nooit verlagen
+        // (een ambulancerit naast een bommelding blijft een bommelding). Omschrijving en
+        // soort blijven van de eerste bron, tenzij de nieuwe ernstiger is.
+        if ($attributes['severity'] <= (int) $incident->severity) {
+            unset($payload['category'], $payload['subtype'], $payload['description']);
+        }
+        $payload['severity'] = max($payload['severity'], (int) $incident->severity);
+        // Positie en geometrie van de eerste bron blijven staan; een tweede bron bevestigt.
+        unset($payload['latitude'], $payload['longitude']);
+        $payload['last_confirmed_at'] = $observedAt->max($incident->last_confirmed_at ?? $observedAt);
+        // The first official source becomes canonical; every later source remains an observation.
+        if ($incident->source === 'user') $payload += ['source' => $source, 'source_reference' => (string) $item['id'], 'source_url' => $link];
+        $incident->update($payload);
+        $endsAt
+            ? $incident->update(['expires_at' => $this->expiry($endsAt, $attributes['fallback_hours'])->max($incident->expires_at), 'last_activity_at' => now()])
+            : $this->lifecycle->touch($incident);
+        // Een officieel signaal bij een gebruikersmelding is een onafhankelijke bevestiging.
+        $this->engine->updateConfidence($incident->fresh());
         $this->recordObservation($incident, $source, $item);
+
         return $incident->fresh();
     }
 }

@@ -51,8 +51,9 @@ class AlertEngineTest extends TestCase
     public function test_more_confirmations_reach_places_further_away(): void
     {
         $user = $this->subscriber();
-        // ~2,2 km van het incident, straal 100 m: buiten het basisbereik van 1,5 km.
-        $user->places()->create(['name' => 'Werk', 'latitude' => 52.3952, 'longitude' => 4.8952, 'radius_m' => 100]);
+        // ~1,9 km van het incident, straal 100 m: buiten het bereik van één onbevestigde melding (600 m),
+        // binnen dat van zes bevestigingen (~1,9 km).
+        $user->places()->create(['name' => 'Werk', 'latitude' => 52.3872, 'longitude' => 4.8952, 'radius_m' => 100]);
         $incident = $this->incident(['source' => 'user', 'confirmations_count' => 1]);
 
         $engine = app(AlertEngine::class);

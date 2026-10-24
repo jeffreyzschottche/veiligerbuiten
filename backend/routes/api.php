@@ -18,6 +18,9 @@ use App\Http\Controllers\Api\V1\SubscriptionController;
 
 Route::prefix('v1')->group(function () {
 
+    Route::get('/internal/site-statistics', \App\Http\Controllers\Api\V1\SiteStatisticsController::class)
+        ->middleware('throttle:30,1');
+
     // Health & status (no throttle needed)
     Route::get('/health', HealthController::class);
     Route::get('/sources/status', SourceStatusController::class);
@@ -69,7 +72,7 @@ Route::prefix('v1')->group(function () {
     Route::middleware(['auth:sanctum', 'subscribed'])->group(function () {
         Route::middleware('throttle:60,1')->group(function () {
             Route::get('/incidents', [IncidentController::class, 'index']);
-            Route::get('/incidents/sync', [IncidentController::class, 'sync']);
+            Route::get('/incidents/sync', [IncidentController::class, 'sync'])->middleware('gzip');
             Route::get('/incidents.geojson', [IncidentController::class, 'geojson']);
             Route::get('/incidents/{incident}', [IncidentController::class, 'show'])->whereNumber('incident');
         });

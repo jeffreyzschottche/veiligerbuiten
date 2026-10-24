@@ -71,8 +71,9 @@ class IngestP2000 extends Command
             }
 
             if (!$dryRun) {
-                // Reconcile: mark items not seen in last 2 runs as resolved
-                $tracking->reconcile('p2000_zwaailicht', $seen, 10);
+                // Geen reconcile: de feed is een rollend venster (ongeveer de laatste 50 meldingen),
+                // geen momentopname. Een melding die eruit schuift is niet voorbij; de levensduur
+                // volgt de categorie (IncidentLifecycle) en nieuwe berichten over dezelfde plek.
                 $tracking->finish($run, $count, $created, $updated);
             }
 

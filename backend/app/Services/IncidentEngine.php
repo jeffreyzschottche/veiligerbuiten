@@ -8,8 +8,14 @@ use App\Support\GeoUtils;
 
 class IncidentEngine
 {
-    private const DUPLICATE_RADIUS_M = 200;
+    public function __construct(private readonly IncidentLifecycle $lifecycle) {}
+
+    /** Hoe ver twee meldingen uit elkaar mogen liggen om dezelfde situatie te zijn. */
+    private const DUPLICATE_RADIUS_M = ['brand' => 350, 'stoffen' => 400, 'blokkade' => 250, 'verkeer' => 250, 'drukte' => 300, 'weer' => 1000];
+    private const DEFAULT_DUPLICATE_RADIUS_M = 200;
+    /** Een melding die recent nog bevestigd werd, telt als lopend, ook als hij ouder is. */
     private const DUPLICATE_TIME_MINUTES = 20;
+    private const DUPLICATE_ACTIVE_MINUTES = 60;
 
     /** Related categories that should be considered duplicates of each other. */
     private const RELATED_CATEGORIES = [
@@ -22,19 +28,24 @@ class IncidentEngine
     public function findDuplicate(string $category, float $latitude, float $longitude): ?Incident
     {
         $categories = self::RELATED_CATEGORIES[$category] ?? [$category];
+        $radius = self::DUPLICATE_RADIUS_M[$category] ?? self::DEFAULT_DUPLICATE_RADIUS_M;
+        $latDelta = $radius / 111_000;
+        $lonDelta = $radius / (111_000 * cos(deg2rad($latitude)));
 
         $candidates = Incident::query()
             ->whereIn('category', $categories)
             ->where('expires_at', '>', now())
             ->whereNull('resolved_at')
-            ->where('created_at', '>', now()->subMinutes(self::DUPLICATE_TIME_MINUTES))
-            ->whereBetween('latitude', [$latitude - 0.003, $latitude + 0.003])
-            ->whereBetween('longitude', [$longitude - 0.004, $longitude + 0.004])
+            ->where(fn ($query) => $query
+                ->where('created_at', '>', now()->subMinutes(self::DUPLICATE_TIME_MINUTES))
+                ->orWhere('last_activity_at', '>', now()->subMinutes(self::DUPLICATE_ACTIVE_MINUTES)))
+            ->whereBetween('latitude', [$latitude - $latDelta, $latitude + $latDelta])
+            ->whereBetween('longitude', [$longitude - $lonDelta, $longitude + $lonDelta])
             ->get();
 
         return $candidates
             ->sortBy(fn (Incident $i) => GeoUtils::distanceMeters($latitude, $longitude, $i->latitude, $i->longitude))
-            ->first(fn (Incident $i) => GeoUtils::distanceMeters($latitude, $longitude, $i->latitude, $i->longitude) <= self::DUPLICATE_RADIUS_M);
+            ->first(fn (Incident $i) => GeoUtils::distanceMeters($latitude, $longitude, $i->latitude, $i->longitude) <= $radius);
     }
 
     public function updateConfidence(Incident $incident): Incident
@@ -93,6 +104,7 @@ class IncidentEngine
             'last_confirmed_at' => now(),
             'last_activity_at' => now(),
         ]);
+        $this->lifecycle->touch($incident->fresh());
 
         return $this->updateConfidence($incident->fresh());
     }
@@ -103,7 +115,9 @@ class IncidentEngine
         $incident->update(['last_activity_at' => now()]);
 
         // User reports need 3 independent "niet meer aanwezig" votes to resolve
-        if ($incident->source === 'user' && $incident->fresh()->resolved_count >= 3) {
+        if ($incident->source !== 'user' || $incident->fresh()->resolved_count < 3) {
+            $this->lifecycle->weaken($incident->fresh());
+        } else {
             $incident->update([
                 'status' => 'opgelost',
                 'visibility' => 'archived',

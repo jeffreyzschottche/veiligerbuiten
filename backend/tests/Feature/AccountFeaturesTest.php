@@ -91,8 +91,10 @@ class AccountFeaturesTest extends TestCase
             ->assertOk()
             ->assertJsonCount(2, 'data')
             ->assertJsonPath('data.0.level', 'danger')
-            ->assertJsonPath('data.0.sourceName', 'P2000')
-            ->assertJsonPath('next_sync_after', 3600);
+            ->assertJsonPath('data.0.sourceName', 'Zwaailicht.nl')
+            ->assertJsonPath('mode', 'full')
+            // Gevaar in de buurt: vaker verversen, maar nooit onder de ondergrens.
+            ->assertJsonPath('next_sync_after', 900);
     }
 
     public function test_the_mcp_server_answers_tool_calls_for_the_token_owner(): void
