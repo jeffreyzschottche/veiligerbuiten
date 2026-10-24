@@ -15,7 +15,7 @@
   --vb-brand-50: #eaf0ff;
 
   /* Ernst: info → waarschuwing → gevaar */
-  --vb-info: #2f6bff;
+  --vb-info: #64708a; /* leigrijs: blauw is "jij" op de kaart */
   --vb-warn: #ff8a00;
   --vb-danger: #e5484d;
   --vb-ok: #1f9d55;

@@ -12,7 +12,7 @@ export function usePlayInView(target: Ref<HTMLElement | null>) {
 
   onMounted(() => {
     if (!target.value || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    observer = new IntersectionObserver(([entry]) => { playing.value = entry.isIntersecting; }, { threshold: 0.3 });
+    observer = new IntersectionObserver(([entry]) => { playing.value = entry?.isIntersecting ?? false; }, { threshold: 0.3 });
     observer.observe(target.value);
   });
   onBeforeUnmount(() => observer?.disconnect());

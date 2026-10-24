@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Veilig Buiten</string>
-    <string name="title_activity_main">Veilig Buiten</string>
+    <string name="app_name">VeiligBuiten</string>
+    <string name="title_activity_main">VeiligBuiten</string>
     <string name="package_name">nl.veiligbuiten.app</string>
     <string name="custom_url_scheme">nl.veiligbuiten.app</string>
 </resources>

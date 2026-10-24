@@ -1,214 +1,259 @@
 <template>
-  <div class="veilig-buiten">
-    <MapCanvas ref="mapCanvas" :incidents="visibleIncidents" :initial-focus="sharedLocation" @select="selectIncident" @location="updateLocation" />
+  <div class="vb-app">
+    <AppMap
+      ref="map"
+      :incidents="sync.incidents.value"
+      :places="places.places.value"
+      :me="me"
+      :selected-id="selectedId"
+      :bottom-inset="panelInset"
+      @select="select"
+    />
 
-    <header class="app-header">
-      <NuxtLink to="/app" class="brand" aria-label="VeiligBuiten kaart"><span class="brand-mark"><Icon name="shield-alert" :size="18" /></span><span>Veilig<span>Buiten</span></span></NuxtLink>
-      <nav class="desktop-nav" aria-label="Hoofdnavigatie"><button class="active"><Icon name="map" :size="17" />Kaart</button><button @click="panel = 'alerts'"><Icon name="bell" :size="17" />Alerts</button><button @click="panel = 'more'"><Icon name="settings" :size="17" />Instellingen</button></nav>
-      <button class="header-action" @click="showInfo = !showInfo" aria-label="Informatie"><Icon name="info" :size="18" /></button>
+    <header class="topbar">
+      <div class="topbar__brand">
+        <LogoMark :size="26" />
+        <span>{{ statusText }}</span>
+      </div>
+      <button class="icon-btn" :aria-label="t.map.locate" @click="locate(true)"><Icon name="locate" :size="21" /></button>
     </header>
 
-    <main class="map-ui">
-      <aside class="desktop-sidebar" aria-label="Situaties in de omgeving">
-        <div class="sidebar-heading"><p class="eyebrow">VEILIGBUITEN</p><h1>Wat speelt er in je omgeving?</h1><p>Actuele signalen binnen 25 kilometer van je locatie.</p></div>
-        <div class="sidebar-actions"><button class="sidebar-locate" @click="locate"><Icon name="locate" :size="18" />Mijn locatie</button><button class="sidebar-refresh" :aria-label="loading ? 'Vernieuwen' : 'Kaart vernieuwen'" @click="refresh"><Icon name="refresh" :size="18" /></button></div>
-        <section class="sidebar-filters"><div><b>Filter kaart</b><button @click="clearFilters">Wis filters</button></div><button v-for="filter in filters" :key="filter.value" :class="{ selected: selectedFilters.includes(filter.value) }" @click="toggleFilter(filter.value)"><Icon :name="filter.icon" :size="16" />{{ filter.label }}</button></section>
-        <section class="incident-list"><div class="incident-list__heading"><b>Actuele situaties</b><span>{{ visibleIncidents.length }}</span></div><button v-for="incident in visibleIncidents" :key="incident.id" class="incident-list__item" @click="selectIncident(incident)"><span class="incident-list__icon" :class="`is-${incident.category}`"><Icon :name="categoryIcon(incident.category)" :size="17" /></span><span><b>{{ incident.title }}</b><small>{{ incident.distance }} · {{ incident.reportedAt }}<template v-if="incident.sourceName"> · {{ incident.sourceName }}</template></small></span><Icon name="chevron" :size="16" /></button><p v-if="!visibleIncidents.length" class="incident-list__empty">Geen actuele situaties voor deze filters.</p></section>
-        <button class="desktop-report" @click="reportOpen = true"><Icon name="plus" :size="19" />Melding maken</button>
-      </aside>
-    </main>
-
-    <section class="map-message" :class="{ 'map-message--error': loadError }"><span class="map-message__dot" /> {{ loadError ?? (loading ? 'Kaart vernieuwen…' : 'Actuele situaties in jouw omgeving') }}</section>
-
-    <div class="map-tools">
-      <button class="tool-button" aria-label="Centreer op jouw locatie" @click="locate"><Icon name="locate" :size="21" /></button>
-      <button class="tool-button" :class="{ active: filtersOpen }" aria-label="Filters" @click="filtersOpen = !filtersOpen"><Icon name="filter" :size="21" /></button>
+    <div v-show="tab === 'map' && !selected" ref="panelWrap">
+      <NearbyPanel v-model:expanded="panelOpen" :items="nearby" :has-location="!!me" :status="statusText" @select="select" />
+      <button class="report-fab" :style="{ bottom: `${panelInset + 10}px` }" @click="reportOpen = true">
+        <Icon name="plus" :size="20" :stroke="2.4" />{{ t.map.report }}
+      </button>
+      <button v-if="!me && locationDenied" class="locate-cta btn btn--brand" :style="{ bottom: `${panelInset + 10}px` }" @click="locate(true)">{{ t.map.allowLocation }}</button>
     </div>
 
-    <Transition name="fade"><section v-if="filtersOpen" class="filters"><template v-if="!activeFilterCategory"><p>Toon op de kaart</p><button v-for="filter in filters" :key="filter.value" :class="{ selected: selectedFilters.includes(filter.value) }" @click="openSubtypeFilters(filter.value)"><Icon :name="filter.icon" :size="15" />{{ filter.label }}<Icon name="chevron" :size="14" /></button></template><template v-else><button class="filters-back" @click="activeFilterCategory = null">← Alle categorieën</button><p>{{ activeFilter.label }}</p><button class="filters-all" :class="{ selected: selectedFilters.includes(activeFilterCategory) && !hasSubtypeFilter(activeFilterCategory) }" @click="toggleFilter(activeFilterCategory)">Alles in {{ activeFilter.label }}</button><button v-for="subtype in activeSubtypes" :key="subtype" :class="{ selected: hasSubtypeFilter(activeFilterCategory, subtype) }" @click="toggleSubtypeFilter(activeFilterCategory, subtype)">{{ subtype }}</button></template></section></Transition>
-    <Transition name="fade"><section v-if="showInfo" class="info-card"><button aria-label="Sluiten" @click="showInfo = false"><Icon name="close" :size="19" /></button><strong>VeiligBuiten is een omgevingsradar.</strong><p>Informatie is actueel, lokaal en geen garantie dat er niets gebeurt. Bel 112 bij direct gevaar.</p></section></Transition>
+    <IncidentSheet :incident="selected" :meters="selectedMeters" :voted="!!selected && !!votes[selected.id]" :voting="voting" @close="selectedId = null" @vote="vote" />
+    <ReportSheet :open="reportOpen" :map-center="mapCenter()" @close="reportOpen = false" @placed="placed" />
 
-    <section class="nearby-strip"><span>IN JOUW OMGEVING</span><button @click="refresh"><Icon name="refresh" :size="14" />Vernieuwen</button><div><strong>{{ visibleIncidents.length }}</strong> actuele situaties binnen 25 km</div></section>
-    <button class="report-button" @click="reportOpen = true"><span><Icon name="plus" :size="18" /></span> Melding maken</button>
+    <PlacesScreen v-if="tab === 'places'" :map-center="me ?? mapCenter()" :incidents="sync.incidents.value" />
+    <AccountScreen v-if="tab === 'account'" @logout="logout" @deleted="logout" />
 
-    <nav class="bottom-nav" aria-label="Hoofdnavigatie"><button class="active"><Icon name="map" :size="20" /><span>Kaart</span></button><button @click="panel = 'alerts'"><Icon name="bell" :size="20" /><span>Alerts</span></button><button @click="panel = 'more'"><Icon name="settings" :size="20" /><span>Meer</span></button></nav>
-    <IncidentSheet :incident="selectedIncident" :vote="selectedIncident ? incidentVotes[selectedIncident.id] : null" @close="selectedIncident = null" @confirm="confirm" @resolved="resolve" @open-maps="openMaps" @share="shareIncident" />
-    <ReportFlow :open="reportOpen" :success="reportSuccess" :submitting="reportSubmitting" :error="reportError" @close="closeReport" @submit="createReport" />
-    <Transition name="sheet"><aside v-if="panel" class="product-panel"><button class="sheet-close" aria-label="Sluiten" @click="panel = null"><Icon name="close" :size="18" /></button><template v-if="panel === 'alerts'"><p class="eyebrow">ALERTVOORKEUREN</p><h2>Waarschuwingen dichtbij</h2><p>Ontvang alleen een melding wanneer een situatie in jouw omgeving relevant is.</p><label v-for="preference in preferences" :key="preference.key" class="preference"><span><b>{{ preference.label }}</b><small>{{ preference.description }}</small></span><input v-model="preference.enabled" type="checkbox"></label><button class="save-preferences" @click="savePreferences">Voorkeuren opslaan</button></template><template v-else><p class="eyebrow">VEILIGBUITEN</p><h2>Rustig en lokaal</h2><p>VeiligBuiten toont actuele signalen in jouw omgeving. Informatie is geen garantie dat er niets gebeurt.</p><button class="settings-row" @click="locate"><Icon name="locate" :size="18" />Locatie opnieuw ophalen <Icon name="chevron" :size="16" /></button><button class="settings-row" @click="showInfo = true"><Icon name="info" :size="18" />Privacy en veiligheid <Icon name="chevron" :size="16" /></button><p class="panel-version">Versie 0.1 · Nederlandse MVP</p></template></aside></Transition>
+    <AppTabBar v-model="tab" />
+
+    <Paywall v-if="needsSubscription" @subscribed="onSubscribed" @logout="logout" />
+    <Transition name="fade"><p v-if="toast" class="toast" role="status">{{ toast }}</p></Transition>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { Incident, IncidentCategory } from '~/types/Incident';
-import { apiFetch } from '~/services/apiFetch';
-import { reportCategories, reportSubtypes } from '~/utils/reportTaxonomy';
-useHead({ title: 'VeiligBuiten — actuele situaties in je omgeving', meta: [{ name: 'theme-color', content: '#10211e' }] });
-const { incidents, loading, loadError, refresh, byCategories } = useIncidents();
-const route = useRoute();
-const coordinate = (value: unknown) => { const number = Number(Array.isArray(value) ? value[0] : value); return Number.isFinite(number) ? number : null; };
-const sharedLocation = computed(() => { const latitude = coordinate(route.query.lat); const longitude = coordinate(route.query.lng); return latitude !== null && longitude !== null && latitude >= 50.5 && latitude <= 53.7 && longitude >= 3.1 && longitude <= 7.3 ? { latitude, longitude } : null; });
-const sharedIncidentId = computed(() => Number(Array.isArray(route.query.incident) ? route.query.incident[0] : route.query.incident));
-const selectedIncident = ref<Incident | null>(null); const reportOpen = ref(false); const reportSuccess = ref(false); const reportSubmitting = ref(false); const reportError = ref<string | null>(null); const filtersOpen = ref(false); const showInfo = ref(false); const panel = ref<'alerts' | 'more' | null>(null); const mapCanvas = ref<{ requestLocation: () => void; focusOn: (latitude: number, longitude: number) => void } | null>(null); const lastPosition = ref<GeolocationPosition | null>(null);
-const preferences = ref([{ key: 'direct', label: 'Direct gevaar', description: 'Ernstige situaties dichtbij', enabled: true }, { key: 'warning', label: 'Waarschuwingen', description: 'Relevante verstoringen in de buurt', enabled: true }, { key: 'info', label: 'Informatie', description: 'Bijvoorbeeld wegafsluitingen', enabled: false }]);
-const selectedFilters = ref<IncidentCategory[]>([]);
-const selectedSubtypeFilters = ref<Array<{ category: IncidentCategory; subtype: string }>>([]);
-const activeFilterCategory = ref<IncidentCategory | null>(null);
-const incidentVotes = ref<Record<number, 'present' | 'resolved'>>({});
-const votingIncidentIds = ref<number[]>([]);
-const filters = reportCategories;
-const activeFilter = computed(() => filters.find((filter) => filter.value === activeFilterCategory.value) ?? filters[0]);
-const activeSubtypes = computed(() => activeFilterCategory.value ? reportSubtypes[activeFilterCategory.value] : []);
-const visibleIncidents = computed(() => byCategories(selectedFilters.value).filter((incident) => {
-  const subtypeFilters = selectedSubtypeFilters.value.filter((filter) => filter.category === incident.category);
-  return !subtypeFilters.length || subtypeFilters.some((filter) => filter.subtype === (incident.subtype ?? incident.title));
-}));
-function hasSubtypeFilter(category: IncidentCategory, subtype?: string) { return selectedSubtypeFilters.value.some((filter) => filter.category === category && (subtype === undefined || filter.subtype === subtype)); }
-function clearFilters() { selectedFilters.value = []; selectedSubtypeFilters.value = []; }
-function toggleFilter(category: IncidentCategory) {
-  if (selectedFilters.value.includes(category)) { selectedFilters.value = selectedFilters.value.filter((value) => value !== category); selectedSubtypeFilters.value = selectedSubtypeFilters.value.filter((filter) => filter.category !== category); return; }
-  selectedFilters.value = [...selectedFilters.value, category];
-}
-function openSubtypeFilters(category: IncidentCategory) { activeFilterCategory.value = category; }
-function toggleSubtypeFilter(category: IncidentCategory, subtype: string) {
-  if (!selectedFilters.value.includes(category)) selectedFilters.value = [...selectedFilters.value, category];
-  selectedSubtypeFilters.value = hasSubtypeFilter(category, subtype) ? selectedSubtypeFilters.value.filter((filter) => !(filter.category === category && filter.subtype === subtype)) : [...selectedSubtypeFilters.value, { category, subtype }];
-}
-function categoryIcon(category: IncidentCategory) { return ({ brand: 'fire', geweld: 'shield-alert', onveilig: 'alert-triangle', verkeer: 'car', blokkade: 'construction', weer: 'cloud-rain', stoffen: 'flask', drukte: 'users', dier: 'paw', anders: 'circle-help' } as const)[category]; }
-function locate() { mapCanvas.value?.requestLocation(); }
-function selectIncident(incident: Incident) {
-  selectedIncident.value = incident;
-  if (incident.latitude !== undefined && incident.longitude !== undefined) mapCanvas.value?.focusOn(incident.latitude, incident.longitude);
-}
-function distanceInMetres(latitudeA: number, longitudeA: number, latitudeB: number, longitudeB: number) {
-  const toRadians = (value: number) => value * Math.PI / 180;
-  const latitudeDistance = toRadians(latitudeB - latitudeA);
-  const longitudeDistance = toRadians(longitudeB - longitudeA);
-  const a = Math.sin(latitudeDistance / 2) ** 2 + Math.cos(toRadians(latitudeA)) * Math.cos(toRadians(latitudeB)) * Math.sin(longitudeDistance / 2) ** 2;
-  return 6_371_000 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-function formatDistance(distance: number) { return distance < 1_000 ? `${Math.round(distance / 10) * 10} m` : `${(distance / 1_000).toFixed(1).replace('.', ',')} km`; }
-async function updateLocation(position: GeolocationPosition) {
-  lastPosition.value = position;
-  try {
-    const token = await useInstallation().ensure();
-    await apiFetch('/installations/location', { method: 'PUT', headers: { 'X-Installation-Token': token }, body: JSON.stringify({ latitude: position.coords.latitude, longitude: position.coords.longitude, accuracy_m: position.coords.accuracy }) });
-  } catch { /* A kaartbezoek blijft werken als de locatie-sync tijdelijk niet lukt. */ }
-  await refresh(sharedLocation.value?.latitude ?? position.coords.latitude, sharedLocation.value?.longitude ?? position.coords.longitude);
-  incidents.value.forEach((incident) => {
-    if (incident.latitude === undefined || incident.longitude === undefined) return;
-    incident.distance = formatDistance(distanceInMetres(position.coords.latitude, position.coords.longitude, incident.latitude, incident.longitude));
-  });
-  if (selectedIncident.value?.latitude !== undefined && selectedIncident.value.longitude !== undefined) {
-    selectedIncident.value = {
-      ...selectedIncident.value,
-      distance: formatDistance(distanceInMetres(position.coords.latitude, position.coords.longitude, selectedIncident.value.latitude, selectedIncident.value.longitude)),
-    };
-  }
-}
-function saveIncidentVotes() { localStorage.setItem('veiligbuiten-incident-votes', JSON.stringify(incidentVotes.value)); }
-async function voteIncident(vote: 'present' | 'resolved') {
-  const incident = selectedIncident.value;
-  if (!incident || incidentVotes.value[incident.id] || votingIncidentIds.value.includes(incident.id)) return;
-  votingIncidentIds.value = [...votingIncidentIds.value, incident.id];
-  try {
-    const token = await useInstallation().ensure();
-    const latitude = lastPosition.value?.coords.latitude;
-    const longitude = lastPosition.value?.coords.longitude;
-    const { data } = await apiFetch<{ data: Incident }>(`/incidents/${incident.id}/${vote === 'present' ? 'confirm' : 'resolve'}`, {
-      method: 'POST',
-      headers: { 'X-Installation-Token': token },
-      body: JSON.stringify({ latitude, longitude }),
-    });
-    incidents.value = incidents.value.map((candidate) => candidate.id === data.id ? data : candidate);
-    selectedIncident.value = data;
-    incidentVotes.value = { ...incidentVotes.value, [incident.id]: vote };
-    saveIncidentVotes();
-  } catch (error) {
-    const detail = error instanceof Error ? error.message : 'Je beoordeling kon niet worden opgeslagen.';
-    loadError.value = detail;
-  } finally {
-    votingIncidentIds.value = votingIncidentIds.value.filter((id) => id !== incident.id);
-  }
-}
-function confirm() { return voteIncident('present'); }
-function resolve() { return voteIncident('resolved'); }
-function openMaps() {
-  const incident = selectedIncident.value;
-  if (!incident) return;
+import { App } from '@capacitor/app';
+import { BackgroundRunner } from '@capacitor/background-runner';
+import type { Incident } from '~/types/Incident';
+import type { Tab } from '~/types/App';
+import { distanceMeters } from '~/composables/useGeo';
+import { currentPosition, openFromNotification, type Position } from '~/composables/useDevice';
+import { storage } from '~/utils/storage';
 
-  // Google Maps vindt automatisch het dichtstbijzijnde beschikbare Street
-  // View-punt. Hiervoor is geen Google Maps API-key nodig.
-  const latitude = incident.latitude ?? lastPosition.value?.coords.latitude ?? 52.3702;
-  const longitude = incident.longitude ?? lastPosition.value?.coords.longitude ?? 4.8952;
-  const url = new URL('https://www.google.com/maps/@');
-  url.searchParams.set('api', '1');
-  url.searchParams.set('map_action', 'pano');
-  url.searchParams.set('viewpoint', `${latitude},${longitude}`);
-  url.searchParams.set('heading', '0');
-  url.searchParams.set('pitch', '0');
-  url.searchParams.set('fov', '80');
-  window.open(url.toString(), '_blank', 'noopener,noreferrer');
-}
-async function shareIncident() {
-  const incident = selectedIncident.value;
-  if (!incident) return;
-  const latitude = incident.latitude ?? lastPosition.value?.coords.latitude;
-  const longitude = incident.longitude ?? lastPosition.value?.coords.longitude;
-  if (latitude === undefined || longitude === undefined) return;
-  const url = new URL(window.location.origin + route.path);
-  url.searchParams.set('lat', String(latitude)); url.searchParams.set('lng', String(longitude)); url.searchParams.set('incident', String(incident.id));
-  const data = { title: `VeiligBuiten: ${incident.title}`, text: `Bekijk deze situatie in VeiligBuiten: ${incident.title}.`, url: url.toString() };
-  if (navigator.share) await navigator.share(data); else await navigator.clipboard.writeText(data.url);
-}
-async function openSharedIncident() {
-  if (!Number.isInteger(sharedIncidentId.value) || !sharedLocation.value) return;
-  try {
-    const viewerLatitude = lastPosition.value?.coords.latitude ?? sharedLocation.value.latitude;
-    const viewerLongitude = lastPosition.value?.coords.longitude ?? sharedLocation.value.longitude;
-    const { data } = await apiFetch<{ data: Incident }>(`/incidents/${sharedIncidentId.value}?latitude=${viewerLatitude}&longitude=${viewerLongitude}`);
-    // The shared coordinates are the incident location, never the viewer's location.
-    // Replace the temporary API distance as soon as geolocation is available.
-    if (!lastPosition.value) data.distance = 'Locatie van melding';
-    selectedIncident.value = data;
-    if (!incidents.value.some((incident) => incident.id === data.id)) incidents.value = [data, ...incidents.value];
-  } catch { /* A verlopen of onbekende gedeelde melding opent niet. */ }
-}
-function closeReport() { reportOpen.value = false; reportSuccess.value = false; reportSubmitting.value = false; reportError.value = null; }
-async function createReport(payload: { category: IncidentCategory; subtype: string; description: string; captchaToken: string }) {
-  if (reportSubmitting.value) return;
-  reportSubmitting.value = true; reportError.value = null;
-  const position = await new Promise<GeolocationPosition | null>((resolve) => navigator.geolocation?.getCurrentPosition(resolve, () => resolve(null), { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }) ?? resolve(null));
-  try {
-    if (!position) throw new Error('We hebben je actuele locatie nodig om een melding te plaatsen.');
-    const token = await useInstallation().ensure();
-    await apiFetch('/reports', { method: 'POST', headers: { 'X-Installation-Token': token }, body: JSON.stringify({ category: payload.category, subtype: payload.subtype, description: payload.description, captcha_token: payload.captchaToken, latitude: position.coords.latitude, longitude: position.coords.longitude, user_latitude: position.coords.latitude, user_longitude: position.coords.longitude, location_accuracy_m: position.coords.accuracy }) });
-    await refresh(position.coords.latitude, position.coords.longitude);
-    reportSuccess.value = true;
-  } catch (error) {
-    reportError.value = error instanceof Error ? error.message : 'Melding kon niet worden geplaatst. Probeer opnieuw.';
-  } finally {
-    reportSubmitting.value = false;
-  }
-}
-async function savePreferences() {
-  localStorage.setItem('veiligbuiten-alerts', JSON.stringify(preferences.value));
-  try {
-    const token = await useInstallation().ensure();
-    await apiFetch('/installations/preferences', {
-      method: 'PUT',
-      headers: { 'X-Installation-Token': token },
-      body: JSON.stringify({ preferences: Object.fromEntries(preferences.value.map(({ key, enabled }) => [key, enabled])) }),
-    });
-    await usePushNotifications().enable();
-  } catch {
-    // Preferences remain local when the API or native permission flow is unavailable.
-  }
-  panel.value = null;
-}
-onMounted(async () => {
-  try { incidentVotes.value = JSON.parse(localStorage.getItem('veiligbuiten-incident-votes') ?? '{}'); } catch { incidentVotes.value = {}; }
-  refresh(sharedLocation.value?.latitude, sharedLocation.value?.longitude);
-  await openSharedIncident();
+definePageMeta({ layout: false });
+useHead({ title: 'VeiligBuiten', meta: [{ name: 'theme-color', content: '#f4f5f7' }] });
+
+/** "In je buurt" in de lijst: binnen 5 km, of binnen het meldbereik van iets groots. */
+const NEARBY_M = 5000;
+
+const route = useRoute();
+const { t, fill, ago } = useAppCopy();
+const auth = useAuthStore();
+const device = useDevice();
+const sync = useSync();
+const places = usePlaces();
+
+const map = ref<{ flyTo: (lat: number, lng: number, zoom?: number) => void; showReach: (incident: Incident) => void; center: () => Position | null } | null>(null);
+const panelWrap = ref<HTMLElement | null>(null);
+const tab = ref<Tab>('map');
+const me = ref<Position | null>(null);
+const locationDenied = ref(false);
+const selectedId = ref<number | null>(null);
+const panelOpen = ref(false);
+const panelInset = ref(140);
+const reportOpen = ref(false);
+const voting = ref(false);
+const votes = ref<Record<number, 'present' | 'resolved'>>({});
+const toast = ref<string | null>(null);
+const tick = ref(0);
+
+const needsSubscription = computed(() => !!auth.account && !auth.account.subscription.active);
+const selected = computed(() => sync.incidents.value.find((incident) => incident.id === selectedId.value) ?? null);
+const selectedMeters = computed(() => selected.value && me.value ? distanceMeters(me.value.latitude, me.value.longitude, selected.value.latitude, selected.value.longitude) : null);
+
+const nearby = computed(() => {
+  const origin = me.value;
+  if (!origin) return [];
+  const rank = { danger: 3, warn: 2, info: 1 };
+  return sync.incidents.value
+    .map((incident) => ({ incident, distance: distanceMeters(origin.latitude, origin.longitude, incident.latitude, incident.longitude) }))
+    .filter(({ incident, distance }) => distance <= Math.max(NEARBY_M, incident.alertRadius))
+    .sort((a, b) => rank[b.incident.level] - rank[a.incident.level] || a.distance - b.distance);
 });
-watch(incidents, () => { if (Number.isInteger(sharedIncidentId.value)) selectedIncident.value = incidents.value.find((incident) => incident.id === sharedIncidentId.value) ?? null; }, { immediate: true });
+
+const statusText = computed(() => {
+  tick.value;
+  if (sync.status.value === 'loading' && !sync.syncedAt.value) return '…';
+  const when = sync.syncedAt.value ? ago(new Date(sync.syncedAt.value).toISOString()) : '';
+  return sync.status.value === 'offline' ? fill(t.value.map.offline, { time: when }) : fill(t.value.map.updated, { time: when });
+});
+
+function mapCenter() {
+  return map.value?.center() ?? null;
+}
+
+async function locate(fly = false) {
+  try {
+    const position = await currentPosition();
+    me.value = position;
+    locationDenied.value = false;
+    if (fly) map.value?.flyTo(position.latitude, position.longitude, 14);
+    await sync.sync(position);
+  } catch {
+    locationDenied.value = true;
+    if (fly) flash(t.value.errors.location);
+    // Zonder locatie synchroniseren we rond het midden van de kaart.
+    const center = mapCenter();
+    if (center) await sync.sync(center);
+  }
+}
+
+async function select(id: number | null) {
+  selectedId.value = id;
+  if (id === null) return;
+  panelOpen.value = false;
+  tab.value = 'map';
+  let incident = sync.incidents.value.find((item) => item.id === id);
+  if (!incident) {
+    // Uit een melding of gedeelde link: los ophalen als het niet in de cache zit.
+    incident = await useApi().get<{ data: Incident }>(`/incidents/${id}`).then((response) => response.data).catch(() => undefined);
+    if (!incident) {
+      selectedId.value = null;
+      return;
+    }
+    sync.replace(incident);
+  }
+  map.value?.showReach(incident);
+}
+
+async function vote(kind: 'present' | 'resolved') {
+  const incident = selected.value;
+  if (!incident || votes.value[incident.id]) return;
+  voting.value = true;
+  try {
+    await device.ensureInstallation();
+    const { data } = await useApi().post<{ data: Incident }>(`/incidents/${incident.id}/${kind === 'present' ? 'confirm' : 'resolve'}`, {
+      latitude: me.value?.latitude ?? null,
+      longitude: me.value?.longitude ?? null,
+    });
+    sync.replace(data);
+    votes.value = { ...votes.value, [incident.id]: kind };
+    await storage.set('vb_votes', votes.value);
+  } catch (caught: any) {
+    if (caught?.status === 409) votes.value = { ...votes.value, [incident.id]: kind };
+    else flash(caught?.data?.message ?? t.value.errors.generic);
+  } finally {
+    voting.value = false;
+  }
+}
+
+function placed(incident: Incident) {
+  sync.replace(incident);
+  selectedId.value = null;
+  map.value?.flyTo(incident.latitude, incident.longitude, 15);
+}
+
+let toastTimer: ReturnType<typeof setTimeout> | undefined;
+function flash(message: string) {
+  toast.value = message;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { toast.value = null; }, 3200);
+}
+
+async function onSubscribed() {
+  await start();
+}
+
+async function logout() {
+  await device.link(true);
+  await auth.logout();
+  useBilling().reset();
+  await sync.clear();
+  navigateTo('/app/start', { replace: true });
+}
+
+/** Alles wat na inloggen en met een actief abonnement moet draaien. */
+async function start() {
+  if (!auth.account?.subscription.active) return;
+  await places.load();
+  await configureRunner(places.places.value);
+  await locate();
+  if (device.native) {
+    await device.createChannels();
+    await device.registerPush();
+  }
+  const fromLink = Number(route.query.incident);
+  if (Number.isInteger(fromLink) && fromLink > 0) select(fromLink);
+}
+
+let observer: ResizeObserver | undefined;
+let clock: ReturnType<typeof setInterval> | undefined;
+const listeners: Array<{ remove: () => Promise<void> }> = [];
+
+onMounted(async () => {
+  if (!auth.isLoggedIn) return navigateTo('/app/start', { replace: true });
+  votes.value = await storage.get('vb_votes') ?? {};
+  await sync.restore();
+
+  // Hoeveel van het scherm het paneel (plus tabbalk) bedekt: daarboven komen de meldknop en het kaartmidden.
+  const panel = panelWrap.value?.querySelector('.nearby') as HTMLElement | null;
+  observer = new ResizeObserver(() => {
+    if (panel?.offsetHeight) panelInset.value = Math.round(window.innerHeight - panel.getBoundingClientRect().top);
+  });
+  if (panel) observer.observe(panel);
+
+  if (!auth.account) await auth.refreshAccount().catch(() => undefined);
+  await start();
+
+  // Elke minuut: tijdslabels bijwerken en, alleen als de cache oud is, opnieuw synchroniseren.
+  clock = setInterval(() => {
+    tick.value++;
+    if (me.value && sync.isStale(me.value)) sync.sync(me.value);
+  }, 60_000);
+
+  if (device.native) {
+    listeners.push(await App.addListener('appStateChange', ({ isActive }) => {
+      if (isActive && auth.account?.subscription.active) {
+        auth.refreshAccount().catch(() => undefined);
+        locate();
+      }
+    }));
+    listeners.push(await BackgroundRunner.addListener('backgroundRunnerNotificationReceived', ({ notificationId }) => {
+      if (notificationId < 2_000_000_000) openFromNotification({ incident_id: notificationId });
+    }));
+  }
+});
+
+onBeforeUnmount(() => {
+  observer?.disconnect();
+  clearInterval(clock);
+  listeners.forEach((listener) => listener.remove());
+});
+
+watch(() => route.query.incident, (value) => {
+  const id = Number(value);
+  if (Number.isInteger(id) && id > 0) select(id);
+});
+watch(tab, () => { selectedId.value = null; });
+watch(useLocale().locale, () => {
+  const origin = me.value ?? mapCenter();
+  if (origin) sync.sync(origin, { force: true });
+});
 </script>
+
+<style scoped>
+.topbar { position: absolute; z-index: 10; top: calc(var(--safe-top) + 10px); right: 12px; left: 12px; display: flex; align-items: center; justify-content: space-between; pointer-events: none; }
+.topbar > * { pointer-events: auto; }
+.topbar__brand { display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 14px 0 9px; border-radius: 14px; background: #ffffffe6; box-shadow: var(--vb-shadow); color: var(--vb-muted); font-size: 13px; font-weight: 540; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.report-fab { position: absolute; z-index: 16; right: 14px; display: inline-flex; align-items: center; gap: 8px; height: 52px; padding: 0 20px 0 16px; border: 0; border-radius: 99px; color: #fff !important; background: var(--vb-ink); box-shadow: 0 8px 24px #0b0d1240; font-size: 16px; font-weight: 640; letter-spacing: -.01em; transition: transform .15s var(--vb-ease), bottom .3s var(--vb-ease); }
+.report-fab:active { transform: scale(.96); }
+.locate-cta { position: absolute; z-index: 16; left: 14px; min-height: 52px; border-radius: 99px; }
+</style>

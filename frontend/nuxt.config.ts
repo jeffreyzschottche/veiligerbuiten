@@ -10,7 +10,9 @@ export default defineNuxtConfig({
   css: [
     '@fontsource-variable/geist',
     '@fontsource-variable/geist-mono',
+    'maplibre-gl/dist/maplibre-gl.css',
     '~/assets/css/brand.css',
+    '~/assets/css/app.css',
   ],
 
   app: {
@@ -33,12 +35,16 @@ export default defineNuxtConfig({
       appStoreUrl: process.env.NUXT_PUBLIC_APP_STORE_URL || '',
       playStoreUrl: process.env.NUXT_PUBLIC_PLAY_STORE_URL || '',
       mcpUrl: process.env.NUXT_PUBLIC_MCP_URL || 'https://api.veiligbuiten.nl/mcp',
+      // Publieke RevenueCat SDK-sleutels (appl_… / goog_…); geen geheimen.
+      revenuecatIosKey: process.env.NUXT_PUBLIC_REVENUECAT_IOS_KEY || '',
+      revenuecatAndroidKey: process.env.NUXT_PUBLIC_REVENUECAT_ANDROID_KEY || '',
+      appVersion: process.env.npm_package_version || '1.0.0',
     },
   },
 
   nitro: {
     devProxy: {
-      '/api': { target: 'http://127.0.0.1:8000/api', changeOrigin: true },
+      '/api': { target: `${process.env.NUXT_DEV_API_TARGET || 'http://127.0.0.1:8000'}/api`, changeOrigin: true },
     },
   },
 

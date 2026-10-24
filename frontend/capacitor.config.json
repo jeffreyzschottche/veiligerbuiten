@@ -1,13 +1,29 @@
 {
   "appId": "nl.veiligbuiten.app",
-  "appName": "Veilig Buiten",
+  "appName": "VeiligBuiten",
   "webDir": ".output/public",
+  "backgroundColor": "#f4f5f7",
   "server": {
     "androidScheme": "https"
+  },
+  "ios": {
+    "contentInset": "never"
   },
   "plugins": {
     "PushNotifications": {
       "presentationOptions": ["badge", "sound", "banner", "list"]
+    },
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_veiligbuiten",
+      "iconColor": "#2F6BFF"
+    },
+    "BackgroundRunner": {
+      "label": "nl.veiligbuiten.app.check",
+      "src": "runners/background.js",
+      "event": "checkIn",
+      "repeat": true,
+      "interval": 15,
+      "autoStart": true
     }
   }
 }

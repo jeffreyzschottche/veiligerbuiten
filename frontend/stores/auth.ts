@@ -1,104 +1,112 @@
 import { defineStore } from 'pinia';
-import type { User } from '~/types/User';
+import type { Account, AccountSettings, User } from '~/types/User';
 import type { LoginResponse, RegisterResponse, MessageResponse } from '~/types/ApiResponse';
+import { storage } from '~/utils/storage';
+
+const TOKEN_KEY = 'vb_auth_token';
 
 export const useAuthStore = defineStore('auth', () => {
   const token = ref<string | null>(null);
   const user = ref<User | null>(null);
+  const account = ref<Account | null>(null);
 
   const isLoggedIn = computed(() => !!token.value);
-  const isPremium = computed(() => !!user.value?.premium);
+  const isSubscribed = computed(() => !!account.value?.subscription.active);
 
-  function setSession(newToken: string, newUser: User) {
+  async function setSession(newToken: string, newUser: User) {
     token.value = newToken;
     user.value = newUser;
-    if (import.meta.client) {
-      localStorage.setItem('auth_token', newToken);
-      localStorage.setItem('auth_user', JSON.stringify(newUser));
-    }
-  }
-
-  function logout() {
-    token.value = null;
-    user.value = null;
-    if (import.meta.client) {
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('auth_user');
-    }
+    await storage.set(TOKEN_KEY, newToken);
+    await refreshAccount();
   }
 
   async function restore() {
-    if (import.meta.client) {
-      const storedToken = localStorage.getItem('auth_token');
-      const storedUser = localStorage.getItem('auth_user');
-      if (storedToken && storedUser) {
-        token.value = storedToken;
-        user.value = JSON.parse(storedUser);
-      }
+    if (!import.meta.client) return;
+    // Oudere installaties bewaarden het token nog in localStorage.
+    const legacy = localStorage.getItem('auth_token');
+    token.value = (await storage.get<string>(TOKEN_KEY)) ?? legacy;
+    if (legacy) {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('auth_user');
+      await storage.set(TOKEN_KEY, legacy);
+    }
+    account.value = await storage.get<Account>('vb_account');
+    if (token.value) refreshAccount().catch(() => undefined);
+  }
+
+  async function refreshAccount() {
+    if (!token.value) return null;
+    try {
+      const { data } = await useApi().get<{ data: Account }>('/me');
+      await applyAccount(data);
+      return data;
+    } catch (error: any) {
+      if (error?.status === 401) await clear();
+      throw error;
     }
   }
 
+  async function applyAccount(data: Account) {
+    account.value = data;
+    await storage.set('vb_account', data);
+    const { locale, setLocale } = useLocale();
+    if (data.locale !== locale.value) setLocale(data.locale);
+  }
+
+  async function updateSettings(changes: Partial<AccountSettings> & { locale?: 'nl' | 'en' }) {
+    const { data } = await useApi().put<{ data: Account }>('/me/settings', changes);
+    await applyAccount(data);
+    return data;
+  }
+
   async function login(email: string, password: string) {
-    const api = useApi();
-    const response = await api.post<LoginResponse>('/login', { email, password });
-    setSession(response.token, response.user);
+    const response = await useApi().post<LoginResponse>('/login', { email, password });
+    await setSession(response.token, response.user);
     return response.user;
   }
 
-  async function register(
-    name: string,
-    email: string,
-    password: string,
-    password_confirmation: string
-  ) {
-    const api = useApi();
-    const response = await api.post<RegisterResponse>('/register', {
-      name,
-      email,
-      password,
-      password_confirmation,
+  async function register(name: string, email: string, password: string) {
+    const response = await useApi().post<RegisterResponse>('/register', {
+      name, email, password, password_confirmation: password, locale: useLocale().locale.value,
     });
-    setSession(response.token, response.user);
+    await setSession(response.token, response.user);
     return response.user;
+  }
+
+  async function logout() {
+    await useApi().post('/logout').catch(() => undefined);
+    await clear();
+  }
+
+  async function deleteAccount(password: string) {
+    await useApi().delete('/profile', { password });
+    await clear();
+  }
+
+  async function clear() {
+    token.value = null;
+    user.value = null;
+    account.value = null;
+    await storage.remove(TOKEN_KEY);
+    await storage.remove('vb_account');
   }
 
   async function forgotPassword(email: string) {
-    const api = useApi();
-    return await api.post<MessageResponse>('/forgot-password', { email });
+    return useApi().post<MessageResponse>('/forgot-password', { email });
   }
 
-  async function resetPassword(
-    resetToken: string,
-    email: string,
-    password: string,
-    password_confirmation: string
-  ) {
-    const api = useApi();
-    return await api.post<MessageResponse>('/reset-password', {
-      token: resetToken,
-      email,
-      password,
-      password_confirmation,
-    });
+  async function resetPassword(resetToken: string, email: string, password: string, password_confirmation: string) {
+    return useApi().post<MessageResponse>('/reset-password', { token: resetToken, email, password, password_confirmation });
   }
 
   async function resendVerification() {
-    const api = useApi();
-    return await api.post<MessageResponse>('/email/resend');
+    return useApi().post<MessageResponse>('/email/resend');
   }
 
   return {
-    token,
-    user,
-    isLoggedIn,
-    setSession,
-    logout,
-    restore,
-    login,
-    register,
-    forgotPassword,
-    resetPassword,
-    resendVerification,
-    isPremium,
+    token, user, account, isLoggedIn, isSubscribed,
+    setSession, restore, refreshAccount, applyAccount, updateSettings,
+    login, register, logout, deleteAccount, clear,
+    forgotPassword, resetPassword, resendVerification,
   };
 });

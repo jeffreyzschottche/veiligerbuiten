@@ -1,17 +1,15 @@
 import type { Locale } from '~/composables/useLocale';
 
-/** Bronnen die de landingspagina noemt. Houd gelijk met backend/config/sources.php. */
+/** Bronnen met een werkende koppeling in de backend (zie config/services.php, source_health). */
 export const sourceNames = [
   'P2000',
-  'Politie.nl',
   'NL-Alert',
+  'Politie.nl',
   'KNMI',
+  'KNMI Aardbevingen',
   'NDW',
   'Rijkswaterstaat',
   'Luchtmeetnet',
-  'KNMI Aardbevingen',
-  'NS',
-  'Brandweer',
 ] as const;
 
 const nl = {
@@ -44,7 +42,7 @@ const nl = {
     title: 'Een seintje.\nGeen spam.',
     lead: 'De ernst bepaalt hoe je het hoort. Losse berichten bundelen we, en je krijgt nooit twee keer hetzelfde.',
     points: [
-      { title: 'Gevaar', text: 'Direct, met geluid. Ook als je telefoon op stil staat, als je dat wilt.' },
+      { title: 'Gevaar', text: 'Direct, met geluid. Ook door je focusmodus heen.' },
       { title: 'Opletten', text: 'Een gewone melding, alleen als het dichtbij is.' },
       { title: 'Goed om te weten', text: 'Stil, gebundeld in één bericht.' },
     ],
@@ -132,7 +130,7 @@ const en: typeof nl = {
     title: 'A heads-up.\nNot spam.',
     lead: 'Severity decides how you hear about it. We bundle minor updates, and you never get the same alert twice.',
     points: [
-      { title: 'Danger', text: 'Instant, with sound. Even when your phone is on silent, if you want.' },
+      { title: 'Danger', text: 'Instant, with sound. Even through Focus mode.' },
       { title: 'Watch out', text: 'A normal notification, only when it is close.' },
       { title: 'Good to know', text: 'Silent, bundled into one message.' },
     ],
