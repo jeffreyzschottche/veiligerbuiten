@@ -279,7 +279,7 @@ onMounted(async () => {
     gsap.from('.hero__visual', { y: 50, rotation: 4, opacity: 0, duration: 1.4, ease: 'power3.out', clearProps: 'all' });
     gsap.from('.hero__community, .hero__bottom', { opacity: 0, y: 12, delay: .6, duration: 1, clearProps: 'all' });
     gsap.to('.hero__backdrop img', { yPercent: 12, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: 1 } });
-    gsap.utils.toArray<HTMLElement>('.section__head, .women-copy, .women-sheet, .women-help, .step, .split__copy, .split__visual, .signal-map, .sync-intro, .sync-steps li, .trust article, .price, .offline-story, .alert-examples').forEach((element) => {
+    gsap.utils.toArray<HTMLElement>('.section__head, .women-copy, .women-sheet, .women-moments li, .women-tips, .women-bystander, .women-faq, .women-help, .step, .split__copy, .split__visual, .signal-map, .sync-intro, .sync-steps li, .trust article, .price, .offline-story, .alert-examples').forEach((element) => {
       gsap.from(element, { y: 36, opacity: 0, duration: .85, ease: 'power2.out', clearProps: 'all', scrollTrigger: { trigger: element, start: 'top 92%', once: true } });
     });
     gsap.from('.signal-map__paths path', { strokeDashoffset: 420, duration: 2.4, ease: 'power2.inOut', scrollTrigger: { trigger: '.signal-map', start: 'top 80%', once: true } });

@@ -68,8 +68,49 @@ const nl = {
     ],
     sheetTitle: 'Wat gebeurt er?',
     sheetCategory: 'Intimidatie',
-    types: ['Handtastelijke persoon', 'Nafluiten / naroepen', 'Seksuele opmerkingen', 'Iemand volgt mij', 'Potloodventer / exhibitionist', 'Ongewenst gefilmd'],
+    types: ['Handtastelijke persoon', 'Nafluiten / naroepen', 'Seksuele opmerkingen', 'Iemand volgt mij', 'Iemand wordt lastiggevallen', 'Ongewenst gefilmd'],
     anonymous: 'Anoniem: niemand ziet wie het meldde',
+    moments: {
+      title: 'Op de momenten dat het telt',
+      items: [
+        { title: '\'s Avonds naar huis', text: 'Kijk voor vertrek of er onderweg iets is gemeld. Kom je in de buurt van een recente melding, dan geeft je telefoon een seintje.' },
+        { title: 'Wachten op station of bus', text: 'Zie of er hier vandaag iemand is lastiggevallen, en of het een plek is waar dat vaker gebeurt.' },
+        { title: 'Uitgaan in de stad', text: 'Zie je iemand die opdringerig is of handtastelijk wordt? Met een melding waarschuw je anderen in de buurt, in een paar tikken.' },
+      ],
+    },
+    tips: {
+      title: 'Voel je je onveilig?',
+      items: [
+        'Vertrouw op je gevoel. Je hoeft niets te bewijzen om weg te gaan.',
+        'Zoek licht en mensen op: een winkel, café, tankstation of een drukke straat.',
+        'Bel of app iemand en deel je live locatie via je eigen telefoon.',
+        'Spreek een omstander direct aan: "Wil je even bij me blijven?"',
+        'Onthoud tijd, plek, kleding en wat er gebeurde. Dat helpt bij een melding of aangifte.',
+        'Is er direct gevaar? Bel 112.',
+      ],
+    },
+    bystander: {
+      title: 'Zie je het gebeuren?',
+      lead: 'Als omstander kun je veel doen, zonder jezelf in gevaar te brengen.',
+      items: [
+        { title: 'Afleiden', text: 'Stel een gewone vraag of doe alsof je diegene kent. Zo onderbreek je de situatie.' },
+        { title: 'Hulp inschakelen', text: 'Spreek personeel, een beveiliger of andere omstanders aan. Bel 112 bij gevaar.' },
+        { title: 'Vastleggen', text: 'Alleen als het veilig is, en deel beelden nooit zonder toestemming van het slachtoffer.' },
+        { title: 'Achteraf', text: 'Vraag of alles goed gaat, en of je iemand kunt bellen of mee kunt lopen.' },
+        { title: 'Aanspreken', text: 'Zeg kort en rustig dat het niet oké is, als je je daar veilig bij voelt.' },
+      ],
+      report: 'In de app meld je het als "Iemand wordt lastiggevallen".',
+    },
+    faq: {
+      title: 'Veelgestelde vragen',
+      items: [
+        { q: 'Ziet iemand dat ik iets heb gemeld?', a: 'Nee. Anderen zien wat er gemeld is en waar, maar niet door wie.' },
+        { q: 'Wat gebeurt er met mijn melding?', a: 'Mensen in de buurt zien hem op de kaart, en krijgen een seintje als ze dat hebben aangezet. Zonder nieuwe bevestiging verdwijnt een melding na ongeveer een uur, want de situatie verplaatst zich meestal. Gebeurt het vaker op één plek, dan wordt het een bekende plek.' },
+        { q: 'Is een melding hetzelfde als aangifte doen?', a: 'Nee. Een melding waarschuwt anderen. Wil je dat de politie er iets mee doet, doe dan aangifte via 0900-8844 of politie.nl.' },
+        { q: 'Is nafluiten of naroepen strafbaar?', a: 'Sinds 1 juli 2024 kan seksuele intimidatie op straat strafbaar zijn, zoals seksueel getinte opmerkingen, gebaren of nafluiten.' },
+        { q: 'Is dit alleen voor vrouwen?', a: 'Nee. Iedereen kan intimidatie melden en een seintje krijgen. We noemen vrouwen omdat zij er het vaakst mee te maken krijgen.' },
+      ],
+    },
     help: {
       title: 'Hulp nodig?',
       items: [
@@ -238,8 +279,49 @@ const en: typeof nl = {
     ],
     sheetTitle: 'What is happening?',
     sheetCategory: 'Harassment',
-    types: ['Groping / unwanted touching', 'Catcalling', 'Sexual comments', 'Someone is following me', 'Indecent exposure', 'Filmed without consent'],
+    types: ['Groping / unwanted touching', 'Catcalling', 'Sexual comments', 'Someone is following me', 'Someone else is being harassed', 'Filmed without consent'],
     anonymous: 'Anonymous: nobody sees who reported it',
+    moments: {
+      title: 'When it matters',
+      items: [
+        { title: 'Heading home at night', text: 'Check what has been reported along the way before you leave. Getting close to a recent report? Your phone gives you a heads-up.' },
+        { title: 'Waiting at the station or stop', text: 'See whether anyone was harassed here today, and whether this is a place where it happens more often.' },
+        { title: 'A night out in town', text: 'See someone being pushy or getting handsy? A report warns others nearby, in a few taps.' },
+      ],
+    },
+    tips: {
+      title: 'Feeling unsafe?',
+      items: [
+        'Trust your gut. You do not need proof to walk away.',
+        'Head for light and people: a shop, café, petrol station or a busy street.',
+        'Call or text someone and share your live location from your own phone.',
+        'Ask a bystander directly: "Would you stay with me for a moment?"',
+        'Remember the time, place, clothing and what happened. It helps with a report.',
+        'In immediate danger? Call 112.',
+      ],
+    },
+    bystander: {
+      title: 'See it happening?',
+      lead: 'As a bystander you can do a lot, without putting yourself at risk.',
+      items: [
+        { title: 'Distract', text: 'Ask an ordinary question or act as if you know the person. It breaks up the situation.' },
+        { title: 'Delegate', text: 'Get staff, security or other bystanders involved. Call 112 if there is danger.' },
+        { title: 'Document', text: 'Only when it is safe, and never share footage without the victim\'s consent.' },
+        { title: 'Delay', text: 'Check in afterwards, and offer to call someone or walk with them.' },
+        { title: 'Direct', text: 'Say briefly and calmly that it is not okay, if you feel safe doing so.' },
+      ],
+      report: 'In the app, report it as "Someone else is being harassed".',
+    },
+    faq: {
+      title: 'Frequently asked questions',
+      items: [
+        { q: 'Can anyone see that I reported something?', a: 'No. Others see what was reported and where, but not by whom.' },
+        { q: 'What happens to my report?', a: 'People nearby see it on the map, and get a heads-up if they turned that on. Without a new confirmation it disappears after about an hour, as the situation usually moves on. If it keeps happening in one spot, that spot becomes a known place.' },
+        { q: 'Is a report the same as going to the police?', a: 'No. A report warns others. If you want the police to act, file a report via 0900-8844 or politie.nl.' },
+        { q: 'Is catcalling a criminal offence?', a: 'Since 1 July 2024, sexual harassment in public can be a criminal offence, including sexual remarks, gestures or catcalling.' },
+        { q: 'Is this only for women?', a: 'No. Anyone can report harassment and get a heads-up. We mention women because they face it most often.' },
+      ],
+    },
     help: {
       title: 'Need help?',
       items: [

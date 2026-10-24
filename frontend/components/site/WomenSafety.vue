@@ -21,6 +21,41 @@
         <p class="women-sheet__foot"><Icon name="lock" :size="14" />{{ copy.anonymous }}</p>
       </div>
 
+      <div class="women-moments">
+        <h3 class="women-block-title">{{ copy.moments.title }}</h3>
+        <ul>
+          <li v-for="(moment, index) in copy.moments.items" :key="moment.title">
+            <span class="women-moments__icon"><Icon :name="(['moon', 'clock', 'users'] as const)[index] ?? 'pin'" :size="18" /></span>
+            <h4>{{ moment.title }}</h4>
+            <p>{{ moment.text }}</p>
+          </li>
+        </ul>
+      </div>
+
+      <div id="women-tips" class="women-tips">
+        <h3 class="women-block-title">{{ copy.tips.title }}</h3>
+        <ul>
+          <li v-for="tip in copy.tips.items" :key="tip"><Icon name="check" :size="16" :stroke="2.4" /><span>{{ tip }}</span></li>
+        </ul>
+      </div>
+
+      <div class="women-bystander">
+        <h3 class="women-block-title">{{ copy.bystander.title }}</h3>
+        <p class="women-bystander__lead">{{ copy.bystander.lead }}</p>
+        <ol>
+          <li v-for="item in copy.bystander.items" :key="item.title"><b>{{ item.title }}</b><span>{{ item.text }}</span></li>
+        </ol>
+        <p class="women-bystander__report"><Icon name="hand" :size="15" />{{ copy.bystander.report }}</p>
+      </div>
+
+      <div class="women-faq">
+        <h3 class="women-block-title">{{ copy.faq.title }}</h3>
+        <details v-for="item in copy.faq.items" :key="item.q">
+          <summary>{{ item.q }}<Icon name="plus" :size="16" /></summary>
+          <p>{{ item.a }}</p>
+        </details>
+      </div>
+
       <div class="women-help">
         <p class="women-help__title">{{ copy.help.title }}</p>
         <a v-for="item in copy.help.items" :key="item.value" :href="item.href" class="women-help__item"><b>{{ item.value }}</b><span>{{ item.label }}</span></a>
@@ -67,7 +102,39 @@ h3 { margin: 0; font-size: 15px; line-height: 1.4; font-weight: 550; letter-spac
 .women-help__item span { color: #6d798c; font-size: 12px; line-height: 1.4; }
 .women-help__law { grid-column: 1 / -1; margin: 2px 0 0; color: #6d798c; font-size: 12px; line-height: 1.6; }
 
+.women-block-title { margin: 0 0 16px; font-size: 22px; font-weight: 600; letter-spacing: -.03em; }
+
+.women-moments { grid-column: 1 / -1; padding-top: 24px; }
+.women-moments ul { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 0; padding: 0; list-style: none; }
+.women-moments li { padding: 22px; border-radius: 20px; background: #f4f6fa; }
+.women-moments__icon { display: grid; place-items: center; width: 38px; height: 38px; margin-bottom: 16px; border-radius: 12px; background: #fff; color: var(--vb-brand); box-shadow: 0 0 0 1px #e6e8ec; }
+.women-moments h4 { margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -.02em; }
+.women-moments p { margin: 8px 0 0; color: #6d798c; font-size: 13px; line-height: 1.7; }
+
+.women-tips, .women-bystander { align-self: start; scroll-margin-top: 110px; padding: 26px; border-radius: 22px; box-shadow: 0 0 0 1px #e6e8ec; }
+.women-tips ul { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.women-tips li { display: flex; gap: 10px; font-size: 14px; line-height: 1.55; }
+.women-tips li :deep(svg) { flex: none; margin-top: 3px; color: var(--vb-brand); }
+.women-bystander { background: var(--vb-ink); color: #fff; box-shadow: none; }
+.women-bystander__lead { margin: -6px 0 18px; color: #a9aebb; font-size: 14px; line-height: 1.6; }
+.women-bystander ol { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; counter-reset: d; }
+.women-bystander li { display: grid; grid-template-columns: 22px 1fr; column-gap: 10px; font-size: 13px; line-height: 1.55; color: #c7cbd4; counter-increment: d; }
+.women-bystander li::before { content: counter(d); grid-row: span 2; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: #ffffff1a; color: #fff; font: 600 11px var(--vb-mono); }
+.women-bystander li b { color: #fff; font-size: 14px; font-weight: 600; }
+.women-bystander__report { display: flex; align-items: center; gap: 8px; margin: 18px 0 0; padding-top: 16px; border-top: 1px solid #ffffff1f; color: #8fb0ff; font-size: 13px; }
+
+.women-faq { grid-column: 1 / -1; }
+.women-faq details { border-top: 1px solid #e0e6ef; }
+.women-faq details:last-of-type { border-bottom: 1px solid #e0e6ef; }
+.women-faq summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 2px; cursor: pointer; font-size: 16px; font-weight: 560; letter-spacing: -.015em; list-style: none; }
+.women-faq summary::-webkit-details-marker { display: none; }
+.women-faq summary :deep(svg) { flex: none; color: #7c92b2; transition: transform .2s; }
+.women-faq details[open] summary :deep(svg) { transform: rotate(45deg); }
+.women-faq details p { max-width: 46em; margin: -4px 2px 18px; color: #657185; font-size: 14px; line-height: 1.7; }
+
 @media (max-width: 899px) {
+  .women-moments ul { grid-template-columns: 1fr; }
+  .women-tips, .women-bystander { padding: 22px; }
   .women { padding: 72px 0; }
   .women-wrap { width: calc(100% - 44px); grid-template-columns: 1fr; gap: 36px; }
   .women-help { grid-template-columns: 1fr; padding: 20px; }

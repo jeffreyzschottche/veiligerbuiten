@@ -98,7 +98,7 @@ class ReportController extends Controller
     private const HARASSMENT_SEVERITY = [
         'Handtastelijke persoon' => 4, 'Iemand volgt mij' => 4, 'Potloodventer / exhibitionist' => 3,
         'Seksuele opmerkingen / verbale intimidatie' => 3, 'Ongewenst gefilmd of gefotografeerd' => 3,
-        'Intimiderende groep' => 3, 'Blijft opdringerig aanspreken' => 3, 'Nafluiten / naroepen' => 2,
+        'Intimiderende groep' => 3, 'Iemand wordt lastiggevallen' => 3, 'Blijft opdringerig aanspreken' => 3, 'Nafluiten / naroepen' => 2,
         'Voelt onveilig: donker of verlaten' => 2,
     ];
 
