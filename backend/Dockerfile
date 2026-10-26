@@ -2,7 +2,7 @@
 FROM php:8.3-fpm-alpine
 
 COPY --from=mlocati/php-extension-installer:2 /usr/bin/install-php-extensions /usr/local/bin/
-RUN install-php-extensions pdo_pgsql redis opcache pcntl zip intl bcmath \
+RUN install-php-extensions pdo_mysql pdo_pgsql redis opcache pcntl zip intl bcmath \
   && apk add --no-cache nginx supervisor \
   && mkdir -p /run/nginx \
   # Coolify geeft de instellingen als omgevingsvariabelen; PHP-FPM moet ze doorgeven aan Laravel.
