@@ -69,6 +69,7 @@
         <h1>{{ t.signup.doneTitle }}</h1>
         <p class="signup__intro">{{ fill(t.signup.doneIntro, { email: auth.account?.email ?? '' }) }}</p>
         <StoreButtons :copy="siteCopy[locale]" class="signup__stores" />
+        <NuxtLink to="/app" class="signup__small signup__web">{{ t.signup.openWeb }}</NuxtLink>
         <div class="card signup__status">
           <div class="row">
             <span class="row__icon"><Icon name="card" :size="18" /></span>
@@ -198,7 +199,8 @@ async function logout() {
 .signup__points li svg { color: var(--vb-brand); }
 .signup__fine { margin: 12px 4px 4px; color: var(--vb-subtle); font-size: 12px; line-height: 1.45; text-align: center; }
 .signup__done { display: grid; place-items: center; width: 56px; height: 56px; margin: 0 4px 18px; border-radius: 18px; color: #fff; background: var(--vb-brand); }
-.signup__stores { margin: 0 4px 22px; }
+.signup__stores { margin: 0 4px 14px; }
+.signup__web { margin: 0 0 22px; text-align: left; }
 .signup__status { margin-bottom: 8px; }
 .signup__center { display: flex; flex-direction: column; align-items: center; gap: 18px; padding: 40px 0; color: var(--vb-muted); text-align: center; }
 .signup__spinner { width: 36px; height: 36px; border: 3px solid var(--vb-line); border-top-color: var(--vb-brand); border-radius: 50%; animation: signup-spin .8s linear infinite; }

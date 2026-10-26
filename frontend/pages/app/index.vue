@@ -308,6 +308,8 @@ onMounted(async () => {
   if (panel) observer.observe(panel);
 
   if (!auth.account) await auth.refreshAccount().catch(() => undefined);
+  // Token ongeldig (account weg of uitgelogd op een ander apparaat): opnieuw inloggen.
+  if (!auth.isLoggedIn) return navigateTo('/app/start', { replace: true });
   await start();
   if (disposed) return;
   window.addEventListener('offline', onOffline);

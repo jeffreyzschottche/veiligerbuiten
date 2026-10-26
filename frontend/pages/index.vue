@@ -221,6 +221,8 @@
         <nav class="footer__links">
           <a href="/privacy">{{ t.footer.privacy }}</a>
           <a href="/voorwaarden">{{ t.footer.terms }}</a>
+          <a href="/support">{{ t.footer.help }}</a>
+          <a href="/account-verwijderen">{{ t.footer.remove }}</a>
           <a href="mailto:hallo@veiligerbuiten.nl">{{ t.footer.contact }}</a>
           <span>© {{ year }} VeiligerBuiten</span>
         </nav>

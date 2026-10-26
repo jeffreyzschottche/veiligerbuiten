@@ -22,7 +22,7 @@
 <script setup lang="ts">
 import { legal } from '~/locales/legal';
 
-const props = defineProps<{ kind: 'privacy' | 'terms' }>();
+const props = defineProps<{ kind: 'privacy' | 'terms' | 'support' }>();
 const { locale, setLocale } = useLocale();
 const doc = computed(() => legal[props.kind][locale.value]);
 useHead(() => ({ title: `${doc.value.title} · VeiligerBuiten`, htmlAttrs: { lang: locale.value } }));

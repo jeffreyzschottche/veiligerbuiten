@@ -22,8 +22,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'gzip' => \App\Http\Middleware\CompressResponse::class,
         ]);
         $middleware->appendToGroup('api', \App\Http\Middleware\SetLocale::class);
+        // Er is geen login-pagina op de backend: gasten op de API krijgen een 401, geen redirect.
+        $middleware->redirectGuestsTo(fn (\Illuminate\Http\Request $request) => $request->is('api/*') ? null : '/');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Onverwachte fouten ook naar het beheerlogboek (Zschot CMS); gewone 4xx niet.
         $exceptions->report(fn (\Throwable $e) => \App\Services\Ops::exception($e));
+        // De API antwoordt altijd met JSON (401, 422), ook als een proxy de Accept-header niet doorgeeft.
+        $exceptions->shouldRenderJsonWhen(fn (\Illuminate\Http\Request $request) => $request->is('api/*') || $request->expectsJson());
     })->create();

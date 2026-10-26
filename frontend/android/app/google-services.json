@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "732959708688",
+    "project_id": "veiligerbuiten",
+    "storage_bucket": "veiligerbuiten.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:732959708688:android:381e59fd8ee71659769c95",
+        "android_client_info": {
+          "package_name": "nl.veiligerbuiten.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC6ob4DHDHrT9qhA6pgEOc_6TbKrxWSJqc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

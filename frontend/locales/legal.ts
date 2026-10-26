@@ -7,7 +7,7 @@ import type { Locale } from '~/composables/useLocale';
 type Section = { title: string; body: string[] };
 type Doc = { title: string; updated: string; intro: string; sections: Section[] };
 
-export const legal: Record<'privacy' | 'terms', Record<Locale, Doc>> = {
+export const legal: Record<'privacy' | 'terms' | 'support', Record<Locale, Doc>> = {
   privacy: {
     nl: {
       title: 'Privacy',
@@ -39,7 +39,7 @@ export const legal: Record<'privacy' | 'terms', Record<Locale, Doc>> = {
           'Bij de eerste advertentie vragen we via Google om je toestemming. Google kan daarbij een advertentie-ID en apparaatgegevens gebruiken; zonder toestemming tonen we alleen niet-gepersonaliseerde advertenties of geen. Je locatie, plekken en meldingen delen we nooit met adverteerders. Je kunt je keuze altijd wijzigen via Account › Advertentie-instellingen.',
         ] },
         { title: 'Bewaren en verwijderen', body: [
-          'Situaties verlopen vanzelf en worden daarna opgeruimd. Verwijder je je account in de app, dan verwijderen we je account, je plekken en je instellingen.',
+          'Situaties verlopen vanzelf en worden daarna opgeruimd. Verwijder je je account in de app of op veiligerbuiten.nl/account-verwijderen, dan verwijderen we je account, je plekken en je instellingen.',
           'Je hebt recht op inzage, correctie en verwijdering. Mail ons op hallo@veiligerbuiten.nl. Je kunt ook een klacht indienen bij de Autoriteit Persoonsgegevens.',
         ] },
       ],
@@ -74,7 +74,7 @@ export const legal: Record<'privacy' | 'terms', Record<Locale, Doc>> = {
           'Before the first ad, Google asks for your consent. Google may use an advertising ID and device data; without consent we show only non-personalised ads or none. We never share your location, places or reports with advertisers. You can change your choice at any time in Account › Ad settings.',
         ] },
         { title: 'Retention and deletion', body: [
-          'Situations expire automatically and are then cleaned up. If you delete your account in the app, we delete your account, your places and your settings.',
+          'Situations expire automatically and are then cleaned up. If you delete your account in the app or at veiligerbuiten.nl/account-verwijderen, we delete your account, your places and your settings.',
           'You have the right to access, correct and delete your data. Email us at hallo@veiligerbuiten.nl. You can also file a complaint with the Dutch Data Protection Authority (Autoriteit Persoonsgegevens).',
         ] },
       ],
@@ -129,6 +129,62 @@ export const legal: Record<'privacy' | 'terms', Record<Locale, Doc>> = {
           'We do our best to keep the service reliable, but cannot guarantee that it always works or that information is correct. We are not liable for damage caused by using or relying on the information in the app, except in case of intent or gross negligence.',
         ] },
         { title: 'Contact', body: ['Questions? Email hallo@veiligerbuiten.nl. These terms are governed by Dutch law.'] },
+      ],
+    },
+  },
+  support: {
+    nl: {
+      title: 'Hulp',
+      updated: 'Laatst bijgewerkt: 26 oktober 2026',
+      intro: 'Kom je ergens niet uit? Hieronder staan de meest gestelde vragen. Staat je vraag er niet tussen, mail dan naar hallo@veiligerbuiten.nl. We antwoorden binnen twee werkdagen.',
+      sections: [
+        { title: 'Direct gevaar', body: [
+          'VeiligerBuiten is geen hulpdienst. Bij direct gevaar bel je altijd 112.',
+        ] },
+        { title: 'Account en abonnement', body: [
+          'Je maakt je account en abonnement aan op veiligerbuiten.nl/aanmelden. Daarna log je in de app in met hetzelfde e-mailadres en wachtwoord.',
+          'Opzeggen, je betaalmethode wijzigen of facturen bekijken doe je op veiligerbuiten.nl/account. Je abonnement loopt door tot het einde van de betaalde maand.',
+        ] },
+        { title: 'Wachtwoord vergeten', body: [
+          'Tik in de app op Wachtwoord vergeten? of ga naar veiligerbuiten.nl/forgot-password. Je krijgt een link om een nieuw wachtwoord in te stellen.',
+        ] },
+        { title: 'Ik zie geen meldingen', body: [
+          'De app toont wat er binnen ongeveer 30 km van je locatie speelt. Sta locatie toe in de instellingen van je telefoon. Zonder locatie laat de app zien wat er rond het midden van de kaart speelt.',
+          'Krijg je geen meldingen op je telefoon? Controleer of meldingen voor VeiligerBuiten aan staan, en kijk in de app onder Account welke soorten meldingen je ontvangt en wanneer je stille uren hebt.',
+        ] },
+        { title: 'Account verwijderen', body: [
+          'In de app: Account → Account verwijderen. Zonder de app: veiligerbuiten.nl/account-verwijderen. Je account, plekken en instellingen worden verwijderd en een lopend abonnement stopt direct.',
+        ] },
+        { title: 'Een melding klopt niet', body: [
+          'Tik op de melding en kies Is voorbij als de situatie voorbij is. Zie je een melding die niet hoort, mail dan naar hallo@veiligerbuiten.nl met de plaats en het tijdstip.',
+        ] },
+      ],
+    },
+    en: {
+      title: 'Help',
+      updated: 'Last updated: 26 October 2026',
+      intro: 'Stuck? These are the most common questions. If yours is not here, email hallo@veiligerbuiten.nl. We reply within two working days.',
+      sections: [
+        { title: 'Immediate danger', body: [
+          'VeiligerBuiten is not an emergency service. In immediate danger, always call 112.',
+        ] },
+        { title: 'Account and subscription', body: [
+          'You create your account and subscription at veiligerbuiten.nl/aanmelden. Then log in to the app with the same email address and password.',
+          'To cancel, change your payment method or view invoices, go to veiligerbuiten.nl/account. Your subscription runs until the end of the paid month.',
+        ] },
+        { title: 'Forgot password', body: [
+          'Tap Forgot password? in the app or go to veiligerbuiten.nl/forgot-password. You will get a link to set a new password.',
+        ] },
+        { title: 'I do not see any reports', body: [
+          'The app shows what is happening within about 30 km of your location. Allow location access in your phone settings. Without location, the app shows what is happening around the centre of the map.',
+          'Not getting notifications? Check that notifications for VeiligerBuiten are on, and see under Account in the app which kinds of alerts you receive and when your quiet hours are.',
+        ] },
+        { title: 'Delete account', body: [
+          'In the app: Account → Delete account. Without the app: veiligerbuiten.nl/account-verwijderen. Your account, places and settings are deleted and a running subscription stops immediately.',
+        ] },
+        { title: 'A report is wrong', body: [
+          'Tap the report and choose It’s over if the situation has ended. If you see a report that does not belong there, email hallo@veiligerbuiten.nl with the place and time.',
+        ] },
       ],
     },
   },

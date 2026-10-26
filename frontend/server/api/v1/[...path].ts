@@ -9,7 +9,8 @@ export default defineEventHandler(async (event) => {
   const query = getRequestURL(event).search;
   const target = `${config.apiOrigin.replace(/\/$/, '')}/api/v1/${path}${query}`;
   try {
-    return await proxyRequest(event, target, { fetchOptions: { redirect: 'manual' } });
+    // h3 laat Accept weg bij proxyen; zonder die header antwoordt Laravel met HTML en redirects in plaats van JSON.
+    return await proxyRequest(event, target, { headers: { accept: 'application/json' }, fetchOptions: { redirect: 'manual' } });
   } catch {
     throw createError({ statusCode: 502, statusMessage: 'Service temporarily unavailable' });
   }
