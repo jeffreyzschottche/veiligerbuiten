@@ -2,6 +2,5 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Alleen een API: geen Vite-assets in de image, dus geen welcome-view.
+Route::get('/', fn () => response()->json(['name' => 'VeiligerBuiten API']));

@@ -5,4 +5,6 @@ set -e
 php artisan migrate --force --isolated
 # Config, routes, events en views gecachet: minder werk per verzoek.
 php artisan optimize
+# Artisan draaide hierboven als root; de webserver, scheduler en queue (www-data) moeten in storage kunnen schrijven.
+chown -R www-data:www-data storage bootstrap/cache
 exec supervisord -c /etc/supervisord.conf
