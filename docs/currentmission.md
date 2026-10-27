@@ -18,9 +18,10 @@ VB_BILLING_BYPASS=false               # alleen lokaal op true om zonder abonneme
 1. **Product:** Stripe → Productcatalogus → product "VeiligerBuiten", prijs € 0,99, **terugkerend, maandelijks**. Kopieer de prijs-id (`price_…`).
 2. **Betaalmethoden:** Instellingen → Betaalmethoden: zet iDEAL en kaarten aan. iDEAL loopt bij een abonnement daarna automatisch door als SEPA-incasso.
 3. **Klantportaal:** Instellingen → Billing → Klantportaal: zet opzeggen (aan het einde van de periode), betaalmethode wijzigen en facturen aan.
-4. **Webhook:** Ontwikkelaars → Webhooks → endpoint `https://api.veiligerbuiten.nl/api/v1/webhooks/stripe` met deze events:
+4. **Webhook:** Workbench / Ontwikkelaars → Webhooks → bestemming voor **je eigen account**, formaat **Snapshot**, endpoint `https://api.veiligerbuiten.nl/api/v1/webhooks/stripe` met deze events:
    - `checkout.session.completed`
    - `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`
+   - `customer.subscription.paused`, `customer.subscription.resumed`
    - `invoice.paid`
 
    Kopieer het ondertekeningsgeheim (`whsec_…`).
@@ -31,7 +32,14 @@ STRIPE_SECRET=sk_live_...          # of een beperkte sleutel (rk_live_…) met s
 STRIPE_WEBHOOK_SECRET=whsec_...
 STRIPE_PRICE_ID=price_...
 FRONTEND_URL=https://veiligerbuiten.nl   # Stripe stuurt bezoekers hierheen terug
+VB_BILLING_BYPASS=false
 ```
+
+Begin in een sandbox met `sk_test_…`, de sandbox-prijs en het webhookgeheim van die omgeving.
+Voor echte betalingen horen de secret key, prijs en webhook alle drie bij live mode.
+In Coolify staan deze waarden bij de **backend** als runtimevariabelen; opnieuw deployen laadt de gecachete configuratie opnieuw.
+De backend filtert abonnementen op `STRIPE_PRICE_ID` voordat hij accounts of betaalgebeurtenissen aanpast.
+Zo kunnen andere apps hetzelfde Stripe-account gebruiken. Gebruik daarom een eigen prijs voor VeiligerBuiten.
 
 Hoe het loopt:
 - Iemand maakt op `/aanmelden` een account en gaat naar de betaalpagina van Stripe.

@@ -20,6 +20,32 @@ class StripeBillingTest extends TestCase
         config(['services.stripe.secret' => 'sk_test', 'services.stripe.webhook_secret' => 'whsec_test', 'services.stripe.price' => 'price_1', 'app.frontend_url' => 'https://veiligerbuiten.nl']);
     }
 
+    public function test_a_new_web_account_only_gets_map_access_after_its_stripe_subscription_is_active(): void
+    {
+        $registration = $this->postJson('/api/v1/register', [
+            'name' => 'Webgebruiker', 'email' => 'web@example.nl',
+            'password' => 'een-lang-testwachtwoord', 'password_confirmation' => 'een-lang-testwachtwoord',
+        ])->assertCreated();
+        $user = User::findOrFail($registration->json('user.id'));
+        $this->withToken($registration->json('token'));
+        $this->getJson('/api/v1/me')->assertOk()->assertJsonPath('data.subscription.active', false);
+        $this->getJson('/api/v1/incidents/sync?latitude=52.37&longitude=4.89')->assertStatus(402);
+
+        Http::fake([
+            'api.stripe.com/v1/checkout/sessions' => Http::response(['url' => 'https://checkout.stripe.com/c/pay/cs_1']),
+            'api.stripe.com/v1/subscriptions/sub_1' => Http::response($this->stripeSubscription($user)),
+        ]);
+        $this->postJson('/api/v1/me/subscription/checkout')->assertOk()->assertJsonPath('url', 'https://checkout.stripe.com/c/pay/cs_1');
+        $this->assertFalse($user->fresh()->hasActiveSubscription(), 'opening checkout is not a successful payment');
+
+        $this->stripeWebhook('checkout.session.completed', [
+            'client_reference_id' => (string) $user->id, 'customer' => 'cus_1', 'subscription' => 'sub_1',
+        ])->assertOk();
+        $this->assertTrue($user->fresh()->hasActiveSubscription());
+        Sanctum::actingAs($user->fresh());
+        $this->getJson('/api/v1/incidents/sync?latitude=52.37&longitude=4.89')->assertOk();
+    }
+
     public function test_paying_on_the_website_unlocks_the_app_even_before_the_webhook_arrives(): void
     {
         $user = User::factory()->create(['locale' => 'nl']);
@@ -54,6 +80,41 @@ class StripeBillingTest extends TestCase
 
         $this->postJson('/api/v1/me/subscription/refresh', ['session_id' => 'cs_x'])->assertOk()->assertJsonPath('data.active', false);
         $this->assertNull($user->fresh()->stripe_customer_id);
+    }
+
+    public function test_events_for_another_product_do_not_change_an_account_with_the_same_numeric_id(): void
+    {
+        $user = User::factory()->create();
+        Http::fake(['api.stripe.com/v1/subscriptions/sub_other' => Http::response($this->stripeSubscription($user, [
+            'id' => 'sub_other', 'customer' => 'cus_other', 'items' => ['data' => [['price' => ['id' => 'price_other_app']]]],
+        ]))]);
+
+        foreach (['customer.subscription.created', 'customer.subscription.updated', 'customer.subscription.deleted'] as $event) {
+            $this->stripeWebhook($event, ['id' => 'sub_other'])->assertOk();
+        }
+        $this->stripeWebhook('checkout.session.completed', ['client_reference_id' => (string) $user->id, 'customer' => 'cus_other', 'subscription' => 'sub_other'])->assertOk();
+        $this->stripeWebhook('invoice.paid', ['id' => 'in_other', 'billing_reason' => 'subscription_cycle', 'customer' => 'cus_other', 'subscription' => 'sub_other', 'amount_paid' => 99, 'currency' => 'eur'])->assertOk();
+
+        $this->assertFalse($user->fresh()->hasActiveSubscription());
+        $this->assertNull($user->fresh()->stripe_customer_id);
+        $this->assertNull($user->fresh()->stripe_subscription_id);
+        $this->assertSame(0, OpsEvent::count());
+    }
+
+    public function test_an_unrelated_invoice_does_not_cancel_or_extend_an_existing_subscription(): void
+    {
+        $expiresAt = now()->addDays(2)->startOfSecond();
+        $user = User::factory()->create(['stripe_customer_id' => 'cus_1', 'stripe_subscription_id' => 'sub_1', 'subscription_status' => 'active', 'subscription_expires_at' => $expiresAt]);
+        Http::fake(['api.stripe.com/v1/subscriptions/sub_other' => Http::response($this->stripeSubscription($user, [
+            'id' => 'sub_other', 'status' => 'canceled', 'items' => ['data' => [['price' => ['id' => 'price_other_app']]]],
+        ]))]);
+
+        $this->stripeWebhook('invoice.paid', ['id' => 'in_other', 'billing_reason' => 'subscription_cycle', 'customer' => 'cus_1', 'parent' => ['subscription_details' => ['subscription' => 'sub_other']], 'amount_paid' => 99, 'currency' => 'eur'])->assertOk();
+
+        $this->assertSame('active', $user->fresh()->subscription_status);
+        $this->assertSame('sub_1', $user->fresh()->stripe_subscription_id);
+        $this->assertTrue($user->fresh()->subscription_expires_at->equalTo($expiresAt));
+        $this->assertSame(0, OpsEvent::count());
     }
 
     public function test_cancelling_runs_until_the_end_of_the_period_and_then_access_stops(): void

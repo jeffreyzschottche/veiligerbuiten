@@ -32,6 +32,7 @@ export default defineNuxtConfig({
     apiOrigin: process.env.NUXT_API_ORIGIN || process.env.NUXT_DEV_API_TARGET || 'http://127.0.0.1:8000',
     siteStatsToken: '',
     public: {
+      mobileBuild,
       // Local web development uses Nitro's same-origin proxy. For a static
       // mobile build, provide an absolute HTTPS URL at build time through
       // NUXT_PUBLIC_API_BASE_URL (for example https://api.veiligerbuiten.nl/api/v1).

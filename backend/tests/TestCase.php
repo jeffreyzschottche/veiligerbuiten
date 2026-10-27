@@ -41,7 +41,7 @@ abstract class TestCase extends BaseTestCase
         return array_replace_recursive([
             'id' => 'sub_1', 'customer' => 'cus_1', 'status' => 'active', 'cancel_at_period_end' => false, 'cancel_at' => null,
             'metadata' => ['user_id' => (string) $user->id],
-            'items' => ['data' => [['current_period_end' => now()->addMonth()->getTimestamp(), 'price' => ['unit_amount' => 99, 'currency' => 'eur']]]],
+            'items' => ['data' => [['current_period_end' => now()->addMonth()->getTimestamp(), 'price' => ['id' => 'price_1', 'unit_amount' => 99, 'currency' => 'eur']]]],
         ], $overrides);
     }
 }

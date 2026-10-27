@@ -51,7 +51,10 @@ class OpsStatusTest extends TestCase
 
     public function test_money_without_an_account_and_a_wrong_webhook_secret_are_errors(): void
     {
-        $this->stripeWebhook('invoice.paid', ['id' => 'in_1', 'billing_reason' => 'subscription_cycle', 'customer' => 'cus_onbekend', 'amount_paid' => 99, 'currency' => 'eur'])->assertOk();
+        Http::fake(['api.stripe.com/v1/subscriptions/sub_missing' => Http::response([
+            'id' => 'sub_missing', 'customer' => 'cus_onbekend', 'metadata' => [], 'items' => ['data' => [['price' => ['id' => 'price_1']]]],
+        ])]);
+        $this->stripeWebhook('invoice.paid', ['id' => 'in_1', 'billing_reason' => 'subscription_cycle', 'subscription' => 'sub_missing', 'customer' => 'cus_onbekend', 'amount_paid' => 99, 'currency' => 'eur'])->assertOk();
         $this->stripeWebhook('invoice.paid', ['id' => 'in_2'], 'whsec_fout')->assertStatus(400);
         $this->stripeWebhook('invoice.paid', ['id' => 'in_3'], 'whsec_fout')->assertStatus(400);
 

@@ -1,6 +1,8 @@
 <script setup lang="ts">
-// Inloggen gebeurt in de app-onboarding.
-navigateTo({ path: '/app/start', query: { mode: 'login' } }, { replace: true });
+import { Capacitor } from '@capacitor/core';
+
+const mobile = useRuntimeConfig().public.mobileBuild || Capacitor.isNativePlatform();
+await navigateTo(mobile ? { path: '/app/start', query: { mode: 'login' } } : '/account', { replace: true });
 </script>
 
 <template>

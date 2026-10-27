@@ -109,6 +109,15 @@ class Billing
 
     private function completeCheckout(array $session): void
     {
+        $subscriptionId = $session['subscription'] ?? null;
+        $subscriptionId = is_array($subscriptionId) ? ($subscriptionId['id'] ?? null) : $subscriptionId;
+        if (! is_string($subscriptionId) || $subscriptionId === '') {
+            return;
+        }
+        $subscription = $this->stripe('get', '/subscriptions/'.rawurlencode($subscriptionId));
+        if (! $this->isOwnSubscription($subscription)) {
+            return;
+        }
         $user = ctype_digit((string) ($session['client_reference_id'] ?? '')) ? User::find((int) $session['client_reference_id']) : null;
         if (! $user) {
             $this->unmatched('checkout.session.completed', $session['customer'] ?? null);
@@ -118,8 +127,7 @@ class Billing
         if (! empty($session['customer']) && $user->stripe_customer_id !== $session['customer']) {
             $user->forceFill(['stripe_customer_id' => $session['customer']])->save();
         }
-        $subscription = $session['subscription'] ?? null;
-        $this->sync(is_array($subscription) ? ($subscription['id'] ?? null) : $subscription);
+        $this->apply($user, $subscription);
     }
 
     private function invoicePaid(array $invoice): void
@@ -128,7 +136,14 @@ class Billing
         if (($invoice['billing_reason'] ?? null) !== 'subscription_cycle') {
             return; // de eerste betaling meldt de checkout al als nieuwe abonnee
         }
-        $user = $this->userForCustomer($invoice['customer'] ?? null);
+        if (! is_string($subscription) || $subscription === '') {
+            return;
+        }
+        $subscription = $this->stripe('get', '/subscriptions/'.rawurlencode($subscription));
+        if (! $this->isOwnSubscription($subscription)) {
+            return;
+        }
+        $user = $this->userFor($subscription);
         if (! $user) {
             $this->unmatched('invoice.paid', $invoice['customer'] ?? null);
 
@@ -137,7 +152,7 @@ class Billing
         Ops::record('payment.renewal', Ops::INFO, 'Abonnement verlengd', "Account #{$user->id} · {$this->money($invoice['amount_paid'] ?? null, $invoice['currency'] ?? null)} via Stripe", [
             'account' => $user->id, 'amount' => ($invoice['amount_paid'] ?? 0) / 100, 'currency' => strtoupper((string) ($invoice['currency'] ?? '')),
         ], 'invoice|'.($invoice['id'] ?? ''));
-        if (is_string($subscription)) $this->sync($subscription);
+        $this->apply($user, $subscription);
     }
 
     private function sync(?string $subscriptionId): void
@@ -146,6 +161,9 @@ class Billing
             return;
         }
         $subscription = $this->stripe('get', '/subscriptions/'.rawurlencode($subscriptionId));
+        if (! $this->isOwnSubscription($subscription)) {
+            return;
+        }
         $user = $this->userFor($subscription);
         if (! $user) {
             $this->unmatched('subscription', $subscription['customer'] ?? null);
@@ -157,6 +175,9 @@ class Billing
 
     private function apply(User $user, array $subscription): void
     {
+        if (! $this->isOwnSubscription($subscription)) {
+            return;
+        }
         $stripeStatus = $subscription['status'] ?? '';
         $current = $user->stripe_subscription_id === null || $user->stripe_subscription_id === $subscription['id'];
         $live = in_array($stripeStatus, ['active', 'trialing', 'past_due'], true);
@@ -186,6 +207,18 @@ class Billing
         ])->save();
 
         $this->report($user, $previous, $status, $subscription);
+    }
+
+    /** Het Stripe-account bevat ook andere apps; hun betalingen horen hier niet thuis. */
+    private function isOwnSubscription(array $subscription): bool
+    {
+        $price = (string) config('services.stripe.price');
+
+        return $price !== '' && collect($subscription['items']['data'] ?? [])->contains(function (array $item) use ($price): bool {
+            $itemPrice = $item['price'] ?? null;
+
+            return (is_array($itemPrice) ? ($itemPrice['id'] ?? null) : $itemPrice) === $price;
+        });
     }
 
     /** Belangrijke betaalmomenten naar het beheerlogboek; alleen het accountnummer, geen persoonsgegevens. */

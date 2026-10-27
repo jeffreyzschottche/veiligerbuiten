@@ -49,6 +49,8 @@ via de stores; de website houdt Stripe.
 
 ## 5. Stripe koppelen (website)
 
+- [x] Backend verwerkt alleen abonnementen met de ingestelde `STRIPE_PRICE_ID`, zodat events van andere apps in hetzelfde Stripe-account worden genegeerd.
+- [x] Eén webregistratie via `/aanmelden`, direct gevolgd door Stripe Checkout. Weblogin via `/account`; de mobiele app logt alleen in.
 - [ ] Product van € 0,99/maand aanmaken in Stripe.
 - [ ] Webhook naar `https://api.veiligerbuiten.nl/api/v1/webhooks/stripe`.
 - [ ] `STRIPE_SECRET`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID` in Coolify.

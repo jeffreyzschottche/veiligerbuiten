@@ -18,7 +18,7 @@
       <!-- Account maken of inloggen -->
       <section v-else-if="step === 'account'">
         <h1>{{ mode === 'signup' ? t.signup.title : t.signup.loginTitle }}</h1>
-        <p class="signup__intro">{{ t.signup.intro }}</p>
+        <p class="signup__intro">{{ mode === 'signup' ? t.signup.intro : t.signup.loginIntro }}</p>
         <form @submit.prevent="submit">
           <label v-if="mode === 'signup'" class="field">
             <span class="field__label">{{ t.signup.name }}</span>
@@ -44,9 +44,9 @@
             </span>
           </label>
           <p v-if="error" class="error-text">{{ error }}</p>
-          <button class="btn btn--ink btn--block" :disabled="busy">{{ busy ? '…' : mode === 'signup' ? t.signup.create : t.start.login }}</button>
+          <button class="btn btn--ink btn--block" :disabled="busy">{{ busy ? '…' : mode === 'signup' ? t.signup.createAndPay : t.start.login }}</button>
         </form>
-        <button class="btn btn--ghost btn--block" @click="switchMode">{{ mode === 'signup' ? t.signup.toLogin : t.signup.toSignup }}</button>
+        <NuxtLink :to="mode === 'signup' ? '/account' : '/aanmelden'" class="btn btn--ghost btn--block">{{ mode === 'signup' ? t.signup.toLogin : t.signup.toSignup }}</NuxtLink>
         <NuxtLink v-if="mode === 'login'" to="/forgot-password" class="signup__small">{{ t.start.forgot }}</NuxtLink>
       </section>
 
@@ -102,7 +102,7 @@ const { setLocale } = useLocale();
 const auth = useAuthStore();
 const billing = useBilling();
 
-const mode = ref<'signup' | 'login'>(route.path === '/account' ? 'login' : 'signup');
+const mode = computed(() => route.path.replace(/\/+$/, '') === '/account' || route.query.mode === 'login' ? 'login' : 'signup');
 const form = reactive({ name: '', email: '', password: '', terms: false });
 const busy = ref(false);
 const processing = ref(typeof route.query.betaald === 'string');
@@ -136,17 +136,18 @@ onMounted(async () => {
   if (auth.isLoggedIn && !auth.isSubscribed) error.value = t.value.signup.notYet;
 });
 
-function switchMode() {
-  error.value = null;
-  mode.value = mode.value === 'signup' ? 'login' : 'signup';
-}
+watch(mode, () => { error.value = null; });
 
 async function submit() {
   busy.value = true;
   error.value = null;
   try {
-    if (mode.value === 'signup') await auth.register(form.name.trim(), form.email.trim(), form.password);
-    else await auth.login(form.email.trim(), form.password);
+    if (mode.value === 'signup') {
+      await auth.register(form.name.trim(), form.email.trim(), form.password);
+      await pay();
+    } else {
+      await auth.login(form.email.trim(), form.password);
+    }
   } catch (caught: any) {
     error.value = caught?.data?.errors ? Object.values(caught.data.errors).flat()[0] as string : caught?.data?.message ?? t.value.errors.generic;
   } finally {
