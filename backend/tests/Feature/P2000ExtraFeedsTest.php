@@ -78,6 +78,8 @@ class P2000ExtraFeedsTest extends TestCase
         $this->artisan('veiligbuiten:ingest-p2000', ['--feed' => 'monitor'])->assertSuccessful();
 
         $ride = Incident::sole(); // twee capcodes, één alarmering
+        $this->assertSame('medisch', $ride->category);
+        $this->assertSame('Ambulance-inzet', $ride->subtype);
         $this->assertStringNotContainsString('Leopoldhove', $ride->description);
         $this->assertStringNotContainsString('2726', (string) json_encode($ride->observations()->first()->metadata));
         $this->assertNotEquals(52.06600, $ride->latitude, 'rounded to the neighbourhood, not the address');

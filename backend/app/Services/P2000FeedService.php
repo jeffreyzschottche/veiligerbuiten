@@ -19,13 +19,13 @@ class P2000FeedService
         'brandweer' => 'brand',
         'fire' => 'brand',
         'brand' => 'brand',
-        'ambulance' => 'onveilig',
-        'medisch' => 'onveilig',
+        'ambulance' => 'medisch',
+        'medisch' => 'medisch',
         'politie' => 'onveilig',
         'police' => 'onveilig',
         'knrm' => 'onveilig',
-        'lifeliner' => 'onveilig',
-        'trauma' => 'onveilig',
+        'lifeliner' => 'medisch',
+        'trauma' => 'medisch',
     ];
 
     /** Keywords that indicate violence → maps to subtype. */
@@ -280,7 +280,7 @@ class P2000FeedService
             return 'Traumahelikopter ingezet';
         }
         if (in_array('ambulance', $categories) || in_array('medisch', $categories)) {
-            return 'Medische noodsituatie';
+            return 'Ambulance-inzet';
         }
         if (in_array('politie', $categories)) {
             return 'Politie-inzet';

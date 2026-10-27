@@ -82,9 +82,21 @@ class SourcesTest extends TestCase
 
         $bomb = Incident::where('source_reference', 'p1')->sole();
         $this->assertSame(['onveilig', 'Bommelding', 5], [$bomb->category, $bomb->subtype, $bomb->severity]);
-        $this->assertSame('info', DangerScale::level(Incident::where('source_reference', 'p2')->sole()));
-        // p3 valt op dezelfde plek als de bommelding en wordt samengevoegd, zonder de ernst te verlagen.
-        $this->assertSame(2, Incident::count());
+        $ride = Incident::where('source_reference', 'p2')->sole();
+        $this->assertSame(['medisch', 'Ambulance-inzet', 'medical'], [$ride->category, $ride->subtype, $ride->incident_type]);
+        $ride->risk_flags = ['cluster' => 3];
+        $this->assertSame('info', DangerScale::level($ride));
+        // Een medische rit op dezelfde plek als een dreiging blijft een afzonderlijke melding.
+        $this->assertSame(3, Incident::count());
         $this->assertSame(5, $bomb->fresh()->severity);
+    }
+
+    public function test_medical_calls_with_a_concrete_threat_keep_the_threat_category(): void
+    {
+        $classifier = app(\App\Services\P2000FeedService::class);
+        $this->assertSame('medisch', $classifier->classify('A1 Ambulance', '', ['ambulance'])['category']);
+        $this->assertSame('verkeer', $classifier->classify('Ambulance verkeersongeval', '', ['ambulance'])['category']);
+        $this->assertSame('geweld', $classifier->classify('Ambulance steekpartij', '', ['ambulance'])['category']);
+        $this->assertSame('onveilig', $classifier->classify('Ambulance bommelding', '', ['ambulance'])['category']);
     }
 }

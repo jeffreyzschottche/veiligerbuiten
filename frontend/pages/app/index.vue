@@ -203,7 +203,7 @@ function showHotspot(key: string) {
   if (hotspot.kind === 'stats') flash(statsSummary(hotspot), 6000);
 }
 
-/** "Leidsebuurt: 171× geweld of straatroof (o.a. 12× straatroof) in 12 maanden. Bron: Politie (CBS)." */
+/** "Leidsebuurt: 171× geweld of straatroof (o.a. 12× straatroof) in 12 maanden." */
 function statsSummary(hotspot: Hotspot) {
   const copy = t.value.hotspots.stats;
   const [type, n] = Object.entries(hotspot.counts ?? {}).filter(([key]) => key !== 'mishandeling').sort((a, b) => b[1] - a[1])[0] ?? [];

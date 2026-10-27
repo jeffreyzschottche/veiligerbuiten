@@ -25,7 +25,7 @@ class ReportController extends Controller
     public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'category' => 'required|in:brand,geweld,intimidatie,onveilig,verkeer,blokkade,weer,stoffen,drukte,dier,anders',
+            'category' => 'required|in:brand,geweld,intimidatie,onveilig,medisch,verkeer,blokkade,weer,stoffen,drukte,dier,anders',
             'subtype' => 'required|string|max:80', 'description' => 'nullable|string|max:180',
             'latitude' => 'required|numeric|between:50.5,53.7', 'longitude' => 'required|numeric|between:3.1,7.3',
             'user_latitude' => 'nullable|numeric|between:50.5,53.7', 'user_longitude' => 'nullable|numeric|between:3.1,7.3',
@@ -110,5 +110,5 @@ class ReportController extends Controller
 
         return match ($category) { 'brand', 'stoffen', 'geweld' => 4, 'weer', 'blokkade', 'verkeer' => 3, default => 2 };
     }
-    private function incidentType(string $category): string { return match ($category) { 'weer', 'drukte' => 'area_condition', 'blokkade', 'verkeer' => 'hazard', default => 'event' }; }
+    private function incidentType(string $category): string { return match ($category) { 'medisch' => 'medical', 'weer', 'drukte' => 'area_condition', 'blokkade', 'verkeer' => 'hazard', default => 'event' }; }
 }

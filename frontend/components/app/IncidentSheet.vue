@@ -21,15 +21,10 @@
           <span class="row__icon"><Icon name="users" :size="18" /></span>
           <span class="row__main">
             <span class="row__title">{{ confirmationText }}</span>
-            <span class="row__sub">{{ certaintyText }} · {{ incident.official ? fill(t.incident.source, { s: incident.sourceName ?? '—' }) : t.incident.community }}</span>
+            <span class="row__sub">{{ certaintyText }}</span>
           </span>
           <span class="inc-meter" :aria-label="certaintyText"><span :style="{ width: `${Math.round((incident.confidence ?? 0.5) * 100)}%` }" /></span>
         </div>
-        <!-- Bronvermelding met link per item: verplicht in de hergebruikvoorwaarden van o.a. Zwaailicht.nl. -->
-        <a v-if="sourceUrl" class="row inc-source" :href="sourceUrl" target="_blank" rel="noopener noreferrer" @click.prevent="openSource">
-          <span class="row__icon"><Icon name="external" :size="16" /></span>
-          <span class="row__main"><span class="row__title">{{ fill(t.incident.via, { s: incident.sourceName ?? hostOf(sourceUrl) }) }}</span></span>
-        </a>
         <div class="row">
           <span class="row__icon"><Icon name="bell" :size="18" /></span>
           <span class="row__main">
@@ -86,20 +81,6 @@ const expiresIn = computed(() => {
   return minutes < 60 ? `${minutes} min` : `${Math.round(minutes / 60)} ${locale.value === 'nl' ? 'uur' : 'h'}`;
 });
 
-function hostOf(url: string) {
-  try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return url; }
-}
-
-/** Alleen http(s): een link uit een externe feed mag nooit code uitvoeren in de app. */
-const sourceUrl = computed(() => {
-  const url = props.incident?.sourceUrl;
-  return url && /^https?:\/\/\S+$/i.test(url) ? url : null;
-});
-
-function openSource() {
-  if (sourceUrl.value) window.open(sourceUrl.value, '_system');
-}
-
 function route() {
   if (!props.incident) return;
   const { latitude, longitude } = props.incident;
@@ -126,8 +107,6 @@ async function share() {
 .inc-tag { display: inline-flex; align-items: center; padding: 4px 9px; border-radius: 99px; color: var(--vb-ink-3); background: #fff; box-shadow: inset 0 0 0 1px var(--vb-line); font-size: 12px; font-weight: 600; }
 .inc-meter { position: relative; width: 44px; height: 6px; overflow: hidden; border-radius: 9px; background: var(--vb-paper); flex: none; }
 .inc-meter span { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: var(--vb-ink-3); }
-.inc-source { color: inherit; text-decoration: none; }
-.inc-source .row__title { color: var(--vb-brand); font-size: 15px; }
 .inc-expires { margin: -4px 4px 12px; color: var(--vb-muted); font-size: 13px; }
 .inc-meta { margin: 0 0 14px; color: var(--vb-muted); font-size: 14px; }
 .inc-desc { margin: 0 0 16px; font-size: 15px; line-height: 1.45; }

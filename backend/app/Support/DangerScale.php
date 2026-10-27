@@ -30,6 +30,10 @@ class DangerScale
 
     public static function level(Incident $incident): string
     {
+        // Medische urgentie is geen gevaar voor omstanders, ook niet naast andere meldingen.
+        if ($incident->category === 'medisch' && $incident->severity <= 2) {
+            return 'info';
+        }
         $rank = match (true) {
             $incident->severity >= 4 => 2,
             $incident->severity >= 3 => 1,

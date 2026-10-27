@@ -92,8 +92,11 @@ class IngestNdwSafety extends Command
 
         $xsi = $record->attributes('http://www.w3.org/2001/XMLSchema-instance');
         $type = (string) ($xsi['type'] ?? '');
-        $subtype = $this->xpathText($record, './/*[contains(local-name(), "Type")]') ?? '';
-        $comment = $this->xpathText($record, './/*[local-name()="generalPublicComment"]//*[local-name()="value"]') ?? '';
+        // mobilityType (bijv. "stationary") is geen incidenttype. Lees de inhoudelijke types expliciet.
+        $detailNodes = $record->xpath('.//*[local-name()="vehicleObstructionType" or local-name()="obstructionType" or local-name()="accidentType" or local-name()="roadOrCarriagewayOrLaneManagementType" or local-name()="roadMaintenanceType" or local-name()="poorEnvironmentType" or local-name()="roadSurfaceConditionType"]') ?: [];
+        $subtypes = array_values(array_filter(array_map(fn ($node) => trim((string) $node), $detailNodes)));
+        $comment = $this->xpathText($record, './/*[local-name()="generalPublicComment"]//*[local-name()="value"][@lang="nl"]')
+            ?? $this->xpathText($record, './/*[local-name()="generalPublicComment"]//*[local-name()="value"]') ?? '';
         $start = $this->xpathText($record, './/*[local-name()="overallStartTime"]')
             ?? $this->xpathText($record, './*[local-name()="situationRecordCreationTime"]')
             ?? now()->toIso8601String();
@@ -102,7 +105,10 @@ class IngestNdwSafety extends Command
         return [
             'id' => $recordId !== '' ? $recordId : $situationId,
             'type' => $type,
-            'subtype' => $subtype,
+            'subtype' => $subtypes[0] ?? '',
+            'subtypes' => $subtypes,
+            'road' => $this->xpathText($record, './/*[local-name()="roadNumber"]'),
+            'carriageway' => $this->xpathText($record, './/*[local-name()="carriageway"][not(*)]'),
             'latitude' => (float) $latitude,
             'longitude' => (float) $longitude,
             'comment' => trim($comment),

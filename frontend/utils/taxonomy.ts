@@ -12,6 +12,7 @@ export const categories: Array<{ value: IncidentCategory; icon: IconName; nl: st
   // Hoog in de lijst: snel te vinden als iemand je lastigvalt.
   { value: 'intimidatie', icon: 'hand', nl: 'Intimidatie', en: 'Harassment' },
   { value: 'onveilig', icon: 'alert-triangle', nl: 'Onveilig', en: 'Unsafe' },
+  { value: 'medisch', icon: 'plus', nl: 'Medisch', en: 'Medical' },
   { value: 'verkeer', icon: 'car', nl: 'Verkeer', en: 'Traffic' },
   { value: 'blokkade', icon: 'construction', nl: 'Afsluiting', en: 'Blocked' },
   { value: 'drukte', icon: 'users', nl: 'Drukte', en: 'Crowds' },
@@ -28,6 +29,7 @@ export const subtypes: Record<IncidentCategory, Array<[string, string]>> = {
   intimidatie: [['Handtastelijke persoon', 'Groping / unwanted touching'], ['Nafluiten / naroepen', 'Catcalling'], ['Seksuele opmerkingen / verbale intimidatie', 'Sexual comments / verbal harassment'], ['Iemand volgt mij', 'Someone is following me'], ['Iemand wordt lastiggevallen', 'Someone else is being harassed'], ['Blijft opdringerig aanspreken', 'Keeps approaching me'], ['Potloodventer / exhibitionist', 'Indecent exposure'], ['Ongewenst gefilmd of gefotografeerd', 'Filmed or photographed without consent'], ['Intimiderende groep', 'Intimidating group'], ['Voelt onveilig: donker of verlaten', 'Feels unsafe: dark or deserted'], ['Anders: intimidatie', 'Other: harassment']],
   // Lastigvallen staat nu onder 'Intimidatie'; hier niet dubbel (minder keuzes, sneller melden).
   onveilig: [['Verdachte situatie', 'Suspicious situation'], ['Verdacht object', 'Suspicious object'], ['Zorgwekkend / onvoorspelbaar gedrag', 'Worrying / unpredictable behaviour'], ['Achtervolging', 'Pursuit'], ['Gevaarlijke situatie op straat', 'Dangerous situation in the street']],
+  medisch: [['Ambulance-inzet', 'Ambulance response'], ['Traumahelikopter ingezet', 'Trauma helicopter deployed']],
   verkeer: [['Verkeersongeval', 'Traffic accident'], ['Fiets- / scooterongeval', 'Bicycle / scooter accident'], ['Gevaarlijk rijgedrag', 'Dangerous driving'], ['Object op de rijbaan', 'Object on the road'], ['Spookrijder', 'Wrong-way driver'], ['Voetganger betrokken bij ongeval', 'Pedestrian involved in accident'], ['Meerdere voertuigen betrokken', 'Multiple vehicles involved'], ['Verkeerslicht defect / gevaarlijke verkeerssituatie', 'Broken traffic light']],
   blokkade: [['Weg geblokkeerd', 'Road blocked'], ['Fietspad geblokkeerd', 'Cycle path blocked'], ['Politieafzetting', 'Police cordon'], ['Boom op de weg', 'Tree on the road'], ['Gat / verzakking', 'Hole / subsidence'], ['Vallend / loshangend materiaal', 'Falling / loose material'], ['Instortingsgevaar', 'Risk of collapse'], ['Kapotte of gevaarlijke infrastructuur', 'Broken or dangerous infrastructure']],
   drukte: [['Grote menigte', 'Large crowd'], ['Demonstratie', 'Demonstration'], ['Extreme drukte', 'Extreme crowding'], ['Confrontatie tussen groepen', 'Clash between groups'], ['Supportersgroep', 'Group of fans'], ['Route geblokkeerd door menigte', 'Route blocked by crowd'], ['Rellen', 'Riots']],

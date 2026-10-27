@@ -17,7 +17,7 @@
           <span class="nearby__icon" :class="`lv-${incident.level}`"><Icon :name="categoryOf(incident.category).icon" :size="18" /></span>
           <span class="row__main">
             <span class="row__title">{{ incident.title }}</span>
-            <span class="row__sub">{{ meters !== null ? distance(meters) : '' }}<template v-if="meters !== null"> · </template>{{ ago(incident.updatedAt ?? null) }}<template v-if="incident.sourceName"> · {{ incident.sourceName }}</template></span>
+            <span class="row__sub">{{ meters !== null ? distance(meters) : '' }}<template v-if="meters !== null"> · </template>{{ ago(incident.updatedAt ?? null) }}</span>
           </span>
           <span v-if="incident.confirmations > 1" class="nearby__count" :title="fill(t.incident.confirmations, { n: incident.confirmations })">{{ incident.confirmations }}</span>
         </button>

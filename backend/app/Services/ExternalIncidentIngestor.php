@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Incident;
 use App\Models\IncidentObservation;
 use App\Models\SourceRecord;
+use App\Support\NdwIncidentDetails;
 use Carbon\Carbon;
 
 class ExternalIncidentIngestor
@@ -13,20 +14,8 @@ class ExternalIncidentIngestor
 
     public function ndw(array $item): Incident
     {
-        $type = strtolower($item['type'] ?? '');
-        $comment = trim($item['comment'] ?? '');
-        [$category, $subtype, $severity] = match (true) {
-            str_contains($type, 'accident') || str_contains($type, 'collision') => ['verkeer', 'Verkeersongeval', 4],
-            str_contains($type, 'roadworks') || str_contains($type, 'management') || str_contains($type, 'closure') => ['blokkade', 'Weg geblokkeerd', 3],
-            str_contains($type, 'obstruction') => ['verkeer', $this->ndwObstructionSubtype($item, $comment), 3],
-            str_contains($type, 'hazard') => ['verkeer', 'Gevaarlijke verkeerssituatie', 3],
-            default => ['verkeer', 'Verkeerssituatie', 2],
-        };
-
         $incident = $this->upsertOfficial('ndw', $item, [
-            'category' => $category, 'subtype' => $subtype,
-            'description' => $comment ?: 'Actuele verkeersmelding van NDW.',
-            'severity' => $severity, 'incident_type' => 'traffic', 'fallback_hours' => 2,
+            ...NdwIncidentDetails::describe($item), 'incident_type' => 'traffic', 'fallback_hours' => 2,
         ]);
 
         SourceRecord::updateOrCreate(
@@ -114,6 +103,7 @@ class ExternalIncidentIngestor
     {
         $source = 'p2000_' . ($item['source_feed'] ?? 'unknown');
         $incidentType = match ($item['category']) {
+            'medisch' => 'medical',
             'brand' => 'fire',
             'geweld' => 'violence',
             default => 'emergency',
@@ -155,17 +145,6 @@ class ExternalIncidentIngestor
             'description' => $item['description'] ?? $defaults['description'], 'severity' => $item['severity'] ?? $defaults['severity'],
             'incident_type' => $defaults['incident_type'], 'fallback_hours' => $fallbackHours,
         ]);
-    }
-
-    private function ndwObstructionSubtype(array $item, string $comment): string
-    {
-        $detail = strtolower(($item['subtype'] ?? '').' '.$comment);
-        return match (true) {
-            str_contains($detail, 'object') => 'Object op de rijbaan',
-            str_contains($detail, 'vehicle') || str_contains($detail, 'voertuig') => 'Voertuig op gevaarlijke plek',
-            str_contains($detail, 'pijlwagen') => 'Voertuig op gevaarlijke plek',
-            default => 'Gevaarlijke verkeerssituatie',
-        };
     }
 
     /** Keep imported alerts current: an external end time can never extend past 24 hours. */
@@ -248,6 +227,12 @@ class ExternalIncidentIngestor
         }
 
         if ($existingObservation) {
+            // Een eerder samengevoegde ambulancerit mag bij herclassificatie een dreiging niet overschrijven.
+            $canonical = $incident->source === $source && $incident->source_reference === (string) $item['id'];
+            $medicalDowngrade = $attributes['category'] === 'medisch' && $attributes['severity'] <= 2 && $incident->severity > 2;
+            if ($medicalDowngrade || (! $canonical && $attributes['severity'] < (int) $incident->severity)) {
+                unset($payload['category'], $payload['subtype'], $payload['description'], $payload['severity'], $payload['incident_type']);
+            }
             // Hetzelfde item opnieuw: alleen bijwerken wat echt veranderde.
             $payload['last_confirmed_at'] = $observedAt->max($incident->last_confirmed_at ?? $observedAt);
             if ($endsAt) $payload['expires_at'] = $this->expiry($endsAt, $attributes['fallback_hours']);

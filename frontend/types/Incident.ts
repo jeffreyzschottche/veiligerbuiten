@@ -8,6 +8,7 @@ export type IncidentCategory =
   | 'stoffen'
   | 'drukte'
   | 'onveilig'
+  | 'medisch'
   | 'dier'
   | 'anders';
 
@@ -46,7 +47,7 @@ export interface Incident {
   official: boolean;
   source: string;
   sourceName?: string | null;
-  /** Link naar het oorspronkelijke bericht; de bronvermelding is verplicht (o.a. Zwaailicht). */
+  /** Herkomst voor interne controles; niet zichtbaar bij meldingen. */
   sourceUrl?: string | null;
   description?: string | null;
   geometry?: IncidentGeometry | null;

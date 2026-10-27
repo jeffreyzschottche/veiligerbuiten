@@ -32,6 +32,14 @@ class CategoryConfig
             'default_severity' => 3,
             'default_hours' => 1,
         ],
+        'medisch' => [
+            'label' => 'Medisch',
+            'icon' => 'plus',
+            'color' => '#3b82f6',
+            'incident_type' => 'medical',
+            'default_severity' => 2,
+            'default_hours' => 2,
+        ],
         'onveilig' => [
             'label' => 'Onveilig',
             'icon' => 'alert-circle',
