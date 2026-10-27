@@ -18,7 +18,9 @@ WORKDIR /var/www/html
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --no-interaction --prefer-dist --no-scripts --no-autoloader
 COPY . .
-RUN composer dump-autoload --optimize --no-dev \
+# Git bewaart geen lege mappen; Laravel heeft deze ook bij een API zonder views nodig.
+RUN mkdir -p resources/views storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
+  && composer dump-autoload --optimize --no-dev \
   && chown -R www-data:www-data storage bootstrap/cache
 
 # Web, scheduler en queue in één container (zie docker/supervisord.conf); per container uit te zetten.
