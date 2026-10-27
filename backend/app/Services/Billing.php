@@ -7,7 +7,8 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 
 /**
- * Abonnement via Stripe: registreren en betalen op veiligerbuiten.nl, de app logt alleen in.
+ * Abonnement via Stripe, op veiligerbuiten.nl. In de app loopt het abonnement via de winkels
+ * (zie StoreBilling); per account telt er één.
  *
  * Stripe stuurt events niet altijd op volgorde. Daarom gebruiken we een event alleen als
  * seintje en halen we het abonnement zelf opnieuw op: wat Stripe nú zegt, telt. Of er
@@ -198,15 +199,29 @@ class Billing
             default => ['expired', now()], // canceled, unpaid, incomplete_expired, paused
         };
 
+        $ids = [
+            'stripe_subscription_id' => $subscription['id'],
+            'stripe_customer_id' => $user->stripe_customer_id ?? ($subscription['customer'] ?? null),
+        ];
+        if (! $user->acceptsBillingFrom('stripe', $status !== 'expired', $expiresAt ?? now())) {
+            // Er loopt al een abonnement via de App Store of Google Play: dat wint.
+            $user->forceFill($ids)->save();
+            if ($status !== 'expired') {
+                self::doubleSubscription($user, 'Stripe');
+            }
+
+            return;
+        }
+
         $previous = $user->subscription_status;
         $user->forceFill([
             'subscription_status' => $status,
             'subscription_expires_at' => $expiresAt,
-            'stripe_subscription_id' => $subscription['id'],
-            'stripe_customer_id' => $user->stripe_customer_id ?? ($subscription['customer'] ?? null),
+            'billing_provider' => 'stripe',
+            ...$ids,
         ])->save();
 
-        $this->report($user, $previous, $status, $subscription);
+        $this->reportStripe($user, $previous, $status, $subscription);
     }
 
     /** Het Stripe-account bevat ook andere apps; hun betalingen horen hier niet thuis. */
@@ -222,7 +237,7 @@ class Billing
     }
 
     /** Belangrijke betaalmomenten naar het beheerlogboek; alleen het accountnummer, geen persoonsgegevens. */
-    private function report(User $user, ?string $previous, string $status, array $subscription): void
+    public static function report(User $user, ?string $previous, string $status, string $detail, array $data = []): void
     {
         [$type, $level, $title] = match (true) {
             $status === $previous => [null, null, null],
@@ -234,13 +249,23 @@ class Billing
             $status === 'expired' && in_array($previous, ['active', 'cancelled', 'billing_issue'], true) => ['payment.expired', Ops::INFO, 'Abonnement verlopen'],
             default => [null, null, null],
         };
-        if (! $type) {
-            return;
+        if ($type) {
+            Ops::record($type, $level, $title, "Account #{$user->id} · {$detail}", ['account' => $user->id, 'provider' => $user->billing_provider, ...$data]);
         }
+    }
+
+    /** Iemand betaalt via twee kanalen tegelijk; het tweede abonnement moet worden opgezegd of terugbetaald. */
+    public static function doubleSubscription(User $user, string $second): void
+    {
+        Ops::record('payment.double', Ops::WARNING, 'Dubbel abonnement', "Account #{$user->id} betaalt al via {$user->billing_provider} en nu ook via {$second}.", ['account' => $user->id], "{$user->id}|{$second}");
+    }
+
+    private function reportStripe(User $user, ?string $previous, string $status, array $subscription): void
+    {
         $price = $subscription['items']['data'][0]['price'] ?? [];
         $reason = $subscription['cancellation_details']['feedback'] ?? $subscription['cancellation_details']['reason'] ?? null;
-        Ops::record($type, $level, $title, "Account #{$user->id} · {$this->money($price['unit_amount'] ?? null, $price['currency'] ?? null)} via Stripe".($reason ? ' · reden: '.str_replace('_', ' ', $reason) : ''), [
-            'account' => $user->id, 'amount' => isset($price['unit_amount']) ? $price['unit_amount'] / 100 : null,
+        self::report($user, $previous, $status, "{$this->money($price['unit_amount'] ?? null, $price['currency'] ?? null)} via Stripe".($reason ? ' · reden: '.str_replace('_', ' ', $reason) : ''), [
+            'amount' => isset($price['unit_amount']) ? $price['unit_amount'] / 100 : null,
             'currency' => strtoupper((string) ($price['currency'] ?? '')) ?: null, 'reason' => $reason,
         ]);
     }

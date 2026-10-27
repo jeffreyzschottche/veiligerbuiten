@@ -59,9 +59,9 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
-	<!-- Google's officiële test-app-ID. Vervang door je eigen AdMob app-ID vóór publicatie. -->
+	<!-- AdMob app-ID van VeiligerBuiten (iOS). -->
 	<key>GADApplicationIdentifier</key>
-	<string>ca-app-pub-3940256099942544~1458002511</string>
+	<string>ca-app-pub-2932017576194299~9314660846</string>
 	<key>NSUserTrackingUsageDescription</key>
 	<string>Hiermee kunnen advertenties beter aansluiten. Je locatie en meldingen worden nooit voor advertenties gebruikt.</string>
 	<key>SKAdNetworkItems</key>

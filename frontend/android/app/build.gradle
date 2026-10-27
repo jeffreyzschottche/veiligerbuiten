@@ -1,5 +1,13 @@
 apply plugin: 'com.android.application'
 
+// Upload-keystore uit android/release.properties (alleen lokaal, staat in .gitignore).
+def releaseProperties = rootProject.file('release.properties')
+if (releaseProperties.exists()) {
+    def values = new Properties()
+    releaseProperties.withInputStream { values.load(it) }
+    values.each { key, value -> if (!project.hasProperty(key)) project.ext.set(key, value) }
+}
+
 android {
     namespace = "nl.veiligerbuiten.app"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -16,15 +24,6 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
-    buildTypes {
-        release {
-            minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            if (project.hasProperty('RELEASE_STORE_FILE')) {
-                signingConfig signingConfigs.release
-            }
-        }
-    }
     signingConfigs {
         release {
             if (project.hasProperty('RELEASE_STORE_FILE')) {
@@ -32,6 +31,15 @@ android {
                 storePassword project.property('RELEASE_STORE_PASSWORD')
                 keyAlias project.property('RELEASE_KEY_ALIAS')
                 keyPassword project.property('RELEASE_KEY_PASSWORD')
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (project.hasProperty('RELEASE_STORE_FILE')) {
+                signingConfig signingConfigs.release
             }
         }
     }

@@ -4,6 +4,6 @@
     <string name="title_activity_main">VeiligerBuiten</string>
     <string name="package_name">nl.veiligerbuiten.app</string>
     <string name="custom_url_scheme">nl.veiligerbuiten.app</string>
-    <!-- Google's officiële test-app-ID. Vervang door je eigen AdMob app-ID (ca-app-pub-…~…) vóór publicatie. -->
-    <string name="admob_app_id">ca-app-pub-3940256099942544~3347511713</string>
+    <!-- AdMob app-ID van VeiligerBuiten (Android). -->
+    <string name="admob_app_id">ca-app-pub-2932017576194299~6301484693</string>
 </resources>

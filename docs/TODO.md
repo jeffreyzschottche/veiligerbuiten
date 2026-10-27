@@ -3,6 +3,8 @@
 Bijgewerkt op 27-10-2026. De website draait op Coolify (veiligerbuiten.nl), de API op
 api.veiligerbuiten.nl (MySQL, cache/queue/sessies via de database).
 
+**Alle handmatige stappen voor de lancering, op volgorde: [HANDMATIG.md](HANDMATIG.md).**
+
 ## 1. Push koppelen
 
 - [ ] In Coolify bij de backend de sleutels als base64 invullen:
@@ -19,21 +21,24 @@ Waarom: het abonnement is € 0,99 per maand. Stripe kost per betaling 1,5% + �
 (27%), Apple en Google via het Small Business Program 15% (€ 0,15). In de app betalen gaat dus
 via de stores; de website houdt Stripe.
 
-- [ ] RevenueCat-code terughalen uit de eigen geschiedenis (vóór commit `6fc0c76`):
-  pakket `@revenuecat/purchases-capacitor`, `Paywall.vue`, `useBilling.ts`, backend-webhook.
-- [ ] Laten samenwerken met Stripe: één abonnement per account, `billing_provider` bijhouden,
-  een Stripe- en store-abonnement mogen elkaar niet overschrijven of dubbel laten betalen.
-- [ ] Registreren in de app weer toestaan (Apple eist dat bij aankopen in de app).
-- [ ] Teksten in de app, `docs/store/LISTING.md`, privacy en voorwaarden bijwerken
-  (aankopen via Apple/Google, aankoopgeschiedenis in de privacylabels).
-- [ ] Backend-env in Coolify: RevenueCat-webhooksleutel en API-sleutel.
+- [x] RevenueCat terug: pakket `@revenuecat/purchases-capacitor`, `Paywall.vue` (kopen en herstellen),
+  `useBilling.ts`, backend `StoreBilling` met webhook `/webhooks/revenuecat`.
+- [x] Samen met Stripe: één abonnement per account via `billing_provider`; een einde bij het ene
+  kanaal overschrijft een lopend abonnement bij het andere niet, Stripe-checkout is geblokkeerd
+  zolang er een winkelabonnement loopt, en dubbel betalen komt als waarschuwing in het logboek.
+- [x] Registreren in de app weer toegestaan.
+- [x] Teksten in de app, `docs/store/LISTING.md`, privacy en voorwaarden bijgewerkt.
+- [ ] Backend-env in Coolify: RevenueCat-sleutel en webhookgeheim (zie HANDMATIG.md).
+- [ ] RevenueCat: App Store- en Play-app koppelen, producten, webhook, publieke sleutels in de build.
 
 ## 3. App Store uitbrengen
 
-- [ ] Abonnement aanmaken in App Store Connect (€ 0,99/maand), Small Business Program aanvragen.
+- [x] Abonnement aangemaakt: `nl.veiligerbuiten.app.monthly` in groep "VeiligerBuiten Premium".
+- [ ] Small Business Program aanvragen.
 - [ ] Abonnement koppelen in RevenueCat (app-specifiek gedeeld geheim / In-App Purchase-sleutel).
-- [ ] Echte AdMob-ID's in de app (nu nog de test-ID's van Google).
-- [ ] Mobiele build tegen `https://api.veiligerbuiten.nl/api/v1`, archiveren in Xcode en uploaden.
+- [x] Echte AdMob-ID's in de app, plus `app-ads.txt` op de site.
+- [x] Build 1.0 (1) tegen `https://api.veiligerbuiten.nl/api/v1` geüpload (nog zonder RevenueCat-sleutel).
+- [ ] Build 2 met de RevenueCat-sleutel.
 - [ ] Zelf in ASC: App Privacy publiceren, Content Rights, trader-status (DSA), contactgegevens.
 - [ ] Reviewaccount op productie: `php artisan veiligbuiten:gift review@veiligerbuiten.nl --days=365`,
   en de login invullen bij Sign-In Information.
@@ -45,7 +50,8 @@ via de stores; de website houdt Stripe.
 - [ ] Koppelen in RevenueCat (serviceaccount met toegang tot de Play Console).
 - [ ] Zelf onder App-content: alle verklaringen (antwoorden in `docs/store/LISTING.md`) en app-toegang
   met het reviewaccount.
-- [ ] `.aab` bouwen, uploaden en een productierelease starten.
+- [x] Uploadsleutel gemaakt (`~/Documents/VeiligerBuiten-sleutels`) en `.aab` gebouwd.
+- [ ] Gesloten test (12 testers, 14 dagen; verplicht voor een persoonlijk account), daarna productie.
 
 ## 5. Stripe koppelen (website)
 
@@ -74,5 +80,6 @@ Zie [MAIL.md](MAIL.md) voor activeren en testen.
   Mijndomein naar je eigen inbox). Dat adres staat als contact in de stores.
 
 ## Los
-- [ ] Screenshot 6 toont "Temp · temp@mail.com": opnieuw maken met een demonaam.
+- [x] Screenshot 6 opnieuw gemaakt met de demonaam "Sanne" en vervangen in Play (NL/EN).
+- [ ] Screenshot 6 ook vervangen in App Store Connect.
 - [ ] GitHub-repo staat op openbaar: privé maken?

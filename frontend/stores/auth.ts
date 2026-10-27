@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia';
-import { Capacitor } from '@capacitor/core';
 import type { Account, AccountSettings, User } from '~/types/User';
 import type { LoginResponse, RegisterResponse, MessageResponse } from '~/types/ApiResponse';
 import { storage } from '~/utils/storage';
@@ -67,9 +66,6 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function register(name: string, email: string, password: string) {
-    if (Capacitor.isNativePlatform()) {
-      throw new Error('Maak je account op veiligerbuiten.nl/aanmelden.');
-    }
     const response = await useApi().post<RegisterResponse>('/register', {
       name, email, password, password_confirmation: password, locale: useLocale().locale.value,
     });

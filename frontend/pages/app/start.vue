@@ -9,9 +9,8 @@
         <p>{{ t.start.intro }}</p>
       </div>
       <div class="start__actions">
-        <button class="btn btn--brand btn--block" @click="go('login')">{{ t.start.login }}</button>
-        <!-- Registreren en betalen gaat via de website; in de app alleen de tekst, geen link. -->
-        <p class="start__note start__note--dark">{{ t.start.noAccount }}</p>
+        <button class="btn btn--brand btn--block" @click="go('signup')">{{ t.start.begin }}</button>
+        <button class="btn btn--ghost btn--block start__ghost" @click="go('login')">{{ t.start.haveAccount }}</button>
         <div class="start__lang">
           <button :aria-pressed="locale === 'nl'" @click="setLocale('nl')">NL</button>
           <button :aria-pressed="locale === 'en'" @click="setLocale('en')">EN</button>
@@ -20,23 +19,28 @@
     </section>
 
     <!-- Account -->
-    <section v-else-if="step === 'login'" class="start__form">
+    <section v-else-if="step === 'signup' || step === 'login'" class="start__form">
       <button class="icon-btn" :aria-label="t.common.back" @click="go('welcome')"><Icon name="back" /></button>
-      <h1>{{ t.start.loginTitle }}</h1>
+      <h1>{{ step === 'signup' ? t.start.signupTitle : t.start.loginTitle }}</h1>
       <form @submit.prevent="submit">
+        <label v-if="step === 'signup'" class="field">
+          <span class="field__label">{{ t.start.name }}</span>
+          <input v-model="form.name" class="input" autocomplete="given-name" required>
+        </label>
         <label class="field">
           <span class="field__label">{{ t.start.email }}</span>
           <input v-model="form.email" class="input" type="email" inputmode="email" autocomplete="email" autocapitalize="off" required>
         </label>
         <label class="field">
           <span class="field__label">{{ t.start.password }}</span>
-          <input v-model="form.password" class="input" type="password" autocomplete="current-password" required>
+          <input v-model="form.password" class="input" type="password" :autocomplete="step === 'signup' ? 'new-password' : 'current-password'" :minlength="step === 'signup' ? 8 : undefined" required>
+          <span v-if="step === 'signup'" class="group__help">{{ t.start.passwordHint }}</span>
         </label>
         <p v-if="error" class="error-text">{{ error }}</p>
-        <button class="btn btn--ink btn--block" :disabled="busy">{{ busy ? '…' : t.start.login }}</button>
+        <button class="btn btn--ink btn--block" :disabled="busy">{{ busy ? '…' : step === 'signup' ? t.start.signup : t.start.login }}</button>
       </form>
-      <NuxtLink to="/forgot-password" class="start__forgot">{{ t.start.forgot }}</NuxtLink>
-      <p class="start__note">{{ t.start.noAccount }}</p>
+      <button class="btn btn--ghost btn--block" @click="go(step === 'signup' ? 'login' : 'signup')">{{ step === 'signup' ? t.start.switchToLogin : t.start.switchToSignup }}</button>
+      <NuxtLink v-if="step === 'login'" to="/forgot-password" class="start__forgot">{{ t.start.forgot }}</NuxtLink>
     </section>
 
     <!-- Rechten -->
@@ -63,7 +67,7 @@
 definePageMeta({ layout: false });
 useHead({ title: 'VeiligerBuiten', meta: [{ name: 'theme-color', content: '#0b0d12' }] });
 
-type Step = 'welcome' | 'login' | 'permissions';
+type Step = 'welcome' | 'signup' | 'login' | 'permissions';
 const route = useRoute();
 const { t, locale } = useAppCopy();
 const { setLocale } = useLocale();
@@ -71,7 +75,7 @@ const auth = useAuthStore();
 const device = useDevice();
 
 const step = ref<Step>(auth.isLoggedIn ? 'permissions' : route.query.mode === 'login' ? 'login' : 'welcome');
-const form = reactive({ email: '', password: '' });
+const form = reactive({ name: '', email: '', password: '' });
 const busy = ref(false);
 const error = ref<string | null>(null);
 const permissions = reactive({ location: false, notifications: false });
@@ -90,7 +94,8 @@ async function submit() {
   busy.value = true;
   error.value = null;
   try {
-    await auth.login(form.email.trim(), form.password);
+    if (step.value === 'signup') await auth.register(form.name.trim(), form.email.trim(), form.password);
+    else await auth.login(form.email.trim(), form.password);
     await device.link();
     step.value = 'permissions';
   } catch (caught: any) {
@@ -125,8 +130,7 @@ function finish() {
 .start__hero h1 { margin: 28px 0 14px; font-size: 56px; font-weight: 720; letter-spacing: -.055em; line-height: 1; }
 .start__hero p { max-width: 320px; margin: 0; color: #a8aebb; font-size: 17px; line-height: 1.45; }
 .start__actions { position: relative; display: grid; gap: 6px; }
-.start__note { margin: 18px 8px 0; color: var(--vb-muted); font-size: 14px; line-height: 1.45; text-align: center; }
-.start__note--dark { margin-top: 10px; color: #a8aebb; }
+.start__ghost { color: #c9ced8 !important; }
 .start__lang { display: flex; justify-content: center; gap: 4px; margin-top: 6px; }
 .start__lang button { min-width: 44px; min-height: 32px; border: 0; border-radius: 9px; background: none; color: #7d8492 !important; font-size: 13px; font-weight: 600; }
 .start__lang button[aria-pressed='true'] { color: #fff !important; background: #ffffff14; }

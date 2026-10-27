@@ -23,15 +23,15 @@ class GiftSubscription extends Command
 
             return self::FAILURE;
         }
-        if ($user->stripe_subscription_id && in_array($user->subscription_status, ['active', 'cancelled', 'billing_issue'], true)) {
-            $this->error('Dit account heeft een lopend Stripe-abonnement; dat beheer je in Stripe.');
+        if ($user->paidVia() !== null) {
+            $this->error("Dit account heeft een lopend abonnement ({$user->paidVia()}); dat beheer je daar.");
 
             return self::FAILURE;
         }
 
         $user->forceFill($this->option('revoke')
             ? ['subscription_status' => 'expired', 'subscription_expires_at' => now()]
-            : ['subscription_status' => 'gift', 'subscription_expires_at' => now()->addDays((int) $this->option('days'))])->save();
+            : ['subscription_status' => 'gift', 'subscription_expires_at' => now()->addDays((int) $this->option('days')), 'billing_provider' => null])->save();
         $this->info($this->option('revoke') ? "Account #{$user->id}: geen toegang meer." : "Account #{$user->id}: toegang tot {$user->subscription_expires_at->format('d-m-Y')}.");
 
         return self::SUCCESS;

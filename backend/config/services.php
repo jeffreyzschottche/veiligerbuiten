@@ -79,6 +79,13 @@ return [
         'price' => env('STRIPE_PRICE_ID'),
     ],
 
+    'revenuecat' => [
+        // Geheime REST-sleutel (sk_…) en de waarde van de Authorization-header van de webhook.
+        'secret_key' => env('REVENUECAT_SECRET_KEY'),
+        'webhook_secret' => env('REVENUECAT_WEBHOOK_SECRET'),
+        'entitlement' => env('REVENUECAT_ENTITLEMENT', 'veiligerbuiten_premium'),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Third Party Services

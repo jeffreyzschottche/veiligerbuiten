@@ -24,7 +24,7 @@ export interface Account {
   email_verified: boolean;
   locale: 'nl' | 'en';
   is_admin: boolean;
-  subscription: { active: boolean; status: string | null; expires_at: string | null };
+  subscription: { active: boolean; status: string | null; expires_at: string | null; provider: 'stripe' | 'app_store' | 'play_store' | 'revenuecat' | null };
   settings: AccountSettings;
   report_quota: ReportQuota;
   ai: { connected: boolean; webhook: boolean };

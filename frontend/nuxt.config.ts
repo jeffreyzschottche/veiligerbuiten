@@ -36,13 +36,16 @@ export default defineNuxtConfig({
       // Local web development uses Nitro's same-origin proxy. For a static
       // mobile build, provide an absolute HTTPS URL at build time through
       // NUXT_PUBLIC_API_BASE_URL (for example https://api.veiligerbuiten.nl/api/v1).
-      apiBase: mobileBuild ? (process.env.NUXT_PUBLIC_API_BASE_URL || '/api/v1') : '/api/v1',
+      apiBase: mobileBuild ? (process.env.NUXT_PUBLIC_API_BASE_URL || 'https://api.veiligerbuiten.nl/api/v1') : '/api/v1',
       // Winkellinks volgen later; tot die tijd scrollen de knoppen naar #download.
       appStoreUrl: process.env.NUXT_PUBLIC_APP_STORE_URL || '',
       playStoreUrl: process.env.NUXT_PUBLIC_PLAY_STORE_URL || '',
-      // AdMob banner-units (ca-app-pub-…/…). Leeg = geen advertenties; 'true' bij testing = Google-testadvertenties.
-      admobBannerIos: process.env.NUXT_PUBLIC_ADMOB_BANNER_IOS || '',
-      admobBannerAndroid: process.env.NUXT_PUBLIC_ADMOB_BANNER_ANDROID || '',
+      // AdMob banner-units van VeiligerBuiten; 'true' bij testing = Google-testadvertenties.
+      admobBannerIos: process.env.NUXT_PUBLIC_ADMOB_BANNER_IOS ?? 'ca-app-pub-2932017576194299/9334842146',
+      admobBannerAndroid: process.env.NUXT_PUBLIC_ADMOB_BANNER_ANDROID ?? 'ca-app-pub-2932017576194299/2278479205',
+      // Publieke RevenueCat SDK-sleutels (appl_… / goog_…); geen geheimen.
+      revenuecatIosKey: process.env.NUXT_PUBLIC_REVENUECAT_IOS_KEY || '',
+      revenuecatAndroidKey: process.env.NUXT_PUBLIC_REVENUECAT_ANDROID_KEY || '',
       admobTesting: process.env.NUXT_PUBLIC_ADMOB_TESTING === 'true',
       appVersion: process.env.npm_package_version || '1.0.0',
     },

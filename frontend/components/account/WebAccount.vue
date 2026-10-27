@@ -76,7 +76,7 @@
           <div class="row">
             <span class="row__icon"><Icon name="card" :size="18" /></span>
             <span class="row__main"><span class="row__title">{{ statusText }}</span></span>
-            <button v-if="auth.account?.subscription.status !== 'gift'" class="btn btn--soft btn--sm" :disabled="billing.busy.value" @click="manage">{{ t.signup.manage }}</button>
+            <button v-if="billing.manageTarget()" class="btn btn--soft btn--sm" :disabled="billing.busy.value" @click="manage">{{ t.signup.manage }}</button>
           </div>
         </div>
         <p v-if="error" class="error-text">{{ error }}</p>
@@ -122,6 +122,7 @@ const statusText = computed(() => {
   const date = subscription?.expires_at ? new Date(subscription.expires_at).toLocaleDateString(locale.value === 'nl' ? 'nl-NL' : 'en-GB') : '';
   if (subscription?.status === 'cancelled') return fill(t.value.signup.cancelledUntil, { date });
   if (subscription?.status === 'gift') return fill(t.value.signup.gift, { date });
+  if (subscription?.provider === 'app_store' || subscription?.provider === 'play_store') return fill(t.value.signup.store, { store: subscription.provider === 'app_store' ? 'App Store' : 'Google Play' });
   return t.value.signup.active;
 });
 

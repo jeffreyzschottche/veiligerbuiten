@@ -1,9 +1,16 @@
 # Storeteksten en formulieren
 
 Alles wat App Store Connect en Play Console vragen, klaar om te plakken. Tekenlimieten
-staan tussen haakjes. Houd in alle teksten **geen prijs, geen betaallink en geen
-oproep om op de website te betalen** aan: dat is bij Apple (3.1.1/3.1.3) en Google
-(Payments-beleid) reden voor afwijzing. "Je hebt een account nodig" mag wel.
+staan tussen haakjes. In de app abonneer je via de App Store of Google Play (RevenueCat), op
+de website via Stripe. Zet in de app en de storeteksten **geen link of oproep om op de
+website te betalen**: dat is bij Apple (3.1.1/3.1.3) en Google (Payments-beleid) reden
+voor afwijzing.
+
+| Winkelproduct | ID |
+| --- | --- |
+| Apple-abonnement (groep "VeiligerBuiten Premium", 1 maand, € 0,99) | `nl.veiligerbuiten.app.monthly` |
+| Google Play-abonnement / basisabonnement (1 maand, € 0,99, automatisch verlengen) | `veiligerbuiten_monthly` / `monthly` |
+| RevenueCat-entitlement | `veiligerbuiten_premium` (offering `default`, pakket `$rc_monthly`) |
 
 ## Vaste gegevens
 
@@ -13,7 +20,7 @@ oproep om op de website te betalen** aan: dat is bij Apple (3.1.1/3.1.3) en Goog
 | Naam | VeiligerBuiten |
 | Primaire taal | Nederlands (nl-NL); Engels (en-GB) als tweede taal |
 | Categorie | Apple: Navigatie (secundair: Nieuws) · Google: Kaarten en navigatie |
-| Prijs van de download | Gratis (abonnement loopt via de website) |
+| Prijs van de download | Gratis, met een abonnement in de app van € 0,99 per maand |
 | Advertenties | Ja (AdMob-banner, af en toe, nooit bij gevaar) |
 | Support-URL | https://veiligerbuiten.nl/support |
 | Marketing-URL | https://veiligerbuiten.nl |
@@ -64,7 +71,7 @@ De app vergelijkt je locatie op je eigen telefoon met de meldingen. De server kr
 WERKT MET JE AI-ASSISTENT
 Koppel je account aan ChatGPT, Claude of een andere AI-assistent en vraag gewoon of het rustig is rond je bestemming.
 
-Je hebt een VeiligerBuiten-account nodig om in te loggen.
+Voor de kaart en meldingen heb je een abonnement nodig van € 0,99 per maand, zonder proefperiode. Het verlengt automatisch en je zegt het op wanneer je wilt in je App Store- of Google Play-instellingen.
 
 VeiligerBuiten is een informatiedienst, geen hulpdienst. Bij direct gevaar bel je altijd 112.
 ```
@@ -113,7 +120,7 @@ The app compares your location with the reports on your own phone. The server on
 WORKS WITH YOUR AI ASSISTANT
 Connect your account to ChatGPT, Claude or another AI assistant and simply ask whether it is calm around where you are going.
 
-You need a VeiligerBuiten account to log in.
+The map and alerts need a subscription of €0.99 per month, with no trial. It renews automatically and you can cancel at any time in your App Store or Google Play settings.
 
 VeiligerBuiten is an information service, not an emergency service. In immediate danger, always call 112.
 ```
@@ -122,8 +129,8 @@ VeiligerBuiten is an information service, not an emergency service. In immediate
 
 ## Review (Apple) en App-toegang (Google)
 
-Accounts worden op de website aangemaakt, dus de reviewer heeft een testaccount nodig.
-Maak dat op productie aan en geef het toegang:
+Geef de reviewer een testaccount met toegang (zonder dat die hoeft te kopen); kopen
+testen ze zelf met een sandbox-account. Maak het account op productie aan en geef het toegang:
 
 ```sh
 php artisan veiligbuiten:gift review@veiligerbuiten.nl --days=365
@@ -134,8 +141,8 @@ php artisan veiligbuiten:gift review@veiligerbuiten.nl --days=365
 ```
 VeiligerBuiten shows safety-related situations near the user (fires, traffic, severe weather, street harassment) from official Dutch sources and user reports.
 
-Sign-in is required. Use the demo account below; it has full access.
-Accounts are created on our website. The app itself contains no purchases, prices or links to buy anything.
+Sign-in is required. Use the demo account below; it already has full access.
+To test the subscription, create a new account in the app ("Get started"): the paywall offers the monthly auto-renewing subscription (nl.veiligerbuiten.app.monthly, EUR 0.99, no trial) through In-App Purchase, with Restore purchases. Subscriptions bought on our website also work in the app, but the app contains no links to that website purchase.
 
 Location: used while the app is open to show nearby situations and to check that a report is placed within 1 km of the user. A periodic background check compares the user's position with situations already stored on the device, so a local notification can warn them; the precise position is not sent for this.
 Push notifications: alerts about danger near the user's saved places.
@@ -162,7 +169,7 @@ Zo ingevuld in App Store Connect op 26-10-2026 (de AdMob-SDK verzamelt zelf ook 
 | Productinteractie (bevestigen/opgelost, AdMob) | Ja | Ja | App-functionaliteit, advertenties van derden |
 | Reclamegegevens (AdMob) | Nee | Ja | Advertenties van derden |
 | Crashgegevens, prestatiegegevens, overige diagnostiek (AdMob) | Nee | Nee | Analyse |
-| Aankoopgeschiedenis | Niet verzameld: betalen gebeurt buiten de app | | |
+| Aankoopgeschiedenis (abonnement in de app, via RevenueCat) | Ja | Nee | App-functionaliteit |
 
 Leeftijdsclassificatie: berekend 4+, handmatig verhoogd naar **13+** (meldingen over geweld
 en intimidatie). Beschikbaarheid: alleen Nederland. Prijs: gratis.
@@ -180,6 +187,7 @@ en intimidatie). Beschikbaarheid: alleen Nederland. Prijs: gratis.
 | Berichten / Content | Andere door gebruiker gemaakte content | Ja | Nee | Ja | App-functionaliteit |
 | App-activiteit | App-interacties (bevestigen/opgelost) | Ja | Nee | Ja | App-functionaliteit |
 | Apparaat-ID's | Installatie-ID, pushtoken, advertentie-ID | Ja | Ja (advertentie-ID met Google AdMob) | Nee | App-functionaliteit, advertenties |
+| Financiële info | Aankoopgeschiedenis (abonnement via Google Play, RevenueCat) | Ja | Nee | Nee | App-functionaliteit |
 
 ## Leeftijd en contentrating
 

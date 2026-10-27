@@ -98,6 +98,8 @@ Route::prefix('v1')->group(function () {
 
     // Stripe meldt betalingen, verlengingen en opzeggingen.
     Route::post('/webhooks/stripe', [SubscriptionController::class, 'webhook'])->middleware('throttle:120,1');
+    // RevenueCat meldt aankopen, verlengingen en opzeggingen in de App Store en Google Play.
+    Route::post('/webhooks/revenuecat', [SubscriptionController::class, 'storeWebhook'])->middleware('throttle:120,1');
 
     // Admin routes
     Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {

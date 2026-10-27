@@ -55,6 +55,8 @@ class AccountController extends Controller
                 'active' => $user->hasActiveSubscription(),
                 'status' => $user->subscription_status,
                 'expires_at' => $user->subscription_expires_at?->toIso8601String(),
+                // stripe, app_store, play_store of revenuecat: waar je het beheert of opzegt.
+                'provider' => $user->paidVia(),
             ],
             'settings' => [
                 'alert_filters' => $user->alertFilters(),

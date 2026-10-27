@@ -8,6 +8,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 
@@ -40,6 +41,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'webhook_secret',
         'stripe_customer_id',
         'stripe_subscription_id',
+        'billing_provider',
     ];
 
     protected $casts = [
@@ -88,6 +90,28 @@ class User extends Authenticatable implements MustVerifyEmail
         }
 
         return $this->subscription_expires_at?->isFuture() ?? false;
+    }
+
+    /**
+     * Eén abonnement per account. Loopt er al toegang via een ander kanaal (website, winkel of
+     * cadeau), dan negeren we een einde of opzegging van dit kanaal, en neemt een nieuwe betaling
+     * het alleen over van een cadeau of als die langer doorloopt.
+     */
+    public function acceptsBillingFrom(string $provider, bool $live, Carbon $expiresAt): bool
+    {
+        $runningElsewhere = $this->billing_provider !== $provider
+            && in_array($this->subscription_status, ['active', 'cancelled', 'billing_issue', 'gift'], true)
+            && ($this->subscription_expires_at?->isFuture() ?? false);
+
+        return ! $runningElsewhere || ($live && ($this->subscription_status === 'gift' || $expiresAt->gt($this->subscription_expires_at)));
+    }
+
+    /** Waar het lopende, betaalde abonnement loopt: stripe, app_store, play_store of revenuecat. */
+    public function paidVia(): ?string
+    {
+        return $this->billing_provider !== null && $this->subscription_status !== 'gift' && ($this->subscription_expires_at?->isFuture() ?? false)
+            ? $this->billing_provider
+            : null;
     }
 
     public function getSubscribedAttribute(): bool
