@@ -1,0 +1,50 @@
+<?php
+
+return [
+    'common' => [
+        'hello' => 'Hi',
+        'expires' => 'This link is valid for :minutes minutes.',
+        'fallback' => 'Button not working? Copy this link into your browser:',
+        'account' => 'Manage your account and subscription',
+        'help' => 'Questions? Email us at',
+        'privacy' => 'Privacy',
+        'terms' => 'Terms',
+        'email' => 'Your email address',
+    ],
+    'welcome' => [
+        'subject' => 'Welcome to VeiligerBuiten · confirm your email',
+        'preheader' => 'Your account is ready. Confirm your email and discover what is happening nearby.',
+        'eyebrow' => 'Welcome to VeiligerBuiten',
+        'title' => 'Be safe.',
+        'intro' => 'Your account has been created. Use the button below to confirm that this is your email address.',
+        'action' => 'Confirm my email address',
+        'details_title' => 'What you can do with VeiligerBuiten',
+        'details' => [
+            'See what is happening nearby on the live map: from fires and traffic disruption to weather warnings.',
+            'Save your places and choose your alerts. In the mobile app, allow location and notifications to receive them.',
+            'Post up to three reports a day and confirm whether a situation is still present.',
+            'Use the same email address on the website and in the mobile app. Map access requires an active subscription (€0.99 per month).',
+        ],
+        'note' => 'Manage your subscription, payment method and cancellation from your account on the website. Confirming your email does not start a subscription or payment.',
+        'ignore' => 'Did not create this account? Do not confirm the email address. You can ignore this email or contact us.',
+    ],
+    'verify' => [
+        'subject' => 'Confirm your email address · VeiligerBuiten',
+        'preheader' => 'Confirm that this email address belongs to your VeiligerBuiten account.',
+        'eyebrow' => 'Your account',
+        'title' => 'Confirm your email address',
+        'intro' => 'Use the button below to confirm this email address for your VeiligerBuiten account.',
+        'action' => 'Confirm my email address',
+        'ignore' => 'Did not request this? You can ignore this email. Your email address is only confirmed when you use the link.',
+    ],
+    'reset' => [
+        'subject' => 'Set a new password · VeiligerBuiten',
+        'preheader' => 'Use this temporary link to choose a new password for your account.',
+        'eyebrow' => 'Your account',
+        'title' => 'A new password',
+        'intro' => 'We received a request to reset your password. Use the button below to choose a new one.',
+        'action' => 'Set a new password',
+        'note' => 'After changing your password, sign in again on your devices. A used reset link cannot be reused.',
+        'ignore' => 'Did not request this? Ignore this email. Your password will remain unchanged.',
+    ],
+];

@@ -2,7 +2,7 @@ import type { Locale } from '~/composables/useLocale';
 import type { DangerLevel } from '~/types/Incident';
 
 const nl = {
-  common: { close: 'Sluiten', back: 'Terug', save: 'Opslaan', cancel: 'Annuleren', retry: 'Opnieuw', done: 'Klaar', delete: 'Verwijderen', on: 'Aan', off: 'Uit', minutes: 'min', call112: 'Direct gevaar? Bel 112.' },
+  common: { close: 'Sluiten', back: 'Terug', save: 'Opslaan', cancel: 'Annuleren', retry: 'Opnieuw', done: 'Klaar', delete: 'Verwijderen', on: 'Aan', off: 'Uit', minutes: 'min', call112: 'Direct gevaar? Bel 112.', loading: 'Account laden…' },
   tabs: { map: 'Kaart', places: 'Plekken', account: 'Account' },
   levels: { danger: 'Gevaar', warn: 'Opletten', info: 'Goed om te weten' } satisfies Record<DangerLevel, string>,
   time: { now: 'zojuist', minutes: '{n} min geleden', hours: '{n} uur geleden', days: '{n} d geleden' },
@@ -229,7 +229,7 @@ const nl = {
 type Copy = typeof nl;
 
 const en: Copy = {
-  common: { close: 'Close', back: 'Back', save: 'Save', cancel: 'Cancel', retry: 'Try again', done: 'Done', delete: 'Delete', on: 'On', off: 'Off', minutes: 'min', call112: 'In immediate danger? Call 112.' },
+  common: { close: 'Close', back: 'Back', save: 'Save', cancel: 'Cancel', retry: 'Try again', done: 'Done', delete: 'Delete', on: 'On', off: 'Off', minutes: 'min', call112: 'In immediate danger? Call 112.', loading: 'Loading account…' },
   tabs: { map: 'Map', places: 'Places', account: 'Account' },
   levels: { danger: 'Danger', warn: 'Heads-up', info: 'Good to know' },
   time: { now: 'just now', minutes: '{n} min ago', hours: '{n} h ago', days: '{n} d ago' },

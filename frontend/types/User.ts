@@ -21,6 +21,7 @@ export interface Account {
   id: number;
   name: string;
   email: string;
+  email_verified: boolean;
   locale: 'nl' | 'en';
   is_admin: boolean;
   subscription: { active: boolean; status: string | null; expires_at: string | null };

@@ -1,65 +1,48 @@
 <template>
-  <NuxtLayout name="auth">
-    <div class="rounded-lg bg-white p-8 text-center shadow">
-      <div v-if="loading" class="py-8">
-        <p class="text-gray-600">Verifying your email...</p>
-      </div>
-
-      <div v-else-if="success" class="py-8">
-        <div class="mb-4 text-green-600">
-          <svg class="mx-auto h-16 w-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>
-        </div>
-        <h3 class="mb-2 text-xl font-semibold">Email Verified!</h3>
-        <p class="mb-4 text-gray-600">Your email has been successfully verified.</p>
-        <NuxtLink to="/dashboard" class="inline-block rounded bg-blue-600 px-6 py-2 text-white hover:bg-blue-700">
-          Go to Dashboard
-        </NuxtLink>
-      </div>
-
-      <div v-else class="py-8">
-        <div class="mb-4 text-red-600">
-          <svg class="mx-auto h-16 w-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </div>
-        <h3 class="mb-2 text-xl font-semibold">Verification Failed</h3>
-        <p class="mb-4 text-gray-600">{{ error }}</p>
-        <NuxtLink to="/login" class="inline-block rounded bg-blue-600 px-6 py-2 text-white hover:bg-blue-700">
-          Go to Login
-        </NuxtLink>
-      </div>
-    </div>
-  </NuxtLayout>
+  <AccountActionFrame :title="success ? copy.verifiedTitle : copy.verifyTitle">
+    <p v-if="loading" role="status">{{ copy.verifying }}</p>
+    <template v-else-if="success">
+      <p role="status">{{ copy.verifiedBody }}</p>
+      <NuxtLink to="/account" class="btn btn--brand btn--block">{{ copy.account }}</NuxtLink>
+    </template>
+    <template v-else>
+      <p class="error-text" role="alert">{{ error }}</p>
+      <NuxtLink to="/login" class="btn btn--ink btn--block">{{ copy.login }}</NuxtLink>
+    </template>
+  </AccountActionFrame>
 </template>
 
 <script setup lang="ts">
-import { apiFetch } from '~/services/apiFetch';
-
-definePageMeta({
-  layout: false,
-});
-
+import { accountCopy } from '~/locales/account';
+definePageMeta({ layout: false });
 const route = useRoute();
+const auth = useAuthStore();
+const { locale, setLocale } = useLocale();
+const copy = computed(() => accountCopy[locale.value]);
+useHead(() => ({ title: `${copy.value.verifyTitle} · VeiligerBuiten`, meta: [{ name: 'robots', content: 'noindex' }, { name: 'referrer', content: 'no-referrer' }] }));
 const loading = ref(true);
 const success = ref(false);
 const error = ref('');
-
 onMounted(async () => {
-  const verificationUrl = route.query.url as string;
-
-  if (!verificationUrl) {
-    error.value = 'Invalid verification link';
+  if (route.query.lang === 'nl' || route.query.lang === 'en') setLocale(route.query.lang);
+  const { id, hash, expires, signature } = route.query;
+  // Alleen onze eigen verificatieroute aanroepen; geen URL uit een queryparameter volgen.
+  if (typeof id !== 'string' || !/^\d+$/.test(id)
+    || typeof hash !== 'string' || !/^[a-f0-9]{40}$/.test(hash)
+    || typeof expires !== 'string' || !/^\d+$/.test(expires)
+    || typeof signature !== 'string' || !/^[a-f0-9]{64}$/.test(signature)) {
+    error.value = copy.value.verifyInvalid;
     loading.value = false;
     return;
   }
-
   try {
-    await apiFetch(verificationUrl);
+    const query = new URLSearchParams({ expires, signature });
+    await useApi().get(`/email/verify/${id}/${hash}?${query}`);
     success.value = true;
-  } catch (err: any) {
-    error.value = err.message || 'Verification failed';
+    if (auth.isLoggedIn) await auth.refreshAccount().catch(() => undefined);
+    await navigateTo({ path: '/verify-email', query: {} }, { replace: true });
+  } catch (caught: any) {
+    error.value = [403, 404, 422].includes(caught?.status) ? copy.value.verifyInvalid : copy.value.verifyUnavailable;
   } finally {
     loading.value = false;
   }

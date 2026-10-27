@@ -39,7 +39,7 @@ Route::prefix('v1')->group(function () {
     });
 
     Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
-        ->middleware(['signed', 'throttle:10,1'])
+        ->middleware(['signed:relative', 'throttle:10,1'])
         ->name('verification.verify');
 
     // Authenticated user routes

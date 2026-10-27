@@ -1,74 +1,39 @@
 <template>
-  <NuxtLayout name="auth">
-    <div class="rounded-lg bg-white p-8 shadow">
-      <h2 class="mb-6 text-center text-2xl font-bold">Reset Password</h2>
-
-      <div v-if="success" class="mb-4 rounded bg-green-50 p-3 text-green-600">
-        {{ success }}
-      </div>
-
-      <form v-else @submit.prevent="handleSubmit" class="space-y-4">
-        <div v-if="error" class="rounded bg-red-50 p-3 text-red-600">
-          {{ error }}
-        </div>
-
-        <div>
-          <label class="mb-1 block text-sm font-medium text-gray-700">Email</label>
-          <input
-            v-model="email"
-            type="email"
-            required
-            class="w-full rounded border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        <button
-          type="submit"
-          :disabled="loading"
-          class="w-full rounded bg-blue-600 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
-        >
-          {{ loading ? 'Sending...' : 'Send Reset Link' }}
-        </button>
+  <AccountActionFrame :title="sent ? copy.sentTitle : copy.forgotTitle">
+    <p v-if="sent" role="status">{{ copy.sentBody }}</p>
+    <template v-else>
+      <p>{{ copy.forgotIntro }}</p>
+      <form @submit.prevent="submit">
+        <label class="field"><span class="field__label">{{ copy.email }}</span><input v-model="email" class="input" type="email" autocomplete="email" autocapitalize="off" required></label>
+        <p v-if="error" class="error-text" role="alert">{{ error }}</p>
+        <button class="btn btn--brand btn--block" :disabled="busy">{{ busy ? copy.sending : copy.sendLink }}</button>
       </form>
-
-      <p class="mt-4 text-center text-sm text-gray-600">
-        <NuxtLink to="/login" class="text-blue-600 hover:underline">
-          Back to login
-        </NuxtLink>
-      </p>
-    </div>
-  </NuxtLayout>
+    </template>
+    <NuxtLink to="/login" class="account-action__link">{{ copy.login }}</NuxtLink>
+  </AccountActionFrame>
 </template>
 
 <script setup lang="ts">
-definePageMeta({
-  middleware: 'guest',
-  layout: false,
-});
-
-const authStore = useAuthStore();
-
+import { accountCopy } from '~/locales/account';
+definePageMeta({ layout: false });
+const { locale } = useLocale();
+const copy = computed(() => accountCopy[locale.value]);
+useHead(() => ({ title: `${copy.value.forgotTitle} · VeiligerBuiten`, meta: [{ name: 'robots', content: 'noindex' }] }));
+const auth = useAuthStore();
 const email = ref('');
 const error = ref('');
-const success = ref('');
-const loading = ref(false);
-
-async function handleSubmit() {
+const sent = ref(false);
+const busy = ref(false);
+async function submit() {
   error.value = '';
-  success.value = '';
-  loading.value = true;
-
+  busy.value = true;
   try {
-    const response = await authStore.forgotPassword(email.value);
-    success.value = response.message;
-  } catch (err: any) {
-    if (err.data?.errors) {
-      error.value = Object.values(err.data.errors).flat().join(', ');
-    } else {
-      error.value = err.message || 'Failed to send reset link';
-    }
+    await auth.forgotPassword(email.value.trim());
+    sent.value = true;
+  } catch (caught: any) {
+    error.value = caught?.status === 429 ? copy.value.tooMany : copy.value.generic;
   } finally {
-    loading.value = false;
+    busy.value = false;
   }
 }
 </script>

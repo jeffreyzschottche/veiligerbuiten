@@ -1,0 +1,50 @@
+<?php
+
+return [
+    'common' => [
+        'hello' => 'Hoi',
+        'expires' => 'Deze link is :minutes minuten geldig.',
+        'fallback' => 'Werkt de knop niet? Kopieer deze link naar je browser:',
+        'account' => 'Je account en abonnement beheren',
+        'help' => 'Vragen? Mail ons op',
+        'privacy' => 'Privacy',
+        'terms' => 'Voorwaarden',
+        'email' => 'Je e-mailadres',
+    ],
+    'welcome' => [
+        'subject' => 'Welkom bij VeiligerBuiten · bevestig je e-mailadres',
+        'preheader' => 'Je account is aangemaakt. Bevestig je e-mailadres en ontdek wat er in je buurt speelt.',
+        'eyebrow' => 'Welkom bij VeiligerBuiten',
+        'title' => 'Be safe.',
+        'intro' => 'Je account is aangemaakt. Bevestig met de knop hieronder dat dit jouw e-mailadres is.',
+        'action' => 'Bevestig mijn e-mailadres',
+        'details_title' => 'Dit kun je met VeiligerBuiten',
+        'details' => [
+            'Bekijk op de live kaart wat er in je buurt gebeurt: van brand en verkeershinder tot weerswaarschuwingen.',
+            'Bewaar je plekken en kies welke meldingen je wilt ontvangen. In de mobiele app geef je hiervoor toestemming voor locatie en meldingen.',
+            'Plaats maximaal drie eigen meldingen per dag en bevestig of een situatie nog aanwezig is.',
+            'Gebruik hetzelfde e-mailadres op de website en in de mobiele app. Je kaarttoegang volgt je actieve abonnement (€ 0,99 per maand).',
+        ],
+        'note' => 'Je abonnement, betaalmethode en opzegging regel je via je account op de website. E-mail bevestigen start geen abonnement of betaling.',
+        'ignore' => 'Heb je dit account niet zelf aangemaakt? Klik dan niet op de bevestigingsknop. Je kunt deze mail negeren of contact met ons opnemen.',
+    ],
+    'verify' => [
+        'subject' => 'Bevestig je e-mailadres · VeiligerBuiten',
+        'preheader' => 'Bevestig dat dit e-mailadres bij jouw VeiligerBuiten-account hoort.',
+        'eyebrow' => 'Je account',
+        'title' => 'Bevestig je e-mailadres',
+        'intro' => 'Klik hieronder om dit e-mailadres aan je VeiligerBuiten-account te bevestigen.',
+        'action' => 'Bevestig mijn e-mailadres',
+        'ignore' => 'Heb je dit niet aangevraagd? Je kunt deze mail negeren. Je e-mailadres wordt alleen bevestigd als je de link gebruikt.',
+    ],
+    'reset' => [
+        'subject' => 'Stel een nieuw wachtwoord in · VeiligerBuiten',
+        'preheader' => 'Met deze tijdelijke link stel je een nieuw wachtwoord in voor je account.',
+        'eyebrow' => 'Je account',
+        'title' => 'Een nieuw wachtwoord',
+        'intro' => 'We hebben een verzoek ontvangen om je wachtwoord opnieuw in te stellen. Kies met de knop hieronder een nieuw wachtwoord.',
+        'action' => 'Nieuw wachtwoord instellen',
+        'note' => 'Na het wijzigen log je opnieuw in op je apparaten. Een gebruikte resetlink werkt niet nogmaals.',
+        'ignore' => 'Heb je dit niet aangevraagd? Negeer deze mail. Je wachtwoord blijft dan ongewijzigd.',
+    ],
+];

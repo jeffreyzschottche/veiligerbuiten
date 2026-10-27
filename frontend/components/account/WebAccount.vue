@@ -9,8 +9,10 @@
     </header>
 
     <main class="signup__card">
+      <EmailVerificationNotice v-if="ready && (step === 'pay' || step === 'done')" />
+      <section v-if="!ready" class="signup__center" aria-busy="true"><p>{{ t.common.loading }}</p></section>
       <!-- Terug van Stripe -->
-      <section v-if="step === 'processing'" class="signup__center">
+      <section v-else-if="step === 'processing'" class="signup__center">
         <span class="signup__spinner" aria-hidden="true" />
         <p>{{ t.signup.processing }}</p>
       </section>
@@ -104,6 +106,7 @@ const billing = useBilling();
 
 const mode = computed(() => props.mode);
 const form = reactive({ name: '', email: '', password: '', terms: false });
+const ready = ref(false);
 const busy = ref(false);
 const processing = ref(typeof route.query.betaald === 'string');
 const error = ref<string | null>(null);
@@ -123,6 +126,7 @@ const statusText = computed(() => {
 });
 
 onMounted(async () => {
+  ready.value = true;
   if (auth.isLoggedIn) await auth.refreshAccount().catch(() => undefined);
   const session = route.query.betaald;
   if (typeof session !== 'string') return;

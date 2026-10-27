@@ -1,2 +1,1 @@
-*
-!.gitignore
+# Bewaar deze map ook zonder templates. Blade-templates horen in Git.

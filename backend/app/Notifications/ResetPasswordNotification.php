@@ -3,28 +3,22 @@
 namespace App\Notifications;
 
 use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Notifications\Notification;
-
-class ResetPasswordNotification extends Notification
+class ResetPasswordNotification extends AccountMailNotification
 {
     public function __construct(public string $token)
     {
-    }
-
-    public function via($notifiable): array
-    {
-        return ['mail'];
+        parent::__construct();
     }
 
     public function toMail($notifiable): MailMessage
     {
-        $url = config('app.frontend_url') . '/reset-password?token=' . $this->token . '&email=' . urlencode($notifiable->email);
+        $url = rtrim((string) config('app.frontend_url'), '/').'/reset-password?'.http_build_query([
+            'token' => $this->token,
+            'email' => $notifiable->email,
+            'lang' => $notifiable->locale === 'en' ? 'en' : 'nl',
+        ], '', '&', PHP_QUERY_RFC3986);
+        $broker = config('auth.defaults.passwords');
 
-        return (new MailMessage)
-            ->subject('Reset Password Notification')
-            ->line('You are receiving this email because we received a password reset request for your account.')
-            ->action('Reset Password', $url)
-            ->line('This password reset link will expire in 60 minutes.')
-            ->line('If you did not request a password reset, no further action is required.');
+        return $this->message($notifiable, 'reset', $url, (int) config("auth.passwords.{$broker}.expire", 60));
     }
 }

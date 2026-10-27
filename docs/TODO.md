@@ -1,6 +1,6 @@
 # To-do lancering VeiligerBuiten
 
-Stand van 26-10-2026. De website draait op Coolify (veiligerbuiten.nl), de API op
+Bijgewerkt op 27-10-2026. De website draait op Coolify (veiligerbuiten.nl), de API op
 api.veiligerbuiten.nl (MySQL, cache/queue/sessies via de database).
 
 ## 1. Push koppelen
@@ -58,13 +58,16 @@ via de stores; de website houdt Stripe.
 
 ## 6. Mail via Resend
 
-Nu staat `MAIL_MAILER` op `log`: er gaat geen mail de deur uit, ook geen wachtwoordherstel.
+De code is klaar; activeren met `MAIL_MAILER=resend` en de mailinstellingen hieronder.
+Zie [MAIL.md](MAIL.md) voor activeren en testen.
 
-- [ ] Domein `veiligerbuiten.nl` toevoegen in Resend en hun DNS-records bij Mijndomein zetten
+- [x] Domein `veiligerbuiten.nl` toevoegen in Resend en hun DNS-records bij Mijndomein zetten
   (DKIM, en SPF/MX voor het `send.`-subdomein).
 - [ ] SPF van het hoofddomein laten kloppen: DMARC staat op reject, dus mail die niet in SPF/DKIM
   past wordt geweigerd.
-- [ ] Backend: `composer require resend/resend-php` (de mailer en `RESEND_API_KEY` staan al in de config).
+- [x] Resend PHP-pakket toegevoegd aan de backend en lockfile.
+- [x] Welkomstmail met bevestigingsknop, nieuwe bevestigingsmail en wachtwoordreset in VeiligerBuiten-stijl, NL/EN, HTML en tekstversie.
+- [x] Veilige, tijdelijke bevestigingslinks en eenmalige resetlinks getest; mails gebruiken de bestaande wachtrij.
 - [ ] In Coolify: `MAIL_MAILER=resend`, `RESEND_API_KEY=…`, `MAIL_FROM_ADDRESS=hallo@veiligerbuiten.nl`.
 - [ ] Testen: wachtwoord vergeten op de website, mail komt aan en niet in spam.
 - [ ] Mail óntvangen op `hallo@veiligerbuiten.nl`: MX-records (bijvoorbeeld mailforwarding bij
