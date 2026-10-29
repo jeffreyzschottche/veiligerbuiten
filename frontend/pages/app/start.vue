@@ -58,6 +58,7 @@
           <button class="btn btn--sm" :class="permissions.notifications ? 'btn--soft' : 'btn--brand'" :disabled="permissions.notifications" @click="allowNotifications">{{ permissions.notifications ? t.start.allowed : t.start.allow }}</button>
         </div>
       </div>
+      <BackgroundLocationConsent />
       <button class="btn btn--ink btn--block" @click="finish">{{ permissions.location ? t.start.continue : t.start.skip }}</button>
     </section>
   </div>

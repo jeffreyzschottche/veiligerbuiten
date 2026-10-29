@@ -44,6 +44,8 @@
       </div>
     </div>
 
+    <BackgroundLocationConsent />
+
     <!-- Taal -->
     <div class="group">
       <p class="group__label">{{ t.account.language }}</p>

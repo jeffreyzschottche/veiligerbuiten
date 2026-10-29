@@ -2,6 +2,9 @@ const mobileBuild = process.env.NUXT_MOBILE_BUILD === 'true';
 
 export default defineNuxtConfig({
   srcDir: '.',
+  // Capacitor always starts at index.html. Render the native route on the client
+  // so it cannot hydrate the marketing page's prerendered root and styles.
+  ssr: !mobileBuild,
   compatibilityDate: '2024-01-09',
 
   modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt'],
