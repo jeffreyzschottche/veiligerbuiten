@@ -47,7 +47,7 @@ class IncidentPresenter
             'official' => $incident->source !== 'user',
             'source' => $incident->source,
             'sourceName' => self::SOURCE_LABELS[$incident->source] ?? null,
-            // Herkomst blijft beschikbaar voor controles en integraties.
+            // Bronvermelding met link per item; verplicht volgens de hergebruikvoorwaarden van o.a. Zwaailicht.
             'sourceUrl' => $incident->source_url,
             'description' => $incident->description,
             'geometry' => $incident->geometry,

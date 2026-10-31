@@ -35,7 +35,7 @@ voor afwijzing.
 
 **Ondertitel, Apple (30):** Weet wat er om je heen gebeurt
 
-**Korte beschrijving, Google (80):** Live meldingen over gevaar in je buurt. Uit officiële bronnen en van buren.
+**Korte beschrijving, Google (80):** Live meldingen over gevaar in je buurt. Uit openbare bronnen en van buren.
 
 **Promotietekst, Apple (170):** Nieuw: meld intimidatie op straat in een paar tikken en zie waar het vaker gebeurt. Zo kies je zelf hoe je naar huis loopt.
 
@@ -45,10 +45,13 @@ voor afwijzing.
 **Beschrijving (4000):**
 
 ```
-Een gerust gevoel begint bij weten. VeiligerBuiten laat op één rustige kaart zien wat er nu om je heen gebeurt: van brand en verkeer tot noodweer en onrust op straat. Alleen een seintje als het ertoe doet.
+Een gerust gevoel begint bij weten. VeiligerBuiten laat op één rustige kaart zien wat er nu om je heen gebeurt: van brand en verkeer tot onrust op straat. Alleen een seintje als het ertoe doet.
+
+GEEN OVERHEIDSAPP
+VeiligerBuiten is een onafhankelijke app van Zschot Media. We zijn geen overheidsinstantie en vertegenwoordigen geen overheid, politie, hulpdienst, NL-Alert, NDW, KNMI of CBS. We werken niet in hun opdracht en zijn niet door hen goedgekeurd. Bij elke melding staat de bron. De officiële bronnen staan onderaan deze tekst.
 
 VEEL SIGNALEN, ÉÉN PLEK
-We brengen meldingen samen uit officiële bronnen: hulpdiensten, politieberichten, NL-Alert, verkeersmeldingen van NDW en aardbevingen van het KNMI. Komt hetzelfde uit meerdere bronnen, dan wordt het één melding die zekerder is. De politiecijfers per buurt laten zien waar het afgelopen jaar opvallend vaak geweld of straatroof was.
+We brengen openbare meldingen samen: alarmeringen van hulpdiensten (P2000), politieberichten, NL-Alert, verkeersmeldingen van NDW en aardbevingen van het KNMI. Komt hetzelfde uit meerdere bronnen, dan wordt het één melding die zekerder is. De politiecijfers per buurt laten zien waar het afgelopen jaar opvallend vaak geweld of straatroof was.
 
 JOUW BUURT VULT HET AAN
 Zie je zelf iets? Meld het in drie tikken. Anderen in de buurt bevestigen of melden dat het voorbij is. Hoe meer mensen een melding bevestigen, hoe zekerder hij wordt. Je meldt anoniem: anderen zien niet wie het meldde.
@@ -65,11 +68,21 @@ Sla je plekken op en kies waarvoor je een melding wilt. Stel stille uren in en b
 OOK ZONDER BEREIK
 De app bewaart de meldingen in je omgeving op je telefoon. Verplaats je je zonder internet, dan kan je telefoon je nog steeds waarschuwen bij een eerder opgeslagen situatie.
 
-JE LOCATIE BLIJFT BIJ JOU
-De app vergelijkt je locatie op je eigen telefoon met de meldingen. De server krijgt alleen een vak van ongeveer 5 km te zien. Je wordt niet gevolgd en we bewaren geen locatiegeschiedenis.
+LOCATIE VOOR MELDINGEN IN JE BUURT
+De app gebruikt je locatie om situaties in je omgeving te tonen. Voor waarschuwingen wordt een globale locatie gebruikt. Als je zelf een melding plaatst, controleert de server je actuele locatie en slaat de locatie van het incident op. We bewaren geen doorlopende locatiegeschiedenis.
 
 WERKT MET JE AI-ASSISTENT
 Koppel je account aan ChatGPT, Claude of een andere AI-assistent en vraag gewoon of het rustig is rond je bestemming.
+
+BRONNEN
+De app toont openbare informatie van deze bronnen. Kijk voor de officiële en volledige informatie altijd bij de bron zelf:
+• Politieberichten (Politie): https://www.politie.nl/nieuws
+• NL-Alert: https://www.nl-alert.nl
+• Verkeersmeldingen (Nationaal Dataportaal Wegverkeer): https://www.ndw.nu
+• Aardbevingen (KNMI): https://www.knmi.nl
+• Politiecijfers per buurt (Politie en CBS): https://data.politie.nl
+• Alarmeringen van hulpdiensten (P2000), via Sirenes: https://sirenes.app, Alarmeringen.nl: https://www.alarmeringen.nl en de P2000-monitor: https://www.p2000zhz-rr.nl
+• Kaart: © OpenStreetMap-bijdragers, https://www.openstreetmap.org/copyright
 
 Voor de kaart en meldingen heb je een abonnement nodig van € 0,99 per maand, zonder proefperiode. Het verlengt automatisch en je zegt het op wanneer je wilt in je App Store- of Google Play-instellingen.
 
@@ -84,7 +97,7 @@ VeiligerBuiten is een informatiedienst, geen hulpdienst. Bij direct gevaar bel j
 
 **Subtitle, Apple (30):** Know what is happening nearby
 
-**Short description, Google (80):** Live alerts about danger near you. From official sources and your neighbours.
+**Short description, Google (80):** Live alerts about danger near you. From public sources and your neighbours.
 
 **Promotional text, Apple (170):** New: report street harassment in a few taps and see where it happens more often. So you choose how you walk home.
 
@@ -94,10 +107,13 @@ VeiligerBuiten is een informatiedienst, geen hulpdienst. Bij direct gevaar bel j
 **Description (4000):**
 
 ```
-Peace of mind starts with knowing. VeiligerBuiten shows what is happening around you right now on one calm map: from fires and traffic to severe weather and trouble on the street. You only hear from us when it matters.
+Peace of mind starts with knowing. VeiligerBuiten shows what is happening around you right now on one calm map: from fires and traffic to trouble on the street. You only hear from us when it matters.
+
+NOT A GOVERNMENT APP
+VeiligerBuiten is an independent app by Zschot Media. We are not a government entity and do not represent any government, the police, emergency services, NL-Alert, NDW, KNMI or CBS. We do not work on their behalf and are not endorsed by them. Every report shows its source. The official sources are listed at the end of this text.
 
 MANY SIGNALS, ONE PLACE
-We bring together reports from official sources: emergency services, police news, NL-Alert, traffic reports from NDW and earthquakes from the KNMI. When several sources report the same thing, it becomes one report you can be more sure of. Police figures per neighbourhood show where violence or street robbery happened unusually often over the past year.
+We bring together public reports: emergency service dispatches (P2000), police news, NL-Alert, traffic reports from NDW and earthquakes from the KNMI. When several sources report the same thing, it becomes one report you can be more sure of. Police figures per neighbourhood show where violence or street robbery happened unusually often over the past year.
 
 YOUR NEIGHBOURHOOD FILLS IN THE GAPS
 See something yourself? Report it in three taps. People nearby confirm it or mark it as over. The more people confirm a report, the more certain it becomes. You report anonymously: others cannot see who reported it.
@@ -114,11 +130,21 @@ Save your places and choose what you want alerts for. Set quiet hours and decide
 EVEN WITHOUT SIGNAL
 The app keeps the reports around you on your phone. Moving without internet? Your phone can still warn you about a situation it saved earlier.
 
-YOUR LOCATION STAYS WITH YOU
-The app compares your location with the reports on your own phone. The server only sees an area of about 5 km. You are not tracked and we keep no location history.
+LOCATION FOR ALERTS NEAR YOU
+The app uses your location to show situations around you. Alerts use an approximate location. When you place a report yourself, the server checks your current location and stores the location of the incident. We keep no ongoing location history.
 
 WORKS WITH YOUR AI ASSISTANT
 Connect your account to ChatGPT, Claude or another AI assistant and simply ask whether it is calm around where you are going.
+
+SOURCES
+The app shows public information from these sources. For the official and complete information, always check the source itself:
+• Police news (Politie): https://www.politie.nl/nieuws
+• NL-Alert: https://www.nl-alert.nl
+• Traffic reports (National Road Traffic Data Portal, NDW): https://www.ndw.nu
+• Earthquakes (KNMI): https://www.knmi.nl
+• Police figures per neighbourhood (Politie and CBS): https://data.politie.nl
+• Emergency service dispatches (P2000), via Sirenes: https://sirenes.app, Alarmeringen.nl: https://www.alarmeringen.nl and the P2000 monitor: https://www.p2000zhz-rr.nl
+• Map: © OpenStreetMap contributors, https://www.openstreetmap.org/copyright
 
 The map and alerts need a subscription of €0.99 per month, with no trial. It renews automatically and you can cancel at any time in your App Store or Google Play settings.
 
@@ -202,7 +228,7 @@ en intimidatie). Beschikbaarheid: alleen Nederland. Prijs: gratis.
 ## Google: overige verklaringen
 
 - **Advertenties:** bevat advertenties.
-- **Overheids-app:** nee. **Financiële functies:** geen. **Gezondheid:** nee.
+- **Overheids-app:** nee. De beschrijving moet een bronnenlijst met links en de disclaimer "geen overheidsapp" houden (Misleading Claims-afwijzing van 31-10-2026). **Financiële functies:** geen. **Gezondheid:** nee.
 - **Nieuws-app:** nee (het is een informatiedienst, geen uitgever).
 - **Locatie op de achtergrond:** de app vraagt geen `ACCESS_BACKGROUND_LOCATION` aan.
 - **Melding-permissie:** voor waarschuwingen over gevaar bij je plekken.

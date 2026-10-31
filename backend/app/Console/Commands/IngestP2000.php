@@ -29,7 +29,13 @@ class IngestP2000 extends Command
     public function handle(P2000FeedService $zwaailicht, P2000ExtraFeeds $extra, ExternalIncidentIngestor $ingestor, SourceIngestion $tracking): int
     {
         $wanted = $this->option('feed');
-        $feeds = ['zwaailicht' => fn () => $zwaailicht->fetchZwaailicht()];
+        $feeds = [];
+        // Ook bij --feed=zwaailicht of all: uit is uit (zie ZWAAILICHT_ENABLED).
+        if (config('veiligbuiten.scrape.sources.p2000_zwaailicht.enabled', true)) {
+            $feeds['zwaailicht'] = fn () => $zwaailicht->fetchZwaailicht();
+        } elseif ($wanted === 'zwaailicht') {
+            $this->warn('zwaailicht: staat uit (ZWAAILICHT_ENABLED=false)');
+        }
         foreach (array_keys($extra->feeds()) as $name) {
             $feeds[$name] = fn () => $extra->fetch($name);
         }

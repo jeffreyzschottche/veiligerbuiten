@@ -47,7 +47,7 @@ export interface Incident {
   official: boolean;
   source: string;
   sourceName?: string | null;
-  /** Herkomst voor interne controles; niet zichtbaar bij meldingen. */
+  /** Link naar het oorspronkelijke bericht; de bronvermelding is verplicht (o.a. Zwaailicht). */
   sourceUrl?: string | null;
   description?: string | null;
   geometry?: IncidentGeometry | null;
