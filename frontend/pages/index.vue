@@ -95,6 +95,14 @@
               <p class="eyebrow"><span class="section-index">02 /</span>{{ t.sources.eyebrow }}</p>
               <h2 class="pre">{{ t.sources.title }}</h2>
               <p class="lead">{{ t.sources.lead }}</p>
+              <div class="source-websites">
+                <h3>{{ t.sources.websitesTitle }}</h3>
+                <ul>
+                  <li v-for="source in t.sources.websites" :key="source.href">
+                    <a :href="source.href" target="_blank" rel="noopener noreferrer">{{ source.label }}<span aria-hidden="true">↗</span></a>
+                  </li>
+                </ul>
+              </div>
               <div class="community-note"><span aria-hidden="true">↗</span><div><h3>{{ t.sources.community }}</h3><p>{{ t.sources.communityText }}</p></div></div>
             </div>
             <div class="signal-map" role="img" :aria-label="`${t.sources.official} + ${t.sources.people}: ${t.sources.hub}`">
@@ -525,6 +533,13 @@ h2 { font-weight: 570; letter-spacing: -.06em; line-height: 1.04; font-size: cla
 .intelligence::before { content: ''; position: absolute; top: 0; right: -200px; width: 700px; height: 600px; background: radial-gradient(ellipse, #dae6fa88, transparent 70%); pointer-events: none; }
 .intelligence__top { gap: 54px; position: relative; }
 .intelligence .lead { font-size: 16px; line-height: 1.7; max-width: 450px; }
+.source-websites { max-width: 450px; margin: -8px 0 28px; }
+.source-websites h3 { font-size: 13px; font-weight: 600; letter-spacing: -.01em; color: #40526c; }
+.source-websites ul { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; padding: 0; list-style: none; }
+.source-websites a { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 7px 11px; border: 1px solid #d5dfeb; border-radius: 8px; background: #ffffff80; color: #40526c; font-size: 12px; line-height: 1.4; text-decoration: none; }
+.source-websites a:hover { color: #2456d6; border-color: #9ebaf1; background: #fff; }
+.source-websites a:focus-visible { outline: 2px solid var(--vb-brand); outline-offset: 3px; }
+.source-websites a span { font-size: 14px; color: #6c83a6; }
 .community-note { display: flex; gap: 15px; border-top: 1px solid #d5dfeb; padding-top: 23px; max-width: 450px; }
 .community-note > span { display: grid; place-items: center; width: 34px; height: 34px; background: #dce7fa; color: #2f6bff; border-radius: 10px; flex: 0 0 auto; font-size: 21px; }
 .community-note h3 { font-size: 16px; font-weight: 570; letter-spacing: -.025em; }
