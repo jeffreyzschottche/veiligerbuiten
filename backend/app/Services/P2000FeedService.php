@@ -104,6 +104,10 @@ class P2000FeedService
      */
     public function fetchZwaailicht(): ?Collection
     {
+        if (! config('veiligbuiten.scrape.sources.p2000_zwaailicht.enabled', false)) {
+            return collect();
+        }
+
         try {
             $body = $this->fetcher->get(self::ZWAAILICHT_FEED, 30);
 

@@ -18,6 +18,7 @@
 
 ## Operatie
 
+- Zwaailicht staat uit met `ZWAAILICHT_ENABLED=false` op de backend. Deploy opnieuw na een wijziging in Coolify, zodat de runtimevariabelen en Laravel-configcache worden vernieuwd. Bestaande Zwaailicht-meldingen worden bij de migratie en daarna door `veiligbuiten:expire-incidents` gearchiveerd; de volgende sync verwijdert ze ook van telefoons. Bij handmatig beheer: voer na het laden van de nieuwe omgeving `php artisan config:cache` en `php artisan veiligbuiten:expire-incidents` uit.
 - Monitor queue-lag, connector-fouten, ingest-volume, publicatievertraging en push-delivery.
 - Houd bronpayloads afgeschermd; publiceer alleen genormaliseerde, noodzakelijke incidentinformatie.
 - Verwijder precieze gebruikerslocatie zodra de locatievalidatie en deduplicatie afgerond zijn; bewaar geen locatiehistorie.

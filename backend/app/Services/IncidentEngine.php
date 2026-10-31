@@ -34,6 +34,7 @@ class IncidentEngine
         $lonDelta = $radius / (111_000 * cos(deg2rad($latitude)));
 
         $candidates = Incident::query()
+            ->when(! config('veiligbuiten.scrape.sources.p2000_zwaailicht.enabled', false), fn ($query) => $query->where('source', '!=', 'p2000_zwaailicht'))
             ->whereIn('category', $categories)
             ->where('expires_at', '>', now())
             ->whereNull('resolved_at')

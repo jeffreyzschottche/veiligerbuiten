@@ -83,7 +83,8 @@ class IncidentLifecycle
     {
         $archive = ['status' => 'verlopen', 'visibility' => 'archived', 'resolved_at' => now(), 'archived_at' => now()];
 
-        $count = Incident::query()->whereNull('archived_at')->where('expires_at', '<=', now())->update($archive);
+        $count = $this->archiveDisabledSources();
+        $count += Incident::query()->whereNull('archived_at')->where('expires_at', '<=', now())->update($archive);
 
         foreach (config('veiligbuiten.lifecycle.categories') as $category => $rules) {
             $count += Incident::query()
@@ -94,6 +95,25 @@ class IncidentLifecycle
                     ->orWhere(fn ($q) => $q->whereNull('last_confirmed_at')->where('created_at', '<=', now()->subMinutes($rules['idle']))))
                 ->update($archive + ['expires_at' => now()]);
         }
+
+        return $count;
+    }
+
+    /** Uitgeschakelde bronnen ook uit bestaande telefoon-caches en pushwachtrijen halen. */
+    public function archiveDisabledSources(): int
+    {
+        if (config('veiligbuiten.scrape.sources.p2000_zwaailicht.enabled', false)) {
+            return 0;
+        }
+
+        $count = Incident::query()->where('source', 'p2000_zwaailicht')->whereNull('archived_at')->update([
+            'status' => 'verlopen', 'visibility' => 'archived', 'resolved_at' => now(),
+            'archived_at' => now(), 'expires_at' => now(),
+        ]);
+
+        AlertDelivery::query()->whereIn('status', ['queued', 'digest', 'waiting_provider'])
+            ->whereHas('incident', fn ($query) => $query->where('source', 'p2000_zwaailicht'))
+            ->update(['status' => 'cancelled', 'reason' => 'source_disabled']);
 
         return $count;
     }

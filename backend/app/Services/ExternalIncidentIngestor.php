@@ -102,6 +102,10 @@ class ExternalIncidentIngestor
     public function p2000(array $item): ?Incident
     {
         $source = 'p2000_' . ($item['source_feed'] ?? 'unknown');
+        if ($source === 'p2000_zwaailicht' && ! config('veiligbuiten.scrape.sources.p2000_zwaailicht.enabled', false)) {
+            return null;
+        }
+
         $incidentType = match ($item['category']) {
             'medisch' => 'medical',
             'brand' => 'fire',
@@ -193,6 +197,11 @@ class ExternalIncidentIngestor
         $existingObservation = IncidentObservation::query()
             ->where('source', $source)->where('source_reference', (string) $item['id'])->first();
         $incident = $existingObservation ? Incident::find($existingObservation->incident_id) : null;
+        // Een andere feed mag een oude Zwaailicht-melding niet in leven houden of heropenen.
+        if ($incident?->source === 'p2000_zwaailicht' && ! config('veiligbuiten.scrape.sources.p2000_zwaailicht.enabled', false)) {
+            $incident = null;
+            $existingObservation = null;
+        }
         $category = $attributes['category'];
         // Hetzelfde P2000-voorval uit een andere feed ligt door straat- of postcodeniveau soms iets verder weg.
         $precision = isset($item['location_precision_m']) ? (int) min(1000, max(400, $item['location_precision_m'])) : null;

@@ -26,10 +26,9 @@ const nl = {
     tags: ['Hulpdiensten', 'Verkeer & wegen', 'Weer & water', 'Leefomgeving', 'Jouw buurt'],
     eyebrow: 'Van melding naar overzicht',
     title: 'Veel signalen.\nEén plek voor jou.',
-    lead: 'We brengen meldingen samen: hulpdiensten (P2000) uit vier verschillende bronnen, politieberichten, NL-Alert, verkeersmeldingen van NDW en aardbevingen van het KNMI. De politiecijfers per buurt laten zien waar het afgelopen jaar opvallend vaak geweld of straatroof was. Komt hetzelfde uit meerdere bronnen, dan wordt het één melding die zekerder is. Zo hoef jij niet overal zelf te kijken.',
+    lead: 'We brengen meldingen samen: hulpdiensten (P2000) uit drie verschillende bronnen, politieberichten, NL-Alert, verkeersmeldingen van NDW en aardbevingen van het KNMI. De politiecijfers per buurt laten zien waar het afgelopen jaar opvallend vaak geweld of straatroof was. Komt hetzelfde uit meerdere bronnen, dan wordt het één melding die zekerder is. Zo hoef jij niet overal zelf te kijken.',
     websitesTitle: 'Bekijk onze bronnen',
     websites: [
-      { label: 'Zwaailicht.nl', href: 'https://zwaailicht.nl/' },
       { label: 'Sirenes', href: 'https://sirenes.app/' },
       { label: 'Alarmeringen.nl', href: 'https://alarmeringen.nl/' },
       { label: 'P2000-monitor', href: 'https://www.p2000zhz-rr.nl/' },
@@ -250,10 +249,9 @@ const en: typeof nl = {
     tags: ['Emergency services', 'Traffic & roads', 'Weather & water', 'Environment', 'Your neighbourhood'],
     eyebrow: 'From updates to understanding',
     title: 'Many signals.\nOne place for you.',
-    lead: 'We bring reports together: emergency services (P2000) from four different sources, police news, NL-Alert, NDW traffic reports and KNMI earthquakes. Police statistics per neighbourhood show where violence or street robbery was unusually common over the past year. When the same thing comes from several sources, it becomes one report you can trust more. So you do not have to check them all yourself.',
+    lead: 'We bring reports together: emergency services (P2000) from three different sources, police news, NL-Alert, NDW traffic reports and KNMI earthquakes. Police statistics per neighbourhood show where violence or street robbery was unusually common over the past year. When the same thing comes from several sources, it becomes one report you can trust more. So you do not have to check them all yourself.',
     websitesTitle: 'Explore our sources',
     websites: [
-      { label: 'Zwaailicht.nl', href: 'https://zwaailicht.nl/' },
       { label: 'Sirenes', href: 'https://sirenes.app/' },
       { label: 'Alarmeringen.nl', href: 'https://alarmeringen.nl/' },
       { label: 'P2000 monitor', href: 'https://www.p2000zhz-rr.nl/' },
