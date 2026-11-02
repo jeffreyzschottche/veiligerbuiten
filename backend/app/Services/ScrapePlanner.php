@@ -75,7 +75,8 @@ class ScrapePlanner
         if (($source['night'] ?? true) && $this->isNight()) {
             $interval = max($interval, $source['min'] * $config['night']['factor']);
         }
-        $seconds = $interval * 60 * (1 + (mt_rand(-1000, 1000) / 1000) * $config['jitter']);
+        // Alleen naar boven spreiden: min blijft zo een harde ondergrens (afspraak met o.a. Zwaailicht).
+        $seconds = $interval * 60 * (1 + (mt_rand(0, 1000) / 1000) * $config['jitter']);
 
         $state = [
             'interval' => round($interval, 2),

@@ -98,8 +98,8 @@ return [
         'sources' => [
             // NL-Alert kan levens redden: altijd elke 2 minuten, ook 's nachts.
             'nl_alert' => ['lane' => 'fast', 'command' => 'veiligbuiten:ingest-nl-alert', 'min' => 2, 'max' => 2, 'night' => false],
-            // Zwaailicht staat standaard UIT: betaald gebruik mag pas met een afspraak (takemymoney@zwaailicht.nl).
-            'p2000_zwaailicht' => ['lane' => 'fast', 'command' => 'veiligbuiten:ingest-p2000', 'args' => ['--feed' => 'zwaailicht'], 'min' => 2, 'max' => 6, 'enabled' => (bool) env('ZWAAILICHT_ENABLED', false)],
+            // Zwaailicht staat aan: de eigenaar gaf in november 2026 per mail toestemming, mits zichtbare bronlink per melding. Uitzetten kan met ZWAAILICHT_ENABLED=false. Hoogstens 1× per 6 minuten (min is een harde ondergrens).
+            'p2000_zwaailicht' => ['lane' => 'fast', 'command' => 'veiligbuiten:ingest-p2000', 'args' => ['--feed' => 'zwaailicht'], 'min' => 6, 'max' => 12, 'enabled' => (bool) env('ZWAAILICHT_ENABLED', true)],
             'p2000_sirenes' => ['lane' => 'fast', 'command' => 'veiligbuiten:ingest-p2000', 'args' => ['--feed' => 'sirenes'], 'min' => 2, 'max' => 8],
             'p2000_alarmeringen' => ['lane' => 'fast', 'command' => 'veiligbuiten:ingest-p2000', 'args' => ['--feed' => 'alarmeringen'], 'min' => 2, 'max' => 8],
             'p2000_monitor' => ['lane' => 'fast', 'command' => 'veiligbuiten:ingest-p2000', 'args' => ['--feed' => 'monitor'], 'min' => 3, 'max' => 10],

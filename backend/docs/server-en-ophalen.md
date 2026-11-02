@@ -25,7 +25,8 @@ Instellingen staan in `config/veiligbuiten.php` → `scrape`.
 | Bron | Snelst | Rustigst | Opmerking |
 |---|---|---|---|
 | NL-Alert | 2 min | 2 min | Altijd, ook 's nachts: dit kan levens redden |
-| P2000 (Zwaailicht, Sirenes, Alarmeringen) | 2 min | 6–8 min | |
+| P2000 Zwaailicht | 6 min | 12 min | Afgesproken met de eigenaar: hoogstens 1× per 6 minuten |
+| P2000 (Sirenes, Alarmeringen) | 2 min | 8 min | |
 | P2000-monitor | 3 min | 10 min | |
 | NDW | 5 min | 15 min | |
 | Politie | 15 min | 30 min | |
@@ -46,7 +47,7 @@ We gedragen ons als een nette, herkenbare bezoeker, en dat is de beste beschermi
 
 - **Herkenbaar.** Elke aanvraag noemt wie we zijn, met contactadres: `VeiligerBuiten/1.0 (+https://veiligerbuiten.nl; hallo@veiligerbuiten.nl)`. Een beheerder die iets wil, mailt ons in plaats van ons te blokkeren.
 - **"Niets nieuws?"-vragen.** We sturen ETag/Last-Modified mee. Is er niets veranderd, dan antwoordt de bron met een lege 304. Zwaailicht en NDW ondersteunen dat (getest; bij NDW scheelt het elke 5 minuten een download van 21 KB). Sirenes, Alarmeringen en de monitor doen het niet; die zijn klein (enkele tientallen KB) en worden rustiger gevraagd als er niets verandert.
-- **Eén aanvraag per bron per keer.** Nooit tegelijk en nooit vaker dan het tempo hierboven. Zwaailicht vraagt hoogstens 1× per minuut; wij doen het hoogstens 1× per 2 minuten.
+- **Eén aanvraag per bron per keer.** Nooit tegelijk en nooit vaker dan het tempo hierboven. Zwaailicht vraagt hoogstens 1× per minuut; wij doen het hoogstens 1× per 6 minuten. De spreiding (jitter) gaat alleen naar boven, dus de snelste tijd is echt een ondergrens.
 - **Stoppen als een bron dat vraagt.** Bij 429 (te veel), 503 (overbelast) of 403 (geweigerd) gaat er naar die host niets meer tot de pauze voorbij is. Die pauze komt uit Retry-After; anders is hij 15, 5 of 60 minuten.
 - **Geen trucs.** Geen wisselende IP-adressen en geen nep-browser. Wie ons wil weren, kan dat, en dan weten we dat via het overzicht en de logs.
 - **Eén bron eruit = de rest werkt.** P2000 komt uit vier bronnen. Valt er één weg, dan merkt de app dat nauwelijks.

@@ -13,7 +13,7 @@ serversleutels alleen in de secretstore van de backend/hostingomgeving.
 | Apple Push Notification service | iOS pushmeldingen | Ja | Vereist voor iOS-push. Apple Developer Program, Push Notifications capability, APNs `.p8` key, Key ID en Team ID. |
 | Google Play Console | Android publiceren | Geen API-key voor handmatige release | Vereist een Play Console-account en upload-keystore. Alleen CI-upload gebruikt later een service-account. |
 | Apple Developer + App Store Connect | iOS/TestFlight publiceren | Geen algemene API-key voor handmatige release | Vereist Apple Developer-account, signing en App Store Connect. CI-upload kan later een App Store Connect API-key gebruiken. |
-| P2000 via Zwaailicht | Brandweer/politie/ambulance | Nee | Actief: de publieke Atom-feed elke 2 minuten, met ETag en herkenbare User-Agent. Ambulance-ritten tellen als 'goed om te weten'. |
+| P2000 via Zwaailicht | Brandweer/politie/ambulance | Nee | Actief: de publieke Atom-feed hoogstens elke 6 minuten (afgesproken met de eigenaar), met ETag en herkenbare User-Agent. Ambulance-ritten tellen als 'goed om te weten'. |
 | NL-Alert | Overheidswaarschuwingen met gebied | Nee | Actief via public-warning.app (geen officieel gedocumenteerde API). |
 | KNMI aardbevingen | Bevingen vanaf M1,5 in NL | Nee | Actief via de FDSN-eventservice. |
 | Resend/Postmark | E-mail voor de oude account-reset/verify-routes | Alleen als die routes blijven | Optioneel. De kernapp is accountloos; verwijder deze starter-routes of configureer `RESEND_API_KEY`/`POSTMARK_API_KEY`. |
