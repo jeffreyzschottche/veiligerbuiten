@@ -6,6 +6,8 @@
 import type { Map as MapLibreMap, GeoJSONSource } from 'maplibre-gl';
 import type { Hotspot, Incident, Place } from '~/types/Incident';
 import type { Position } from '~/composables/useDevice';
+import { circleFeature } from '~/utils/geoCircle';
+import { placeColor } from '~/utils/placeColors';
 
 const props = defineProps<{
   incidents: Incident[];
@@ -30,16 +32,7 @@ let map: MapLibreMap | null = null;
 let centeredOnMe = false;
 
 /** Een cirkel in meters als polygoon, zodat het bereik op elke zoom klopt. */
-function circle(latitude: number, longitude: number, meters: number, steps = 64) {
-  const coordinates: [number, number][] = [];
-  const latRadius = meters / 111_320;
-  const lngRadius = meters / (111_320 * Math.cos((latitude * Math.PI) / 180));
-  for (let i = 0; i <= steps; i++) {
-    const angle = (i / steps) * Math.PI * 2;
-    coordinates.push([longitude + lngRadius * Math.cos(angle), latitude + latRadius * Math.sin(angle)]);
-  }
-  return { type: 'Feature' as const, properties: {}, geometry: { type: 'Polygon' as const, coordinates: [coordinates] } };
-}
+const circle = circleFeature;
 
 const incidentData = computed(() => ({
   type: 'FeatureCollection' as const,
@@ -62,8 +55,8 @@ const reachData = computed(() => {
 const placeData = computed(() => ({
   type: 'FeatureCollection' as const,
   features: props.places.flatMap((place) => [
-    { ...circle(place.latitude, place.longitude, place.radius_m), properties: { kind: 'area', enabled: place.alerts_enabled ? 1 : 0 } },
-    { type: 'Feature' as const, properties: { kind: 'label', name: place.name }, geometry: { type: 'Point' as const, coordinates: [place.longitude, place.latitude] } },
+    { ...circle(place.latitude, place.longitude, place.radius_m), properties: { kind: 'area', enabled: place.alerts_enabled ? 1 : 0, color: placeColor(place.color) } },
+    { type: 'Feature' as const, properties: { kind: 'label', name: place.name, color: placeColor(place.color) }, geometry: { type: 'Point' as const, coordinates: [place.longitude, place.latitude] } },
   ]),
 }));
 
@@ -105,9 +98,10 @@ onMounted(async () => {
     map.addSource('incidents', { type: 'geojson', data: incidentData.value });
     map.addSource('me', { type: 'geojson', data: meData.value });
 
-    map.addLayer({ id: 'place-area', type: 'fill', source: 'places', filter: ['==', ['get', 'kind'], 'area'], paint: { 'fill-color': '#0b0d12', 'fill-opacity': ['case', ['==', ['get', 'enabled'], 1], 0.04, 0.015] } });
-    map.addLayer({ id: 'place-line', type: 'line', source: 'places', filter: ['==', ['get', 'kind'], 'area'], paint: { 'line-color': '#0b0d12', 'line-opacity': 0.35, 'line-width': 1.2, 'line-dasharray': [2, 2] } });
-    map.addLayer({ id: 'place-label', type: 'symbol', source: 'places', filter: ['==', ['get', 'kind'], 'label'], layout: { 'text-field': ['get', 'name'], 'text-font': ['Noto Sans Bold'], 'text-size': 12, 'text-letter-spacing': 0.02 }, paint: { 'text-color': '#0b0d12', 'text-halo-color': '#ffffff', 'text-halo-width': 1.6 } });
+    // Elke plek in zijn eigen kleur; een plek zonder meldingen is lichter.
+    map.addLayer({ id: 'place-area', type: 'fill', source: 'places', filter: ['==', ['get', 'kind'], 'area'], paint: { 'fill-color': ['get', 'color'], 'fill-opacity': ['case', ['==', ['get', 'enabled'], 1], 0.08, 0.025] } });
+    map.addLayer({ id: 'place-line', type: 'line', source: 'places', filter: ['==', ['get', 'kind'], 'area'], paint: { 'line-color': ['get', 'color'], 'line-opacity': ['case', ['==', ['get', 'enabled'], 1], 0.75, 0.3], 'line-width': 1.5, 'line-dasharray': [2, 2] } });
+    map.addLayer({ id: 'place-label', type: 'symbol', source: 'places', filter: ['==', ['get', 'kind'], 'label'], layout: { 'text-field': ['get', 'name'], 'text-font': ['Noto Sans Bold'], 'text-size': 12, 'text-letter-spacing': 0.02 }, paint: { 'text-color': ['get', 'color'], 'text-halo-color': '#ffffff', 'text-halo-width': 1.6 } });
 
     map.addLayer({ id: 'hotspot-fill', type: 'fill', source: 'hotspots', minzoom: 12, paint: { 'fill-color': '#0b0d12', 'fill-opacity': ['case', ['==', ['get', 'stats'], 1], 0.02, 0.035] } });
     map.addLayer({ id: 'hotspot-line', type: 'line', source: 'hotspots', minzoom: 12, paint: { 'line-color': '#0b0d12', 'line-opacity': 0.28, 'line-width': 1.2, 'line-dasharray': [1, 2] } });

@@ -1,4 +1,6 @@
 <template>
+  <!-- Altijd bovenaan in de app: een sheet in een scherm viel anders achter de tabbalk (met de Opslaan-knop). -->
+  <Teleport to=".vb-app" defer>
   <Transition name="fade"><div v-if="open && backdrop" class="sheet-backdrop" @click="emit('close')" /></Transition>
   <Transition name="sheet">
     <section v-if="open" ref="sheet" class="sheet" role="dialog" aria-modal="true" :aria-label="title" :style="dragStyle">
@@ -11,8 +13,10 @@
         </header>
       </div>
       <div class="sheet__body"><slot /></div>
+      <footer v-if="$slots.footer" class="sheet__foot"><slot name="footer" /></footer>
     </section>
   </Transition>
+  </Teleport>
 </template>
 
 <script setup lang="ts">

@@ -24,10 +24,9 @@ Instellingen staan in `config/veiligbuiten.php` → `scrape`.
 
 | Bron | Snelst | Rustigst | Opmerking |
 |---|---|---|---|
-| NL-Alert | 2 min | 2 min | Altijd, ook 's nachts: dit kan levens redden |
+| NL-Alert | 60 min | 60 min | Ook 's nachts. Een NL-Alert duurt vaak maar een uur, dus hij kan tot een uur te laat verschijnen |
 | P2000 Zwaailicht | 6 min | 12 min | Afgesproken met de eigenaar: hoogstens 1× per 6 minuten |
-| P2000 (Sirenes, Alarmeringen) | 2 min | 8 min | |
-| P2000-monitor | 3 min | 10 min | |
+| P2000 Sirenes | 2 min | 8 min | |
 | NDW | 5 min | 15 min | |
 | Politie | 15 min | 30 min | |
 | KNMI-aardbevingen | 10 min | 30 min | |
@@ -46,7 +45,7 @@ Overzicht per bron: `php artisan veiligbuiten:scrape --status`. Alles nu ophalen
 We gedragen ons als een nette, herkenbare bezoeker, en dat is de beste bescherming:
 
 - **Herkenbaar.** Elke aanvraag noemt wie we zijn, met contactadres: `VeiligerBuiten/1.0 (+https://veiligerbuiten.nl; hallo@veiligerbuiten.nl)`. Een beheerder die iets wil, mailt ons in plaats van ons te blokkeren.
-- **"Niets nieuws?"-vragen.** We sturen ETag/Last-Modified mee. Is er niets veranderd, dan antwoordt de bron met een lege 304. Zwaailicht en NDW ondersteunen dat (getest; bij NDW scheelt het elke 5 minuten een download van 21 KB). Sirenes, Alarmeringen en de monitor doen het niet; die zijn klein (enkele tientallen KB) en worden rustiger gevraagd als er niets verandert.
+- **"Niets nieuws?"-vragen.** We sturen ETag/Last-Modified mee. Is er niets veranderd, dan antwoordt de bron met een lege 304. Zwaailicht en NDW ondersteunen dat (getest; bij NDW scheelt het elke 5 minuten een download van 21 KB). Sirenes doet het niet; die is klein (enkele tientallen KB) en worden rustiger gevraagd als er niets verandert.
 - **Eén aanvraag per bron per keer.** Nooit tegelijk en nooit vaker dan het tempo hierboven. Zwaailicht vraagt hoogstens 1× per minuut; wij doen het hoogstens 1× per 6 minuten. De spreiding (jitter) gaat alleen naar boven, dus de snelste tijd is echt een ondergrens.
 - **Stoppen als een bron dat vraagt.** Bij 429 (te veel), 503 (overbelast) of 403 (geweigerd) gaat er naar die host niets meer tot de pauze voorbij is. Die pauze komt uit Retry-After; anders is hij 15, 5 of 60 minuten.
 - **Geen trucs.** Geen wisselende IP-adressen en geen nep-browser. Wie ons wil weren, kan dat, en dan weten we dat via het overzicht en de logs.
@@ -121,7 +120,8 @@ Daarnaast nodig in productie:
 Een ruwe schatting, niet gemeten:
 
 - **Aantal pings.** 10.000 gebruikers die elk kwartier pingen geeft ongeveer 11 verzoeken per seconde.
+- **App open.** Met de app open pingt hij elke minuut. Als 500 mensen tegelijk de app open hebben, zijn dat ongeveer 8 verzoeken per seconde extra, bijna allemaal een 304.
 - **Wat een ping kost.** De meeste zijn een 304 zonder databasequery. De rest is een klaargezet antwoord uit de cache (gzip, meestal enkele KB).
 - **Conclusie.** Dat gaat prima op één kleine server met php-fpm en Redis.
 
-Wordt het toch te druk, verhoog dan `VB_SYNC_MIN_INTERVAL` (bijvoorbeeld naar 1800). De app volgt dat bij de volgende ping en vraagt dan minder vaak.
+Wordt het toch te druk, verhoog dan `VB_SYNC_FOREGROUND_MIN_INTERVAL` (bijvoorbeeld naar 180) en/of `VB_SYNC_MIN_INTERVAL` (bijvoorbeeld naar 1800). De app volgt dat bij de volgende ping en vraagt dan minder vaak.

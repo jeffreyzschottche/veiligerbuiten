@@ -3,7 +3,7 @@
 return [
 
     'knmi' => ['key' => env('KNMI_API_KEY')],
-    'ndw' => ['url' => env('NDW_OPEN_DATA_URL', 'https://opendata.ndw.nu/veiligheidsgerelateerde_berichten_srti.xml.gz')],
+    'ndw' => ['url' => env('NDW_OPEN_DATA_URL', 'https://opendata.ndw.nu/veiligheidsgerelateerde_informatie_srti.xml.gz')],
     'luchtmeetnet' => [
         'enabled' => env('LUCHTMEETNET_ENABLED', false),
         'url' => env('LUCHTMEETNET_URL', 'https://api.luchtmeetnet.nl/open_api'),
@@ -33,14 +33,6 @@ return [
     // Extra P2000-bronnen naast Zwaailicht (zie docs/bronnen-en-licenties.md). Rollende feeds; elke 2 min met ETag.
     'p2000_feeds' => [
         'sirenes' => env('P2000_SIRENES_URL', 'https://sirenes.app/rss.xml'),
-        'alarmeringen' => env('P2000_ALARMERINGEN_URL', 'https://alarmeringen.nl/feeds/all.rss'),
-        // Van de ~28 P2000-monitorfeeds worden er nog 4 bijgewerkt (de rest staat sinds 2012 stil).
-        'monitor' => [
-            'https://feeds.feedburner.com/p2000-regio-rotterdam-rijnmond',
-            'https://feeds.feedburner.com/p2000-regio-zuid-holland-zuid',
-            'https://feeds.feedburner.com/p2000-life-liners',
-            'https://feeds.feedburner.com/p2000-koninklijke-nederlandse-reddingsmaatschappij',
-        ],
     ],
     'nl_alert' => ['url' => env('NL_ALERT_URL', 'https://api.public-warning.app/api/v1/providers/nl-alert/alerts')],
     'knmi_quakes' => ['url' => env('KNMI_QUAKES_URL', 'https://rdsa.knmi.nl/fdsnws/event/1/query')],
@@ -51,9 +43,7 @@ return [
         'politie' => ['label' => 'Politie', 'enabled' => env('POLITIE_NEWS_ENABLED', true), 'maximum_age_minutes' => 45],
         'p2000' => ['label' => 'P2000 · Zwaailicht', 'enabled' => (bool) env('ZWAAILICHT_ENABLED', true), 'maximum_age_minutes' => 20],
         'p2000_sirenes' => ['label' => 'P2000 · Sirenes', 'enabled' => true, 'maximum_age_minutes' => 10],
-        'p2000_alarmeringen' => ['label' => 'P2000 · Alarmeringen.nl', 'enabled' => true, 'maximum_age_minutes' => 10],
-        'p2000_monitor' => ['label' => 'P2000 · monitor (Rijnmond, ZHZ, Lifeliner, KNRM)', 'enabled' => true, 'maximum_age_minutes' => 15],
-        'nl_alert' => ['label' => 'NL-Alert', 'enabled' => true, 'maximum_age_minutes' => 10],
+        'nl_alert' => ['label' => 'NL-Alert', 'enabled' => true, 'maximum_age_minutes' => 75],
         'knmi_quakes' => ['label' => 'KNMI aardbevingen', 'enabled' => true, 'maximum_age_minutes' => 30],
         'rijkswaterstaat' => ['label' => 'Rijkswaterstaat', 'enabled' => (bool) env('RWS_WATER_OBSERVATIONS_URL'), 'maximum_age_minutes' => 180],
     ],

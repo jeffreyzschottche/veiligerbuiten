@@ -21,6 +21,8 @@ use Illuminate\Support\Carbon;
  *    verloopt-tijd op 'nu + extend', nooit voorbij 'eerste waarneming + max';
  *  - een 'niet meer aanwezig'-stem halveert de resterende tijd;
  *  - zonder bevestiging gedurende 'idle' minuten verloopt een gebruikersmelding vanzelf;
+ *  - heeft een ander de gebruikersmelding bevestigd, dan blijft hij tot 3 'niet meer'-stemmen
+ *    of 12 uur zonder nieuwe bevestiging (confirmed_idle_minutes);
  *    officiële meldingen volgen hun bron en de vangnet-limiet.
  *
  * Verlopen meldingen worden eerst gearchiveerd (zodat telefoons ze bij een delta
@@ -51,11 +53,22 @@ class IncidentLifecycle
         return $first->addMinutes($this->rules($incident->category)['max']);
     }
 
-    /** Bevestiging of nieuwe bronupdate: leeft weer 'extend' minuten vanaf nu. */
+    /** Een gebruikersmelding waar een ander op reageerde; de melder zelf telt als 1 bevestiging. */
+    public function isConfirmedUserReport(Incident $incident): bool
+    {
+        return $incident->source === 'user' && (int) $incident->confirmations_count >= 2;
+    }
+
+    /**
+     * Bevestiging of nieuwe bronupdate: leeft weer 'extend' minuten vanaf nu.
+     * Een bevestigde gebruikersmelding blijft 12 uur na de laatste bevestiging, zonder vaste bovengrens.
+     */
     public function touch(Incident $incident): Incident
     {
-        $candidate = now()->addMinutes($this->rules($incident->category)['extend']);
-        $expires = $candidate->min($this->hardLimit($incident))->max($incident->expires_at ?? now());
+        $candidate = $this->isConfirmedUserReport($incident)
+            ? now()->addMinutes(config('veiligbuiten.lifecycle.confirmed_idle_minutes'))
+            : now()->addMinutes($this->rules($incident->category)['extend'])->min($this->hardLimit($incident));
+        $expires = $candidate->max($incident->expires_at ?? now());
 
         $incident->forceFill(['expires_at' => $expires, 'last_activity_at' => now()])->save();
 
@@ -86,9 +99,16 @@ class IncidentLifecycle
         $count = $this->archiveDisabledSources();
         $count += Incident::query()->whereNull('archived_at')->where('expires_at', '<=', now())->update($archive);
 
+        // Bevestigde gebruikersmeldingen: 12 uur zonder nieuwe bevestiging.
+        $count += Incident::query()
+            ->whereNull('archived_at')->where('source', 'user')->where('confirmations_count', '>=', 2)
+            ->where('last_confirmed_at', '<=', now()->subMinutes(config('veiligbuiten.lifecycle.confirmed_idle_minutes')))
+            ->update($archive + ['expires_at' => now()]);
+
+        // Onbevestigde gebruikersmeldingen: het ritme per soort.
         foreach (config('veiligbuiten.lifecycle.categories') as $category => $rules) {
             $count += Incident::query()
-                ->whereNull('archived_at')->where('source', 'user')->where('category', $category)
+                ->whereNull('archived_at')->where('source', 'user')->where('category', $category)->where('confirmations_count', '<', 2)
                 // Alleen bevestigingen tellen als interactie; een 'weg'-stem houdt niets in leven.
                 ->where(fn ($query) => $query
                     ->where('last_confirmed_at', '<=', now()->subMinutes($rules['idle']))

@@ -17,6 +17,7 @@ const { t } = useAppCopy();
 const tabs: Array<{ id: Tab; icon: IconName }> = [
   { id: 'map', icon: 'map' },
   { id: 'places', icon: 'pin' },
+  { id: 'sources', icon: 'radio' },
   { id: 'account', icon: 'user' },
 ];
 </script>

@@ -1,9 +1,13 @@
 import type { Locale } from '~/composables/useLocale';
 import type { DangerLevel } from '~/types/Incident';
+import type { PlaceColor } from '~/utils/placeColors';
+
+/** Een bron op het tabblad Bronnen; key verwijst naar /sources/status (null = geen live status). */
+export interface SourceItem { key: string | null; group: 'alerts' | 'background'; name: string; what: string; url: string }
 
 const nl = {
   common: { close: 'Sluiten', back: 'Terug', save: 'Opslaan', cancel: 'Annuleren', retry: 'Opnieuw', done: 'Klaar', delete: 'Verwijderen', on: 'Aan', off: 'Uit', minutes: 'min', call112: 'Direct gevaar? Bel 112.', loading: 'Account laden…' },
-  tabs: { map: 'Kaart', places: 'Plekken', account: 'Account' },
+  tabs: { map: 'Kaart', places: 'Plekken', sources: 'Bronnen', account: 'Account' },
   levels: { danger: 'Gevaar', warn: 'Opletten', info: 'Goed om te weten' } satisfies Record<DangerLevel, string>,
   time: { now: 'zojuist', minutes: '{n} min geleden', hours: '{n} uur geleden', days: '{n} d geleden' },
   map: {
@@ -79,6 +83,41 @@ const nl = {
     alerts: 'Meldingen',
     limit: 'Je kunt maximaal {max} plekken toevoegen.',
     suggestions: ['Thuis', 'Werk', 'School'],
+    pickerHelp: 'Sleep de kaart tot de speld op de goede plek staat.',
+    myLocation: 'Mijn locatie',
+    color: 'Kleur',
+    colors: { ink: 'Zwart', violet: 'Paars', pink: 'Roze', teal: 'Petrol', green: 'Groen', brown: 'Bruin' } satisfies Record<PlaceColor, string>,
+    remove: 'Plek verwijderen',
+    removeConfirm: '{name} verwijderen? Je krijgt dan geen meldingen meer voor deze plek.',
+    removeYes: 'Ja, verwijderen',
+  },
+  sources: {
+    title: 'Bronnen',
+    intro: 'Hier komen de meldingen vandaan. Kijk voor de officiële en volledige informatie altijd bij de bron zelf.',
+    disclaimer: 'VeiligerBuiten is een onafhankelijke app van Zschot Media. We zijn geen overheidsinstantie en werken niet in opdracht van de politie, hulpdiensten of andere bronnen hieronder.',
+    live: 'Live',
+    delayed: 'Vertraagd',
+    groups: { alerts: 'Meldingen', background: 'Achtergrond en kaart' },
+    items: [
+      { key: 'p2000', group: 'alerts', name: 'Zwaailicht.nl', what: 'Alarmeringen van brandweer, ambulance en politie (P2000)', url: 'https://zwaailicht.nl/' },
+      { key: 'p2000_sirenes', group: 'alerts', name: 'sirenes.app', what: 'Alarmeringen van hulpdiensten (P2000)', url: 'https://sirenes.app/' },
+      { key: 'politie', group: 'alerts', name: 'Politie', what: 'Politieberichten', url: 'https://www.politie.nl/nieuws' },
+      { key: 'nl_alert', group: 'alerts', name: 'NL-Alert', what: 'Officiële waarschuwingen bij een noodsituatie', url: 'https://www.nl-alert.nl/' },
+      { key: 'ndw', group: 'alerts', name: 'NDW', what: 'Ongevallen, spookrijders en obstakels op de weg', url: 'https://www.ndw.nu/' },
+      { key: 'knmi_quakes', group: 'alerts', name: 'KNMI', what: 'Aardbevingen · CC BY 4.0', url: 'https://www.knmi.nl/' },
+      { key: null, group: 'background', name: 'Politie en CBS', what: 'Politiecijfers per buurt · CC BY 4.0', url: 'https://data.politie.nl/' },
+      { key: null, group: 'background', name: 'PDOK', what: 'Adressen en plaatsen op de kaart', url: 'https://www.pdok.nl/' },
+      { key: null, group: 'background', name: 'OpenStreetMap', what: 'Kaart · © OpenStreetMap-bijdragers, via OpenFreeMap', url: 'https://www.openstreetmap.org/copyright' },
+    ] as SourceItem[],
+    request: 'Bron aanvragen',
+    requestIntro: 'Mis je een bron? Laat het ons weten, dan kijken we of we hem kunnen toevoegen.',
+    requestName: 'Welke bron?',
+    requestNamePlaceholder: 'Bijv. Brandweer Twente',
+    requestUrl: 'Website (optioneel)',
+    requestNote: 'Toelichting (optioneel)',
+    requestNotePlaceholder: 'Wat zou je ermee willen zien?',
+    requestSend: 'Versturen',
+    requestSent: 'Dank je! We bekijken je aanvraag.',
   },
   account: {
     title: 'Account',
@@ -256,7 +295,7 @@ type Copy = typeof nl;
 
 const en: Copy = {
   common: { close: 'Close', back: 'Back', save: 'Save', cancel: 'Cancel', retry: 'Try again', done: 'Done', delete: 'Delete', on: 'On', off: 'Off', minutes: 'min', call112: 'In immediate danger? Call 112.', loading: 'Loading account…' },
-  tabs: { map: 'Map', places: 'Places', account: 'Account' },
+  tabs: { map: 'Map', places: 'Places', sources: 'Sources', account: 'Account' },
   levels: { danger: 'Danger', warn: 'Heads-up', info: 'Good to know' },
   time: { now: 'just now', minutes: '{n} min ago', hours: '{n} h ago', days: '{n} d ago' },
   map: {
@@ -332,6 +371,41 @@ const en: Copy = {
     alerts: 'Alerts',
     limit: 'You can add up to {max} places.',
     suggestions: ['Home', 'Work', 'School'],
+    pickerHelp: 'Drag the map until the pin is in the right spot.',
+    myLocation: 'My location',
+    color: 'Colour',
+    colors: { ink: 'Black', violet: 'Purple', pink: 'Pink', teal: 'Teal', green: 'Green', brown: 'Brown' },
+    remove: 'Delete place',
+    removeConfirm: 'Delete {name}? You will no longer get alerts for this place.',
+    removeYes: 'Yes, delete',
+  },
+  sources: {
+    title: 'Sources',
+    intro: 'This is where reports come from. For official and complete information, always check the source itself.',
+    disclaimer: 'VeiligerBuiten is an independent app by Zschot Media. We are not a government body and do not work on behalf of the police, emergency services or the other sources below.',
+    live: 'Live',
+    delayed: 'Delayed',
+    groups: { alerts: 'Reports', background: 'Background and map' },
+    items: [
+      { key: 'p2000', group: 'alerts', name: 'Zwaailicht.nl', what: 'Fire, ambulance and police dispatches (P2000)', url: 'https://zwaailicht.nl/' },
+      { key: 'p2000_sirenes', group: 'alerts', name: 'sirenes.app', what: 'Emergency service dispatches (P2000)', url: 'https://sirenes.app/' },
+      { key: 'politie', group: 'alerts', name: 'Police', what: 'Police news', url: 'https://www.politie.nl/nieuws' },
+      { key: 'nl_alert', group: 'alerts', name: 'NL-Alert', what: 'Official emergency warnings', url: 'https://www.nl-alert.nl/' },
+      { key: 'ndw', group: 'alerts', name: 'NDW', what: 'Accidents, wrong-way drivers and road obstacles', url: 'https://www.ndw.nu/' },
+      { key: 'knmi_quakes', group: 'alerts', name: 'KNMI', what: 'Earthquakes · CC BY 4.0', url: 'https://www.knmi.nl/' },
+      { key: null, group: 'background', name: 'Police and CBS', what: 'Police statistics per neighbourhood · CC BY 4.0', url: 'https://data.politie.nl/' },
+      { key: null, group: 'background', name: 'PDOK', what: 'Addresses and places on the map', url: 'https://www.pdok.nl/' },
+      { key: null, group: 'background', name: 'OpenStreetMap', what: 'Map · © OpenStreetMap contributors, via OpenFreeMap', url: 'https://www.openstreetmap.org/copyright' },
+    ] as SourceItem[],
+    request: 'Request a source',
+    requestIntro: 'Missing a source? Let us know and we will see if we can add it.',
+    requestName: 'Which source?',
+    requestNamePlaceholder: 'E.g. Twente fire service',
+    requestUrl: 'Website (optional)',
+    requestNote: 'Details (optional)',
+    requestNotePlaceholder: 'What would you like to see from it?',
+    requestSend: 'Send',
+    requestSent: 'Thanks! We will look at your request.',
   },
   account: {
     title: 'Account',

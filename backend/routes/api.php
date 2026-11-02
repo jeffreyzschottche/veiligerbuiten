@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\HealthController;
+use App\Http\Controllers\Api\V1\SourceRequestController;
 use App\Http\Controllers\Api\V1\SourceStatusController;
 use App\Http\Controllers\Api\V1\IncidentController;
 use App\Http\Controllers\Api\V1\InstallationController;
@@ -88,6 +89,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/reports', [ReportController::class, 'store'])->middleware('throttle:6,1');
 
         Route::apiResource('places', PlaceController::class)->except('show');
+        Route::post('/source-requests', SourceRequestController::class)->middleware('throttle:5,60');
 
         Route::get('/me/ai', [AiConnectionController::class, 'show']);
         Route::post('/me/ai/token', [AiConnectionController::class, 'rotateToken'])->middleware('throttle:10,1');

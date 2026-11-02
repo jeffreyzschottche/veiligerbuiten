@@ -25,7 +25,7 @@ class P2000ExtraFeedsTest extends TestCase
         return "<item><title>{$title}</title><link>{$link}</link><guid>".($guid ?? $link)."</guid><pubDate>".now()->toRfc7231String()."</pubDate><description>{$description}</description>{$cats}</item>";
     }
 
-    /** PDOK nagebootst: Damrak in Amsterdam, een postcode in Zoetermeer, en plaatsen. */
+    /** PDOK nagebootst: Damrak in Amsterdam en een paar plaatsen. */
     private function fakePdok(): void
     {
         Http::fake(['api.pdok.nl/*' => function (Request $request) {
@@ -33,7 +33,6 @@ class P2000ExtraFeedsTest extends TestCase
             $q = mb_strtolower($query['q']);
             $doc = match (true) {
                 str_contains($q, 'damrak') => ['woonplaatsnaam' => 'Amsterdam', 'centroide_ll' => 'POINT(4.8952 52.3755)'],
-                str_contains($q, 'postcode:2726cv') => ['woonplaatsnaam' => 'Zoetermeer', 'centroide_ll' => 'POINT(4.48025 52.06600)'],
                 $query['fq'] === 'type:woonplaats' && in_array($q, ['amsterdam', 'utrecht', 'zoetermeer'], true) => ['woonplaatsnaam' => ucfirst($q), 'centroide_ll' => 'POINT(5.12 52.09)'],
                 default => null,
             };
@@ -46,18 +45,16 @@ class P2000ExtraFeedsTest extends TestCase
     {
         $this->fakePdok();
         Http::fake([
-            'zwaailicht.nl/*' => Http::response('<?xml version="1.0"?><feed xmlns="http://www.w3.org/2005/Atom"></feed>'),
+            'zwaailicht.nl/*' => Http::response('<?xml version="1.0"?><feed xmlns="http://www.w3.org/2005/Atom" xmlns:georss="http://www.georss.org/georss"><entry><id>z1</id><title>Woningbrand Damrak Amsterdam</title><summary>Brandweer met spoed naar Damrak in Amsterdam</summary><updated>'.now()->toIso8601String().'</updated><link rel="alternate" href="https://zwaailicht.nl/amsterdam/brand/z1"/><category term="brandweer"/><georss:point>52.3755 4.8952</georss:point></entry></feed>'),
             'sirenes.app/*' => Http::response($this->rss($this->item('Brandweer met spoed · Damrak, Amsterdam', 'Brandweer met spoed · Damrak, Amsterdam — P 1 BRT-01 Woningbrand Damrak Amsterdam', 'https://sirenes.app/incident/x1', ['brandweer', 'Amsterdam']))),
-            'alarmeringen.nl/*' => Http::response($this->rss($this->item('p 1 woningbrand damrak amsterdam', 'Brandweer met spoed naar Damrak in Amsterdam', 'https://alarmeringen.nl/noord-holland/amsterdam/amsterdam/1/p2000.html?utm_source=rss', [], 'g1'))),
-            'feeds.feedburner.com/*' => Http::response($this->rss('')),
         ]);
 
         $this->artisan('veiligbuiten:ingest-p2000')->assertSuccessful();
 
         $fire = Incident::sole();
         $this->assertSame('brand', $fire->category);
-        $this->assertSame('p2000_sirenes', $fire->source);
-        $this->assertSame('https://sirenes.app/incident/x1', $fire->source_url);
+        $this->assertSame('p2000_zwaailicht', $fire->source, 'the first feed names the incident');
+        $this->assertSame('https://zwaailicht.nl/amsterdam/brand/z1', $fire->source_url);
         $this->assertSame(2, IncidentObservation::where('incident_id', $fire->id)->count(), 'both feeds are recorded as evidence');
     }
 
@@ -66,23 +63,17 @@ class P2000ExtraFeedsTest extends TestCase
         $this->fakePdok();
         Http::fake([
             'zwaailicht.nl/*' => Http::response('<?xml version="1.0"?><feed xmlns="http://www.w3.org/2005/Atom"></feed>'),
-            'sirenes.app/*' => Http::response($this->rss('')),
-            'alarmeringen.nl/*' => Http::response($this->rss('')),
-            'feeds.feedburner.com/*' => Http::sequence()
-                ->push($this->rss(
-                    $this->item('A1 2726CV 111 Leopoldhove 111 ZT Rit: 91306', 'Melding: A1 2726CV 111 Leopoldhove Korps/Voertuig: AMBU Haaglanden Capcode: 1520043', 'https://www.p2000zhz-rr.nl/', [], 'c1')
-                    .$this->item('A1 2726CV 111 Leopoldhove 111 ZT Rit: 91306', 'Melding: A1 2726CV 111 Leopoldhove Korps/Voertuig: AMBU Haaglanden Capcode: 1520002', 'https://www.p2000zhz-rr.nl/', [], 'c2')))
-                ->whenEmpty(Http::response($this->rss(''))),
+            'sirenes.app/*' => Http::response($this->rss($this->item('Ambulance met spoed · Damrak, Amsterdam', 'Ambulance met spoed · Damrak, Amsterdam — A1 Damrak 2726CV Amsterdam Rit 91306', 'https://sirenes.app/incident/a1', ['ambulance', 'Amsterdam']))),
         ]);
 
-        $this->artisan('veiligbuiten:ingest-p2000', ['--feed' => 'monitor'])->assertSuccessful();
+        $this->artisan('veiligbuiten:ingest-p2000')->assertSuccessful();
 
-        $ride = Incident::sole(); // twee capcodes, één alarmering
+        $ride = Incident::sole();
         $this->assertSame('medisch', $ride->category);
         $this->assertSame('Ambulance-inzet', $ride->subtype);
-        $this->assertStringNotContainsString('Leopoldhove', $ride->description);
-        $this->assertStringNotContainsString('2726', (string) json_encode($ride->observations()->first()->metadata));
-        $this->assertNotEquals(52.06600, $ride->latitude, 'rounded to the neighbourhood, not the address');
+        $this->assertStringNotContainsString('Damrak', $ride->description);
+        $this->assertStringNotContainsString('2726', $ride->description);
+        $this->assertNotEquals(52.3755, $ride->latitude, 'rounded to the neighbourhood, not the street');
         $this->assertSame('info', \App\Support\DangerScale::level($ride));
     }
 
@@ -92,8 +83,6 @@ class P2000ExtraFeedsTest extends TestCase
         Http::fake([
             'zwaailicht.nl/*' => Http::response('<?xml version="1.0"?><feed xmlns="http://www.w3.org/2005/Atom"></feed>'),
             'sirenes.app/*' => Http::response($this->rss($this->item('Politie · Utrecht', 'Politie · Utrecht — P 1 Steekpartij Utrecht', 'https://sirenes.app/incident/u1', ['politie', 'Utrecht']))),
-            'alarmeringen.nl/*' => Http::response($this->rss('')),
-            'feeds.feedburner.com/*' => Http::response($this->rss('')),
         ]);
 
         $this->artisan('veiligbuiten:ingest-p2000')->assertSuccessful();
@@ -107,8 +96,6 @@ class P2000ExtraFeedsTest extends TestCase
         Http::fake([
             'zwaailicht.nl/*' => Http::response('', 500),
             'sirenes.app/*' => Http::response($this->rss($this->item('Brandweer met spoed · Damrak, Amsterdam', 'x — P 1 Woningbrand Damrak Amsterdam', 'https://sirenes.app/incident/x2', ['brandweer', 'Amsterdam']))),
-            'alarmeringen.nl/*' => Http::response('', 503),
-            'feeds.feedburner.com/*' => Http::response($this->rss('')),
         ]);
 
         $this->artisan('veiligbuiten:ingest-p2000');
@@ -116,24 +103,12 @@ class P2000ExtraFeedsTest extends TestCase
         $this->assertSame(1, Incident::count());
     }
 
-    public function test_raw_pager_texts_are_judged_sensibly_and_never_show_an_address(): void
+    public function test_raw_pager_texts_are_judged_sensibly(): void
     {
         $classifier = app(\App\Services\P2000FeedService::class);
         $this->assertSame(['category' => 'anders', 'subtype' => 'Brandweerinzet', 'severity' => 2], $classifier->classify('P 2 BRT-08 Liftopsluiting Isaac da Costastraat Hellevoetsluis', '', ['brandweer']));
         $this->assertSame('brand', $classifier->classify('P 2 BRT-02 BR berm/bosschage Rotterdamseweg Ridderkerk', '', ['brandweer'])['category'], '"BR" is how pagers write fire');
         $this->assertSame(2, $classifier->classify('4 Demonstratie Ahoyweg Rotterdam ICnum 628722', '', ['politie'])['severity']);
         $this->assertSame(3, $classifier->classify('1 Ongeval wegvervoer letsel Pascalweg Rotterdam', '', ['politie'])['severity']);
-
-        $this->fakePdok();
-        Http::fake([
-            'feeds.feedburner.com/*' => Http::sequence()
-                ->push($this->rss($this->item('A1 AMBU 17992 Damrak 2726CV Amsterdam bon 1652', 'Melding: A1 AMBU 17992 Korps/Voertuig: Groepscode Capcode: 2029568', 'https://www.p2000zhz-rr.nl/', [], 'm1')))
-                ->whenEmpty(Http::response($this->rss(''))),
-        ]);
-        $this->artisan('veiligbuiten:ingest-p2000', ['--feed' => 'monitor'])->assertSuccessful();
-
-        $ride = Incident::sole();
-        $this->assertStringNotContainsString('2726', $ride->description, 'recognised as ambulance via "A1", so no postcode');
-        $this->assertStringNotContainsString('Damrak', $ride->description);
     }
 }

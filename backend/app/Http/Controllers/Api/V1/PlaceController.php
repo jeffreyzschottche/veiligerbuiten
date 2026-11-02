@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Place;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class PlaceController extends Controller
@@ -54,6 +55,7 @@ class PlaceController extends Controller
             'latitude' => "{$rule}|numeric|between:50.5,53.7",
             'longitude' => "{$rule}|numeric|between:3.1,7.3",
             'radius_m' => "sometimes|integer|between:{$min},{$max}",
+            'color' => ['sometimes', Rule::in(config('veiligbuiten.places.colors'))],
             'alerts_enabled' => 'sometimes|boolean',
         ]);
     }

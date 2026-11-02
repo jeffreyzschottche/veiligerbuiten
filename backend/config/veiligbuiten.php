@@ -23,6 +23,8 @@ return [
         'snap_degrees' => 0.05,
         // Ondergrens tussen automatische syncs; ophogen bij drukte (load shedding).
         'min_interval_seconds' => (int) env('VB_SYNC_MIN_INTERVAL', 900),
+        // Met de app open ververst hij elke minuut. Meestal een 304 zonder databasequery. Ophogen bij drukte.
+        'foreground_min_interval_seconds' => (int) env('VB_SYNC_FOREGROUND_MIN_INTERVAL', 60),
         // Hoe ver terug een delta mag gaan; ouder = volledige sync.
         'delta_window_hours' => 6,
         'response_cache_seconds' => 600,
@@ -40,6 +42,10 @@ return [
      *  - max: absolute bovengrens sinds de eerste waarneming;
      *  - half_life: in zoveel minuten halveert de 'versheid' (stip vervaagt, bereik krimpt).
      * Een 'niet meer aanwezig'-stem halveert de resterende tijd.
+     *
+     * Gebruikersmeldingen die een ander bevestigde (de melder zelf telt als 1) volgen
+     * niet het ritme per soort: die blijven tot 3 mensen 'niet meer aanwezig' zeggen,
+     * of tot er confirmed_idle_minutes lang geen nieuwe bevestiging kwam.
      */
     'lifecycle' => [
         'categories' => [
@@ -60,6 +66,7 @@ return [
         // Officiële bronnen leven zolang de feed ze toont; dit is de vangnet-limiet.
         'official_max_hours' => 24,
         'min_remaining_after_resolve_vote' => 10,
+        'confirmed_idle_minutes' => 720,
     ],
 
     // Opruimen, zodat de database klein blijft.
@@ -96,13 +103,11 @@ return [
         'backoff_max' => 60,
         'jitter' => 0.1,
         'sources' => [
-            // NL-Alert kan levens redden: altijd elke 2 minuten, ook 's nachts.
-            'nl_alert' => ['lane' => 'fast', 'command' => 'veiligbuiten:ingest-nl-alert', 'min' => 2, 'max' => 2, 'night' => false],
+            // NL-Alert: elke 60 minuten, ook 's nachts (keuze van 2 nov. 2026). Let op: een NL-Alert duurt vaak maar een uur.
+            'nl_alert' => ['lane' => 'fast', 'command' => 'veiligbuiten:ingest-nl-alert', 'min' => 60, 'max' => 60, 'night' => false],
             // Zwaailicht staat aan: de eigenaar gaf in november 2026 per mail toestemming, mits zichtbare bronlink per melding. Uitzetten kan met ZWAAILICHT_ENABLED=false. Hoogstens 1× per 6 minuten (min is een harde ondergrens).
             'p2000_zwaailicht' => ['lane' => 'fast', 'command' => 'veiligbuiten:ingest-p2000', 'args' => ['--feed' => 'zwaailicht'], 'min' => 6, 'max' => 12, 'enabled' => (bool) env('ZWAAILICHT_ENABLED', true)],
             'p2000_sirenes' => ['lane' => 'fast', 'command' => 'veiligbuiten:ingest-p2000', 'args' => ['--feed' => 'sirenes'], 'min' => 2, 'max' => 8],
-            'p2000_alarmeringen' => ['lane' => 'fast', 'command' => 'veiligbuiten:ingest-p2000', 'args' => ['--feed' => 'alarmeringen'], 'min' => 2, 'max' => 8],
-            'p2000_monitor' => ['lane' => 'fast', 'command' => 'veiligbuiten:ingest-p2000', 'args' => ['--feed' => 'monitor'], 'min' => 3, 'max' => 10],
             'ndw' => ['lane' => 'slow', 'command' => 'veiligbuiten:ingest-ndw', 'min' => 5, 'max' => 15],
             'politie' => ['lane' => 'slow', 'command' => 'veiligbuiten:ingest-police-news', 'min' => 15, 'max' => 30, 'enabled' => (bool) env('POLITIE_NEWS_ENABLED', true)],
             'knmi_quakes' => ['lane' => 'slow', 'command' => 'veiligbuiten:ingest-knmi-quakes', 'min' => 10, 'max' => 30],
@@ -156,10 +161,17 @@ return [
         'max_area_radius_m' => 65000,
     ],
 
+    // "Bron aanvragen" in de app gaat naar dit adres; de gebruiker staat als reply-to.
+    'source_requests' => [
+        'mail_to' => env('SOURCE_REQUEST_MAIL') ?: env('MAIL_FROM_ADDRESS', 'hallo@veiligerbuiten.nl'),
+    ],
+
     'places' => [
         'max_per_user' => 10,
         'min_radius_m' => 100,
         'max_radius_m' => 5000,
+        // Kleuren voor de cirkel op de kaart. Geen rood, oranje of blauw: die betekenen op de kaart gevaar, opletten en jij. De app vertaalt de naam naar een kleur; zo kan het palet later mee met een donker thema.
+        'colors' => ['ink', 'violet', 'pink', 'teal', 'green', 'brown'],
     ],
 
     // Antispam voor pushberichten per gebruiker.

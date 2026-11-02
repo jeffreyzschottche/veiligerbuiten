@@ -1,1 +1,1 @@
-export type Tab = 'map' | 'places' | 'account';
+export type Tab = 'map' | 'places' | 'sources' | 'account';

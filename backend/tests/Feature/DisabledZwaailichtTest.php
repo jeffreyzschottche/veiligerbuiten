@@ -78,8 +78,6 @@ class DisabledZwaailichtTest extends TestCase
 
         Http::assertNotSent(fn ($request) => str_contains($request->url(), 'zwaailicht.nl'));
         $this->assertDatabaseHas('source_ingestion_runs', ['source' => 'p2000_sirenes', 'status' => 'success']);
-        $this->assertDatabaseHas('source_ingestion_runs', ['source' => 'p2000_alarmeringen', 'status' => 'success']);
-        $this->assertDatabaseHas('source_ingestion_runs', ['source' => 'p2000_monitor', 'status' => 'success']);
     }
 
     public function test_missing_configuration_also_blocks_the_feed(): void

@@ -81,7 +81,7 @@ De app toont openbare informatie van deze bronnen. Kijk voor de officiële en vo
 • Verkeersmeldingen (Nationaal Dataportaal Wegverkeer): https://www.ndw.nu
 • Aardbevingen (KNMI): https://www.knmi.nl
 • Politiecijfers per buurt (Politie en CBS): https://data.politie.nl
-• Alarmeringen van hulpdiensten (P2000), via Zwaailicht.nl: https://zwaailicht.nl, Sirenes: https://sirenes.app, Alarmeringen.nl: https://www.alarmeringen.nl en de P2000-monitor: https://www.p2000zhz-rr.nl
+• Alarmeringen van hulpdiensten (P2000), via Zwaailicht.nl: https://zwaailicht.nl en Sirenes: https://sirenes.app
 • Kaart: © OpenStreetMap-bijdragers, https://www.openstreetmap.org/copyright
 
 Voor de kaart en meldingen heb je een abonnement nodig van € 0,99 per maand, zonder proefperiode. Het verlengt automatisch en je zegt het op wanneer je wilt in je App Store- of Google Play-instellingen.
@@ -143,7 +143,7 @@ The app shows public information from these sources. For the official and comple
 • Traffic reports (National Road Traffic Data Portal, NDW): https://www.ndw.nu
 • Earthquakes (KNMI): https://www.knmi.nl
 • Police figures per neighbourhood (Politie and CBS): https://data.politie.nl
-• Emergency service dispatches (P2000), via Zwaailicht.nl: https://zwaailicht.nl, Sirenes: https://sirenes.app, Alarmeringen.nl: https://www.alarmeringen.nl and the P2000 monitor: https://www.p2000zhz-rr.nl
+• Emergency service dispatches (P2000), via Zwaailicht.nl: https://zwaailicht.nl and Sirenes: https://sirenes.app
 • Map: © OpenStreetMap contributors, https://www.openstreetmap.org/copyright
 
 The map and alerts need a subscription of €0.99 per month, with no trial. It renews automatically and you can cancel at any time in your App Store or Google Play settings.

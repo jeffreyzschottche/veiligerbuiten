@@ -36,8 +36,9 @@ class LifecycleAndSyncTest extends TestCase
 
     public function test_a_report_without_confirmations_expires_after_its_idle_time(): void
     {
-        $fight = $this->incident();
-        $roadblock = $this->incident(['category' => 'blokkade', 'subtype' => 'Weg geblokkeerd', 'severity' => 3, 'latitude' => 52.38]);
+        // Alleen de melder zelf (1 bevestiging): niemand anders reageerde.
+        $fight = $this->incident(['confirmations_count' => 1]);
+        $roadblock = $this->incident(['confirmations_count' => 1, 'category' => 'blokkade', 'subtype' => 'Weg geblokkeerd', 'severity' => 3, 'latitude' => 52.38]);
 
         $this->travel(95)->minutes();
         $this->artisan('veiligbuiten:expire-incidents')->assertSuccessful();
@@ -46,18 +47,43 @@ class LifecycleAndSyncTest extends TestCase
         $this->assertNull($roadblock->fresh()->archived_at, 'a closed road lasts longer');
     }
 
-    public function test_confirmations_keep_a_report_alive_up_to_a_hard_maximum(): void
+    public function test_a_confirmed_report_stays_until_twelve_quiet_hours_have_passed(): void
     {
-        $this->actingAsSubscriber();
-        $incident = $this->incident();
-        $before = $incident->expires_at;
+        $incident = $this->incident(['confirmations_count' => 1]);
+        $confirm = function (string $token) use ($incident) {
+            $this->actingAsSubscriber();
+            $installation = Installation::create(['token' => str_repeat($token, 64), 'trust_score' => 50]);
+            $this->postJson("/api/v1/incidents/{$incident->id}/confirm", [], ['X-Installation-Token' => $installation->token])->assertOk();
+        };
 
         $this->travel(80)->minutes();
-        $installation = Installation::create(['token' => str_repeat('c', 64), 'trust_score' => 50]);
-        $this->postJson("/api/v1/incidents/{$incident->id}/confirm", [], ['X-Installation-Token' => $installation->token])->assertOk();
+        $confirm('c');
+        $this->assertEqualsWithDelta(720, now()->diffInMinutes($incident->fresh()->expires_at), 1, 'confirmed by someone else: 12 hours');
 
-        $this->assertTrue($incident->fresh()->expires_at->gt($before));
-        $this->assertTrue($incident->fresh()->expires_at->lte($incident->first_observed_at->copy()->addMinutes(360)));
+        $this->travel(11)->hours();
+        $this->artisan('veiligbuiten:expire-incidents')->assertSuccessful();
+        $this->assertNull($incident->fresh()->archived_at, 'well past the 90 minutes and the old 6-hour maximum');
+        $confirm('d');
+
+        $this->travel(11)->hours();
+        $this->artisan('veiligbuiten:expire-incidents')->assertSuccessful();
+        $this->assertNull($incident->fresh()->archived_at, 'each confirmation restarts the 12 hours');
+
+        $this->travel(61)->minutes();
+        $this->artisan('veiligbuiten:expire-incidents')->assertSuccessful();
+        $this->assertSame('verlopen', $incident->fresh()->status, '12 hours without a confirmation');
+    }
+
+    public function test_three_gone_votes_remove_a_confirmed_report(): void
+    {
+        $incident = $this->incident(['expires_at' => now()->addHours(12)]);
+        foreach (['x', 'y', 'z'] as $i => $token) {
+            $this->actingAsSubscriber();
+            $installation = Installation::create(['token' => str_repeat($token, 64), 'trust_score' => 50]);
+            $this->postJson("/api/v1/incidents/{$incident->id}/resolve", [], ['X-Installation-Token' => $installation->token])->assertOk();
+            $this->assertSame($i < 2, $incident->fresh()->archived_at === null, 'gone after the third vote, not before');
+        }
+        $this->assertSame('opgelost', $incident->fresh()->status);
     }
 
     public function test_a_gone_vote_halves_the_remaining_time(): void
@@ -91,7 +117,7 @@ class LifecycleAndSyncTest extends TestCase
         $gone = $this->incident(['latitude' => 52.375, 'category' => 'brand', 'subtype' => 'Brand']);
         $this->travel(10)->seconds();
 
-        $first = $this->getJson('/api/v1/incidents/sync?latitude=52.3712&longitude=4.8962')->assertOk()->assertJsonPath('mode', 'full')->assertJsonCount(2, 'data');
+        $first = $this->getJson('/api/v1/incidents/sync?latitude=52.3712&longitude=4.8962')->assertOk()->assertJsonPath('mode', 'full')->assertJsonPath('format', \App\Services\AreaSync::format())->assertJsonPath('min_foreground_sync_after', 60)->assertJsonPath('min_sync_after', 900)->assertJsonCount(2, 'data');
         // Het middelpunt valt op het raster: buren vragen hetzelfde gebied op.
         $first->assertJsonPath('center.latitude', 52.35)->assertJsonPath('center.longitude', 4.9);
         $etag = $first->headers->get('ETag');

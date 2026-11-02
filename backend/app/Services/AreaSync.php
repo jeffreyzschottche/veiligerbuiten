@@ -49,6 +49,19 @@ class AreaSync
         return [round(round($latitude / $step) * $step, 4), round(round($longitude / $step) * $step, 4)];
     }
 
+    /** Ophogen als de vorm van een melding in de sync verandert (nieuw veld, andere weergave). */
+    private const FORMAT_VERSION = 'v3';
+
+    /**
+     * Versie van hoe meldingen eruitzien, inclusief de bronnamen. Verandert die (bijv. "Sirenes"
+     * wordt "sirenes.app"), dan krijgt elke telefoon een nieuwe ETag én ziet hij aan 'format' dat
+     * zijn bewaarde lijst verouderd is; dan haalt hij één keer alles opnieuw op.
+     */
+    public static function format(): string
+    {
+        return substr(sha1(self::FORMAT_VERSION.'|'.json_encode(IncidentPresenter::SOURCE_LABELS)), 0, 12);
+    }
+
     /** Hoogt de dataversie op; bewaarde ETags gelden dan niet meer. */
     public static function bump(): void
     {
@@ -82,7 +95,7 @@ class AreaSync
         $settling = $state->version && Carbon::parse($state->version)->gte(now()->subSeconds(2)) ? now()->getTimestamp() : null;
 
         $stamp = [
-            'etag' => 'W/"'.substr(sha1(implode('|', [$latitude, $longitude, $radiusKm, $locale, $state->version, $state->total, $hotspots, $settling, 'v3'])), 0, 24).'"',
+            'etag' => 'W/"'.substr(sha1(implode('|', [$latitude, $longitude, $radiusKm, $locale, $state->version, $state->total, $hotspots, $settling, self::format()])), 0, 24).'"',
             // De eerste seconde die de telefoon nog niet volledig heeft. Is de laatste seconde nog
             // 'onrustig', dan kan daar nog iets bijkomen: die seconde dan opnieuw meenemen.
             'cursor' => $state->version ? Carbon::parse($state->version)->getTimestamp() + ($settling ? 0 : 1) : now()->getTimestamp() - 2,

@@ -52,7 +52,6 @@ class ReportController extends Controller
             abort_if($nearby && ($nearby->reports()->where('user_id', $user->id)->exists() || $nearby->votes()->where('user_id', $user->id)->exists()), 409, 'Je hebt deze situatie al gemeld of bevestigd.');
             $visibility = $this->policy->initialVisibility($data['category']);
             $incident = $nearby ?: Incident::create([...$data, 'status' => 'gemeld', 'visibility' => $visibility, 'source' => 'user', 'incident_type' => $this->incidentType($data['category']), 'severity' => $this->severity($data['category'], $data['subtype']), 'confidence' => .20, 'confirmations_count' => 0, 'last_confirmed_at' => now(), 'first_observed_at' => now(), 'last_activity_at' => now(), 'location_precision_m' => isset($data['location_accuracy_m']) ? min(5000, (int) $data['location_accuracy_m']) : null, 'expires_at' => $this->lifecycle->initialExpiry($data['category'])]);
-            if ($nearby) $this->lifecycle->touch($nearby);
             $report = IncidentReport::create([
                 ...$data,
                 'incident_id' => $incident->id,
@@ -68,7 +67,9 @@ class ReportController extends Controller
             }
             $incident->increment('confirmations_count');
             $incident->update(['last_confirmed_at' => now()]);
-            $incident = $this->engine->updateConfidence($incident);
+            // Pas na het ophogen: een tweede melder telt zo als bevestiging (12 uur in plaats van het ritme per soort).
+            if ($nearby) $this->lifecycle->touch($incident->fresh());
+            $incident = $this->engine->updateConfidence($incident->fresh());
 
             return [$incident, $nearby];
         });

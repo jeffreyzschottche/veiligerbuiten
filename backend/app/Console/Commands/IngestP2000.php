@@ -13,8 +13,8 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 
 /**
- * P2000 uit meerdere bronnen: Zwaailicht (met coördinaten), Sirenes, Alarmeringen.nl
- * en de P2000-monitor. Hetzelfde voorval uit meerdere bronnen wordt één melding.
+ * P2000 uit meerdere bronnen: Zwaailicht (met coördinaten) en Sirenes.
+ * Hetzelfde voorval uit meerdere bronnen wordt één melding.
  *
  * Geen reconcile: alle feeds zijn rollende vensters (de laatste ~50 meldingen), geen
  * momentopname. Een melding die eruit schuift is niet voorbij; de levensduur volgt de
@@ -23,7 +23,7 @@ use Illuminate\Support\Collection;
 class IngestP2000 extends Command
 {
     protected $signature = 'veiligbuiten:ingest-p2000
-                            {--feed=all : zwaailicht, sirenes, alarmeringen, monitor of all}
+                            {--feed=all : zwaailicht, sirenes of all}
                             {--dry-run : Toon wat geïmporteerd zou worden zonder op te slaan}';
 
     protected $description = 'Haal P2000-meldingen op uit alle bronnen en normaliseer ze tot incidenten.';

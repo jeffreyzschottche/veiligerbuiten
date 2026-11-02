@@ -65,6 +65,24 @@ class AccountFeaturesTest extends TestCase
         $this->postJson('/api/v1/places', ['name' => 'Elfde', 'latitude' => 52.37, 'longitude' => 4.89])->assertUnprocessable();
     }
 
+    public function test_a_place_can_be_coloured_renamed_moved_and_deleted(): void
+    {
+        $this->actingAsSubscriber();
+        $id = $this->postJson('/api/v1/places', ['name' => 'Thuis', 'latitude' => 52.37, 'longitude' => 4.89])
+            ->assertCreated()->assertJsonPath('data.color', 'ink')->json('data.id');
+
+        $this->putJson("/api/v1/places/{$id}", ['name' => 'Huis', 'latitude' => 52.09, 'longitude' => 5.12, 'color' => 'violet'])
+            ->assertOk()
+            ->assertJsonPath('data.name', 'Huis')
+            ->assertJsonPath('data.latitude', 52.09)
+            ->assertJsonPath('data.color', 'violet');
+        $this->putJson("/api/v1/places/{$id}", ['color' => 'red'])->assertUnprocessable()->assertJsonValidationErrors('color');
+        $this->getJson('/api/v1/places')->assertJsonPath('data.0.color', 'violet');
+
+        $this->deleteJson("/api/v1/places/{$id}")->assertNoContent();
+        $this->getJson('/api/v1/places')->assertJsonCount(0, 'data');
+    }
+
     public function test_settings_are_validated_and_returned_with_the_account(): void
     {
         $this->actingAsSubscriber();

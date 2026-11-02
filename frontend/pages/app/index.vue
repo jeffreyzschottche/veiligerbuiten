@@ -32,6 +32,7 @@
     <ReportSheet :open="reportOpen" :map-center="mapCenter()" @close="reportOpen = false" @placed="placed" />
 
     <PlacesScreen v-if="tab === 'places'" :map-center="me ?? mapCenter()" :incidents="sync.incidents.value" />
+    <SourcesScreen v-if="tab === 'sources'" />
     <AccountScreen v-if="tab === 'account'" @logout="logout" @deleted="logout" />
 
     <AppTabBar v-model="tab" />

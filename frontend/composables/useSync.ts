@@ -12,6 +12,8 @@ const CACHE_KEY = 'vb_sync';
 const MAX_CACHE_AGE_MS = 6 * 60 * 60 * 1000;
 const CACHE_RADIUS_M = 30_000;
 const MANUAL_REFRESH_MS = 60 * 1000;
+/** Met de app open: elke minuut. Net onder de klok van 60 s, zodat elke tik ook echt ververst. */
+const FOREGROUND_REFRESH_MS = 55 * 1000;
 const RESYNC_DISTANCE_M = 10_000;
 /** Zelfde raster als de server: wie in dezelfde buurt is, vraagt hetzelfde gebied (gedeelde servercache). */
 const SNAP_DEGREES = 0.05;
@@ -28,6 +30,10 @@ interface SyncCache {
   etag?: string | null;
   /** Ondergrens die de server meegeeft als het druk is. */
   minSyncAfter?: number | null;
+  /** Ondergrens met de app open; de server kan die ophogen bij drukte. */
+  minForegroundSyncAfter?: number | null;
+  /** Vorm van de meldingen (bronnamen e.d.). Anders dan de server: alles opnieuw ophalen. */
+  format?: string | null;
 }
 
 interface SyncResponse {
@@ -39,6 +45,8 @@ interface SyncResponse {
   center: SyncCache['center'];
   cursor: number;
   min_sync_after?: number;
+  min_foreground_sync_after?: number;
+  format?: string;
 }
 
 function snap(position: Position) {
@@ -53,7 +61,7 @@ function snap(position: Position) {
 export function useSync() {
   const incidents = useState<Incident[]>('sync-incidents', () => []);
   const hotspots = useState<Hotspot[]>('sync-hotspots', () => []);
-  const meta = useState<Pick<SyncCache, 'cursor' | 'etag' | 'minSyncAfter'>>('sync-meta', () => ({}));
+  const meta = useState<Pick<SyncCache, 'cursor' | 'etag' | 'minSyncAfter' | 'minForegroundSyncAfter' | 'format'>>('sync-meta', () => ({}));
   const syncedAt = useState<number | null>('sync-at', () => null);
   const center = useState<SyncCache['center'] | null>('sync-center', () => null);
   const status = useState<'idle' | 'loading' | 'offline' | 'error'>('sync-status', () => 'idle');
@@ -61,6 +69,11 @@ export function useSync() {
   const lastAttempt = useState<number>('sync-last-attempt', () => 0);
 
   function refreshInterval() {
+    // App open en zichtbaar: elke minuut, tenzij de server bij drukte een hogere ondergrens geeft.
+    if (import.meta.client && !document.hidden) {
+      return Math.max(FOREGROUND_REFRESH_MS, (meta.value.minForegroundSyncAfter ?? 0) * 1000 - 5_000);
+    }
+    // Op de achtergrond (en voor de achtergrondcontrole): het interval uit je instellingen.
     const minutes = useAuthStore().account?.settings.check_interval_minutes ?? 15;
     const chosen = ([15, 30, 60].includes(minutes) ? minutes : 60) * 60_000;
     return Math.max(chosen, (meta.value.minSyncAfter ?? 0) * 1000) * JITTER;
@@ -90,7 +103,7 @@ export function useSync() {
     if (!cache) return;
     incidents.value = cache.items;
     hotspots.value = cache.hotspots ?? [];
-    meta.value = { cursor: cache.cursor ?? null, etag: cache.etag ?? null, minSyncAfter: cache.minSyncAfter ?? null };
+    meta.value = { cursor: cache.cursor ?? null, etag: cache.etag ?? null, minSyncAfter: cache.minSyncAfter ?? null, minForegroundSyncAfter: cache.minForegroundSyncAfter ?? null, format: cache.format ?? null };
     syncedAt.value = cache.at;
     center.value = cache.center;
     pruneExpired();
@@ -126,15 +139,24 @@ export function useSync() {
       const incremental = !force && !!previous?.cursor && !!previous.etag && Date.now() - previous.at < MAX_CACHE_AGE_MS &&
         previous.center.latitude === area.latitude && previous.center.longitude === area.longitude;
       const query = `latitude=${area.latitude}&longitude=${area.longitude}${incremental ? `&since=${previous!.cursor}` : ''}`;
-      const response = await Promise.race([
-        useApi().getRaw<SyncResponse>(`/incidents/sync?${query}`, incremental ? { 'If-None-Match': previous!.etag! } : {}),
+      const fetchArea = (query: string, headers: Record<string, string>) => Promise.race([
+        useApi().getRaw<SyncResponse>(`/incidents/sync?${query}`, headers),
         new Promise<never>((_, reject) => { timeout = setTimeout(() => reject(new Error('sync_timeout')), 8000); }),
       ]);
-      const cache = merge(previous, response.data, response.headers.etag ?? null, incremental);
+      let response = await fetchArea(query, incremental ? { 'If-None-Match': previous!.etag! } : {});
+      let delta = incremental;
+      // Andere weergave op de server (bijv. een nieuwe bronnaam): een delta zou de oude meldingen
+      // ongewijzigd laten. Dan één keer alles opnieuw.
+      if (incremental && response.data?.format && response.data.format !== previous?.format) {
+        clearTimeout(timeout);
+        response = await fetchArea(`latitude=${area.latitude}&longitude=${area.longitude}`, {});
+        delta = false;
+      }
+      const cache = merge(previous, response.data, response.headers.etag ?? null, delta);
       if (!cache) throw new Error('sync_invalid');
       incidents.value = cache.items;
       hotspots.value = cache.hotspots ?? [];
-      meta.value = { cursor: cache.cursor, etag: cache.etag, minSyncAfter: cache.minSyncAfter };
+      meta.value = { cursor: cache.cursor, etag: cache.etag, minSyncAfter: cache.minSyncAfter, minForegroundSyncAfter: cache.minForegroundSyncAfter, format: cache.format };
       syncedAt.value = cache.at;
       center.value = cache.center;
       status.value = 'idle';
@@ -161,7 +183,7 @@ export function useSync() {
       if (!Array.isArray(body.data)) return null;
       items = body.data;
     }
-    return { at: Date.now(), center: body.center, items, hotspots: body.hotspots ?? previous?.hotspots ?? [], cursor: body.cursor, etag, minSyncAfter: body.min_sync_after ?? null };
+    return { at: Date.now(), center: body.center, items, hotspots: body.hotspots ?? previous?.hotspots ?? [], cursor: body.cursor, etag, minSyncAfter: body.min_sync_after ?? null, minForegroundSyncAfter: body.min_foreground_sync_after ?? null, format: body.format ?? null };
   }
 
   /** Eén incident vervangen na een stem, zonder hele sync. */

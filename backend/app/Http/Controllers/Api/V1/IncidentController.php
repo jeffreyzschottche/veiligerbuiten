@@ -62,9 +62,11 @@ class IncidentController extends Controller
             'radius_km' => $radius,
             // De staat zelf als cursor: telefoons met dezelfde staat delen hun volgende delta.
             'cursor' => $cursor,
+            'format' => AreaSync::format(),
             'generated_at' => now()->toIso8601String(),
             'next_sync_after' => $sync->nextSyncAfter($payload['data'] ?? $payload['changes']),
             'min_sync_after' => config('veiligbuiten.sync.min_interval_seconds'),
+            'min_foreground_sync_after' => config('veiligbuiten.sync.foreground_min_interval_seconds'),
         ], 200, $headers);
     }
 

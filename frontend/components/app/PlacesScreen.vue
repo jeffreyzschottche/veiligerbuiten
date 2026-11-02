@@ -6,11 +6,12 @@
     <div v-if="places.length" class="card group">
       <div v-for="place in places" :key="place.id" class="row">
         <button class="place" @click="edit(place)">
-          <span class="row__icon"><Icon name="pin" :size="18" /></span>
+          <span class="row__icon place__icon" :style="{ color: placeColor(place.color) }"><Icon name="pin" :size="18" /></span>
           <span class="row__main">
             <span class="row__title">{{ place.name }}</span>
             <span class="row__sub">{{ t.places.radius }} {{ distance(place.radius_m) }}<template v-if="counts[place.id]"> · <b class="place__live">{{ countText(counts[place.id]!) }}</b></template></span>
           </span>
+          <span class="place__edit" aria-hidden="true"><Icon name="pencil" :size="16" /></span>
         </button>
         <button class="switch" role="switch" :aria-checked="place.alerts_enabled" :aria-label="`${t.places.alerts} ${place.name}`" @click="toggle(place)" />
       </div>
@@ -33,6 +34,7 @@ import type { Incident, Place } from '~/types/Incident';
 import type { Position } from '~/composables/useDevice';
 import { MAX_PLACES } from '~/composables/usePlaces';
 import { distanceMeters } from '~/composables/useGeo';
+import { placeColor } from '~/utils/placeColors';
 
 const props = defineProps<{ mapCenter: Position | null; incidents: Incident[] }>();
 const { t, fill, distance } = useAppCopy();
@@ -54,6 +56,8 @@ function create() { editing.value = {}; }
 
 <style scoped>
 .place { display: flex; flex: 1; align-items: center; gap: 12px; min-width: 0; padding: 0; border: 0; background: none; text-align: left; }
+.place__icon { background: color-mix(in srgb, currentColor 12%, #fff); }
+.place__edit { margin: 0 6px 0 auto; color: var(--vb-subtle); }
 .place__live { color: var(--vb-warn); font-weight: 600; }
 .empty { margin-bottom: 18px; padding: 32px 24px; text-align: center; }
 .empty__icon { display: inline-grid; place-items: center; width: 56px; height: 56px; margin-bottom: 12px; border-radius: 18px; color: var(--vb-brand); background: var(--vb-brand-50); }

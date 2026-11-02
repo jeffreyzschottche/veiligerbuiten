@@ -16,9 +16,9 @@ class IncidentPresenter
         'politie' => 'Politie',
         'p2000' => 'P2000',
         'p2000_zwaailicht' => 'Zwaailicht.nl',
-        'p2000_sirenes' => 'Sirenes',
-        'p2000_alarmeringen' => 'Alarmeringen.nl',
-        'p2000_monitor' => 'P2000 monitor',
+        'p2000_sirenes' => 'sirenes.app',
+        'p2000_alarmeringen' => 'Alarmeringen.nl', // verwijderd op 2 nov. 2026; alleen voor oude meldingen tot ze verlopen
+        'p2000_monitor' => 'P2000 monitor', // verwijderd op 2 nov. 2026; alleen voor oude meldingen tot ze verlopen
         'nl_alert' => 'NL-Alert',
         'ns' => 'NS',
     ];

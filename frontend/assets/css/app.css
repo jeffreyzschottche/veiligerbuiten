@@ -86,6 +86,8 @@ textarea.input { min-height: 88px; padding: 14px 16px; resize: none; }
 .sheet__head { display: flex; align-items: center; gap: 10px; padding: 14px 20px 8px; flex: none; }
 .sheet__title { flex: 1; margin: 0; font-size: 22px; font-weight: 680; letter-spacing: -.03em; }
 .sheet__body { overflow-y: auto; padding: 8px 20px calc(24px + var(--safe-bottom)); -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+.sheet__body:has(+ .sheet__foot) { padding-bottom: 16px; }
+.sheet__foot { flex: none; padding: 12px 20px calc(12px + var(--safe-bottom)); border-top: 1px solid var(--vb-line); background: var(--vb-paper); }
 .sheet-enter-active, .sheet-leave-active { transition: transform .32s var(--vb-ease); }
 .sheet-enter-from, .sheet-leave-to { transform: translateY(100%); }
 .fade-enter-active, .fade-leave-active { transition: opacity .25s; }

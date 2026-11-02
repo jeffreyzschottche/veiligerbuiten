@@ -72,6 +72,8 @@ class ScrapePlanner
             $changed => $source['min'],
             default => min($source['max'], $interval * 1.5),
         };
+        // Een opgehoogde min (bijv. na een configwijziging) geldt meteen, niet pas na een paar rondes.
+        $interval = max($source['min'], $interval);
         if (($source['night'] ?? true) && $this->isNight()) {
             $interval = max($interval, $source['min'] * $config['night']['factor']);
         }

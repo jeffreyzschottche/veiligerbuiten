@@ -20,7 +20,7 @@ export function usePlaces() {
   }
 
   async function save(place: Partial<Place> & Pick<Place, 'name' | 'latitude' | 'longitude'>) {
-    const body = { name: place.name, latitude: place.latitude, longitude: place.longitude, radius_m: place.radius_m ?? 500, alerts_enabled: place.alerts_enabled ?? true };
+    const body = { name: place.name, latitude: place.latitude, longitude: place.longitude, radius_m: place.radius_m ?? 500, color: place.color ?? 'ink', alerts_enabled: place.alerts_enabled ?? true };
     const { data } = place.id
       ? await useApi().put<{ data: Place }>(`/places/${place.id}`, body)
       : await useApi().post<{ data: Place }>('/places', body);

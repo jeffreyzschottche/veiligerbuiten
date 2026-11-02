@@ -1,3 +1,5 @@
+import type { PlaceColor } from '~/utils/placeColors';
+
 export type IncidentCategory =
   | 'brand'
   | 'geweld'
@@ -85,6 +87,7 @@ export interface Place {
   latitude: number;
   longitude: number;
   radius_m: number;
+  color: PlaceColor;
   alerts_enabled: boolean;
 }
 
