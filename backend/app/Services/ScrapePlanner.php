@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Incident;
+use App\Support\SourceSwitch;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
@@ -111,7 +112,8 @@ class ScrapePlanner
     private function sources(?string $lane): array
     {
         return collect(config('veiligbuiten.scrape.sources'))
-            ->filter(fn (array $source) => ($source['enabled'] ?? true) && ($lane === null || $lane === 'all' || $source['lane'] === $lane))
+            ->filter(fn (array $source, string $name) => ($source['enabled'] ?? true) && SourceSwitch::enabled($name)
+                && ($lane === null || $lane === 'all' || $source['lane'] === $lane))
             ->all();
     }
 

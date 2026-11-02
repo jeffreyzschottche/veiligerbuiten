@@ -41,7 +41,8 @@ return [
         'knmi' => ['label' => 'KNMI', 'enabled' => (bool) env('KNMI_API_KEY'), 'maximum_age_minutes' => 180],
         'luchtmeetnet' => ['label' => 'Luchtmeetnet', 'enabled' => env('LUCHTMEETNET_ENABLED', false), 'maximum_age_minutes' => 180],
         'politie' => ['label' => 'Politie', 'enabled' => env('POLITIE_NEWS_ENABLED', true), 'maximum_age_minutes' => 45],
-        'p2000' => ['label' => 'P2000 · Zwaailicht', 'enabled' => (bool) env('ZWAAILICHT_ENABLED', true), 'maximum_age_minutes' => 20],
+        // 'switch': de uitknop in veiligbuiten.source_switches (standaard dezelfde naam als de sleutel).
+        'p2000' => ['label' => 'P2000 · Zwaailicht', 'switch' => 'p2000_zwaailicht', 'maximum_age_minutes' => 20],
         'p2000_sirenes' => ['label' => 'P2000 · Sirenes', 'enabled' => true, 'maximum_age_minutes' => 10],
         'nl_alert' => ['label' => 'NL-Alert', 'enabled' => true, 'maximum_age_minutes' => 75],
         'knmi_quakes' => ['label' => 'KNMI aardbevingen', 'enabled' => true, 'maximum_age_minutes' => 30],

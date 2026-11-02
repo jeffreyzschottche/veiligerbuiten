@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Services\Sources\Geocoder;
+use App\Support\SourceSwitch;
 use App\Services\Sources\PoliteFetcher;
 use App\Support\DangerKeywords;
 use Illuminate\Support\Collection;
@@ -104,7 +105,7 @@ class P2000FeedService
      */
     public function fetchZwaailicht(): ?Collection
     {
-        if (! config('veiligbuiten.scrape.sources.p2000_zwaailicht.enabled', false)) {
+        if (! SourceSwitch::enabled('p2000_zwaailicht')) {
             return collect();
         }
 

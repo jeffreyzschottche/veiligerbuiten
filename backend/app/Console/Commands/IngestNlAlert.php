@@ -3,7 +3,10 @@
 namespace App\Console\Commands;
 
 use App\Models\Incident;
+use App\Services\AreaSync;
+use App\Support\SourceSwitch;
 use App\Services\ExternalIncidentIngestor;
+use App\Services\IncidentLifecycle;
 use App\Services\SourceIngestion;
 use App\Services\Sources\PoliteFetcher;
 use Illuminate\Console\Command;
@@ -22,6 +25,14 @@ class IngestNlAlert extends Command
 
     public function handle(PoliteFetcher $fetcher, ExternalIncidentIngestor $ingestor, SourceIngestion $tracking): int
     {
+        if (! SourceSwitch::enabled('nl_alert')) {
+            if (app(IncidentLifecycle::class)->archiveDisabledSources() > 0) {
+                AreaSync::bump();
+            }
+            $this->warn('NL-Alert: staat uit (NL_ALERT_ENABLED=false)');
+
+            return self::SUCCESS;
+        }
         $run = $tracking->start('nl_alert');
         try {
             $body = $fetcher->get(config('services.nl_alert.url'));

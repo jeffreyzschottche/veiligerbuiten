@@ -19,7 +19,7 @@ class DisabledZwaailichtTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        config(['veiligbuiten.scrape.sources.p2000_zwaailicht.enabled' => false]);
+        config(['veiligbuiten.source_switches.p2000_zwaailicht' => false]);
     }
 
     private function incident(string $source = 'p2000_zwaailicht'): Incident
@@ -129,7 +129,7 @@ class DisabledZwaailichtTest extends TestCase
     public function test_migration_invalidates_cached_sync_and_removes_old_reports_from_phone_delta(): void
     {
         $this->actingAsSubscriber();
-        config(['veiligbuiten.scrape.sources.p2000_zwaailicht.enabled' => true]);
+        config(['veiligbuiten.source_switches.p2000_zwaailicht' => true]);
         $old = $this->incident();
         $other = $this->incident('p2000_sirenes');
         $this->travel(10)->seconds();
@@ -138,7 +138,7 @@ class DisabledZwaailichtTest extends TestCase
         $etag = $first->headers->get('ETag');
         $cursor = $first->json('cursor');
 
-        config(['veiligbuiten.scrape.sources.p2000_zwaailicht.enabled' => false]);
+        config(['veiligbuiten.source_switches.p2000_zwaailicht' => false]);
         $this->travel(3)->seconds();
         $migration = require database_path('migrations/2026_10_31_210000_archive_disabled_zwaailicht_incidents.php');
         $migration->up();
@@ -184,7 +184,7 @@ class DisabledZwaailichtTest extends TestCase
 
     public function test_enabled_source_is_not_archived(): void
     {
-        config(['veiligbuiten.scrape.sources.p2000_zwaailicht.enabled' => true]);
+        config(['veiligbuiten.source_switches.p2000_zwaailicht' => true]);
         $incident = $this->incident();
         $migration = require database_path('migrations/2026_10_31_210000_archive_disabled_zwaailicht_incidents.php');
 

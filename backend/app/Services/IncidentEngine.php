@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Incident;
+use App\Support\SourceSwitch;
 use App\Models\IncidentVote;
 use App\Support\GeoUtils;
 
@@ -34,7 +35,7 @@ class IncidentEngine
         $lonDelta = $radius / (111_000 * cos(deg2rad($latitude)));
 
         $candidates = Incident::query()
-            ->when(! config('veiligbuiten.scrape.sources.p2000_zwaailicht.enabled', false), fn ($query) => $query->where('source', '!=', 'p2000_zwaailicht'))
+            ->when(SourceSwitch::disabled(), fn ($query, array $off) => $query->whereNotIn('source', $off))
             ->whereIn('category', $categories)
             ->where('expires_at', '>', now())
             ->whereNull('resolved_at')

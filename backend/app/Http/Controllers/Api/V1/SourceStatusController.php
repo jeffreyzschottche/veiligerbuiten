@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Support\SourceSwitch;
 use App\Models\SourceIngestionRun;
 use Illuminate\Http\JsonResponse;
 
@@ -17,11 +18,12 @@ class SourceStatusController extends Controller
             $lastSuccess = SourceIngestionRun::query()->where('source', $source)->where('status', 'success')->latest('finished_at')->first();
             $maximumAge = (int) $definition['maximum_age_minutes'];
             $fresh = $lastSuccess?->finished_at?->greaterThan(now()->subMinutes($maximumAge));
+            $enabled = ($definition['enabled'] ?? true) && SourceSwitch::enabled($definition['switch'] ?? $source);
             return [
                 'source' => $source,
                 'label' => $definition['label'],
-                'enabled' => (bool) ($definition['enabled'] ?? true),
-                'state' => !($definition['enabled'] ?? true) ? 'disabled' : ($run?->status === 'failed' ? 'degraded' : ($fresh ? 'healthy' : 'stale')),
+                'enabled' => (bool) $enabled,
+                'state' => ! $enabled ? 'disabled' : ($run?->status === 'failed' ? 'degraded' : ($fresh ? 'healthy' : 'stale')),
                 'lastSuccessfulAt' => $lastSuccess?->finished_at?->toIso8601String(),
             ];
         })->values();

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\AlertDelivery;
+use App\Support\SourceSwitch;
 use App\Models\DangerHotspot;
 use App\Models\Incident;
 use App\Models\SourceIngestionRun;
@@ -122,17 +123,18 @@ class IncidentLifecycle
     /** Uitgeschakelde bronnen ook uit bestaande telefoon-caches en pushwachtrijen halen. */
     public function archiveDisabledSources(): int
     {
-        if (config('veiligbuiten.scrape.sources.p2000_zwaailicht.enabled', false)) {
+        $off = SourceSwitch::disabled();
+        if (! $off) {
             return 0;
         }
 
-        $count = Incident::query()->where('source', 'p2000_zwaailicht')->whereNull('archived_at')->update([
+        $count = Incident::query()->whereIn('source', $off)->whereNull('archived_at')->update([
             'status' => 'verlopen', 'visibility' => 'archived', 'resolved_at' => now(),
             'archived_at' => now(), 'expires_at' => now(),
         ]);
 
         AlertDelivery::query()->whereIn('status', ['queued', 'digest', 'waiting_provider'])
-            ->whereHas('incident', fn ($query) => $query->where('source', 'p2000_zwaailicht'))
+            ->whereHas('incident', fn ($query) => $query->whereIn('source', $off))
             ->update(['status' => 'cancelled', 'reason' => 'source_disabled']);
 
         return $count;

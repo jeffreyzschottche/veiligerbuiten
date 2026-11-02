@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Incident;
+use App\Support\SourceSwitch;
 use App\Models\IncidentObservation;
 use App\Models\SourceRecord;
 use App\Support\NdwIncidentDetails;
@@ -64,9 +65,12 @@ class ExternalIncidentIngestor
         ], 24);
     }
 
-    /** NL-Alert: altijd gevaar; het gebied van de waarschuwing wordt de geometrie. */
-    public function nlAlert(array $item): Incident
+    /** NL-Alert: altijd gevaar; het gebied van de waarschuwing wordt de geometrie. Null als de bron uit staat. */
+    public function nlAlert(array $item): ?Incident
     {
+        if (! SourceSwitch::enabled('nl_alert')) {
+            return null;
+        }
         $incident = $this->upsertOfficial('nl_alert', $item, [
             'category' => $item['category'], 'subtype' => 'NL-Alert', 'description' => $item['description'],
             'severity' => 5, 'incident_type' => 'alert', 'fallback_hours' => 2,
@@ -102,7 +106,7 @@ class ExternalIncidentIngestor
     public function p2000(array $item): ?Incident
     {
         $source = 'p2000_' . ($item['source_feed'] ?? 'unknown');
-        if ($source === 'p2000_zwaailicht' && ! config('veiligbuiten.scrape.sources.p2000_zwaailicht.enabled', false)) {
+        if (! SourceSwitch::enabled($source)) {
             return null;
         }
 
@@ -197,8 +201,8 @@ class ExternalIncidentIngestor
         $existingObservation = IncidentObservation::query()
             ->where('source', $source)->where('source_reference', (string) $item['id'])->first();
         $incident = $existingObservation ? Incident::find($existingObservation->incident_id) : null;
-        // Een andere feed mag een oude Zwaailicht-melding niet in leven houden of heropenen.
-        if ($incident?->source === 'p2000_zwaailicht' && ! config('veiligbuiten.scrape.sources.p2000_zwaailicht.enabled', false)) {
+        // Een andere feed mag een melding van een uitgeschakelde bron niet in leven houden of heropenen.
+        if ($incident && ! SourceSwitch::enabled($incident->source)) {
             $incident = null;
             $existingObservation = null;
         }

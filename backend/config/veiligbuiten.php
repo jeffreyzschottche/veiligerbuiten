@@ -92,6 +92,21 @@ return [
     ],
 
     /*
+     * Uitknoppen voor bronnen die we niet als open data gebruiken, maar dankzij toestemming
+     * of zonder duidelijke licentie voor commercieel gebruik. Zet er een op false in de .env
+     * en herstart: dan haalt de server niets meer op, verdwijnen bestaande meldingen binnen
+     * een minuut van de kaart en uit de pushwachtrij, en staat de bron in de app als
+     * uitgeschakeld. Een nieuwe bron zonder open licentie komt hier ook bij, met dezelfde
+     * naam als in 'scrape.sources' en als incidentbron. Open overheidsdata (Politie, NDW,
+     * KNMI, CBS) staat hier bewust niet in. Zie docs/bronnen-en-licenties.md.
+     */
+    'source_switches' => [
+        'p2000_zwaailicht' => (bool) env('ZWAAILICHT_ENABLED', true),
+        'p2000_sirenes' => (bool) env('SIRENES_ENABLED', true),
+        'nl_alert' => (bool) env('NL_ALERT_ENABLED', true),
+    ],
+
+    /*
      * Ophaalplanner (veiligbuiten:scrape, elke minuut via de scheduler). Per bron een interval
      * in minuten tussen min en max: verandert er iets, dan terug naar min; blijft het gelijk,
      * dan steeds ×1,5 ruimer tot max. Bij een fout steeds 2× langer wachten, tot backoff_max.
@@ -105,8 +120,9 @@ return [
         'sources' => [
             // NL-Alert: elke 60 minuten, ook 's nachts (keuze van 2 nov. 2026). Let op: een NL-Alert duurt vaak maar een uur.
             'nl_alert' => ['lane' => 'fast', 'command' => 'veiligbuiten:ingest-nl-alert', 'min' => 60, 'max' => 60, 'night' => false],
-            // Zwaailicht staat aan: de eigenaar gaf in november 2026 per mail toestemming, mits zichtbare bronlink per melding. Uitzetten kan met ZWAAILICHT_ENABLED=false. Hoogstens 1× per 6 minuten (min is een harde ondergrens).
-            'p2000_zwaailicht' => ['lane' => 'fast', 'command' => 'veiligbuiten:ingest-p2000', 'args' => ['--feed' => 'zwaailicht'], 'min' => 6, 'max' => 12, 'enabled' => (bool) env('ZWAAILICHT_ENABLED', true)],
+            // Zwaailicht staat aan: de eigenaar gaf in november 2026 per mail toestemming, mits zichtbare bronlink per melding. Hoogstens 1× per 6 minuten (min is een harde ondergrens).
+            // Zwaailicht, Sirenes en NL-Alert hebben een uitknop in 'source_switches'; de planner slaat ze dan over.
+            'p2000_zwaailicht' => ['lane' => 'fast', 'command' => 'veiligbuiten:ingest-p2000', 'args' => ['--feed' => 'zwaailicht'], 'min' => 6, 'max' => 12],
             'p2000_sirenes' => ['lane' => 'fast', 'command' => 'veiligbuiten:ingest-p2000', 'args' => ['--feed' => 'sirenes'], 'min' => 2, 'max' => 8],
             'ndw' => ['lane' => 'slow', 'command' => 'veiligbuiten:ingest-ndw', 'min' => 5, 'max' => 15],
             'politie' => ['lane' => 'slow', 'command' => 'veiligbuiten:ingest-police-news', 'min' => 15, 'max' => 30, 'enabled' => (bool) env('POLITIE_NEWS_ENABLED', true)],

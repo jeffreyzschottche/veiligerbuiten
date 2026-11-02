@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Incident;
+use App\Support\SourceSwitch;
 use App\Services\AreaSync;
 use App\Services\ExternalIncidentIngestor;
 use App\Services\IncidentLifecycle;
@@ -32,17 +33,21 @@ class IngestP2000 extends Command
     {
         $wanted = $this->option('feed');
         $feeds = [];
-        // Ook bij --feed=zwaailicht of all: uit is uit (zie ZWAAILICHT_ENABLED).
-        if (config('veiligbuiten.scrape.sources.p2000_zwaailicht.enabled', false)) {
-            $feeds['zwaailicht'] = fn () => $zwaailicht->fetchZwaailicht();
-        } elseif ($wanted === 'zwaailicht') {
-            $this->warn('zwaailicht: staat uit (ZWAAILICHT_ENABLED=false)');
+        $feeds['zwaailicht'] = fn () => $zwaailicht->fetchZwaailicht();
+        foreach (array_keys($extra->feeds()) as $name) {
+            $feeds[$name] = fn () => $extra->fetch($name);
+        }
+        // Ook bij --feed=<naam> of all: uit is uit (zie veiligbuiten.source_switches).
+        foreach (array_keys($feeds) as $name) {
+            if (! SourceSwitch::enabled("p2000_{$name}")) {
+                unset($feeds[$name]);
+                if ($wanted === $name) {
+                    $this->warn("{$name}: staat uit (".strtoupper($name).'_ENABLED=false)');
+                }
+            }
         }
         if (! $this->option('dry-run') && app(IncidentLifecycle::class)->archiveDisabledSources() > 0) {
             AreaSync::bump();
-        }
-        foreach (array_keys($extra->feeds()) as $name) {
-            $feeds[$name] = fn () => $extra->fetch($name);
         }
 
         $failed = false;
