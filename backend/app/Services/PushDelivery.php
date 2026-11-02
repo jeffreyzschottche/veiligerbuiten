@@ -54,6 +54,45 @@ class PushDelivery
         }
     }
 
+    /**
+     * Testbericht naar één toestel, zonder incident (veiligbuiten:test-push).
+     * Geeft terug wat Apple of Firebase zei, zodat je ziet waar het misgaat.
+     *
+     * @return array{status: string, detail: string}
+     */
+    public function sendTest(Installation $installation, string $level = 'warn'): array
+    {
+        if (! $installation->push_token) {
+            return ['status' => 'no_token', 'detail' => 'Dit toestel heeft geen push-token doorgegeven (meldingen niet toegestaan, of de app is niet geopend sinds de installatie).'];
+        }
+        if (config('services.push.driver') === 'log') {
+            return ['status' => 'simulated', 'detail' => 'PUSH_DELIVERY_DRIVER=log: alleen gelogd, niet verstuurd.'];
+        }
+        // incident_id 'test' is geen getal: de app opent bij een tik dus geen melding.
+        $payload = [
+            'title' => 'Testmelding VeiligerBuiten',
+            'body' => 'Komt dit binnen? Dan werken pushmeldingen op dit toestel.',
+            'data' => ['incident_id' => 'test', 'type' => 'test'],
+        ];
+        try {
+            $sent = match ($installation->push_platform) {
+                'android' => $this->sendFcm($installation->push_token, $payload, $level),
+                'ios' => $this->sendApns($installation->push_token, $payload, $level),
+                default => null,
+            };
+
+            return match ($sent) {
+                true => ['status' => 'sent', 'detail' => $installation->push_platform === 'ios' ? 'Apple heeft het bericht aangenomen ('.(config('services.apns.production') ? 'productie' : 'sandbox').').' : 'Firebase heeft het bericht aangenomen.'],
+                false => ['status' => 'not_configured', 'detail' => $installation->push_platform === 'ios' ? 'APNS_KEY_ID, APNS_TEAM_ID of APNS_PRIVATE_KEY ontbreekt.' : 'FCM_SERVICE_ACCOUNT_JSON_BASE64 ontbreekt.'],
+                default => ['status' => 'unknown_platform', 'detail' => 'Onbekend platform: '.($installation->push_platform ?? 'leeg')],
+            };
+        } catch (\Illuminate\Http\Client\RequestException $exception) {
+            return ['status' => 'rejected', 'detail' => 'HTTP '.$exception->response->status().': '.mb_substr((string) $exception->response->body(), 0, 300)];
+        } catch (\Throwable $exception) {
+            return ['status' => 'failed', 'detail' => mb_substr($exception->getMessage(), 0, 300)];
+        }
+    }
+
     private function sendFcm(string $token, array $payload, string $level): bool
     {
         if (! config('services.push.fcm_service_account_json')) {
