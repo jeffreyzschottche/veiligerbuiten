@@ -217,6 +217,23 @@
           </div>
         </div>
       </section>
+      <section id="subscription-faq" class="section subscription-faq" aria-labelledby="subscription-faq-title">
+        <div class="wrap">
+          <header class="section__head">
+            <h2 id="subscription-faq-title">{{ t.subscriptionFaq.title }}</h2>
+          </header>
+          <div class="subscription-faq__items">
+            <details v-for="(item, index) in t.subscriptionFaq.items" :key="item.q" :open="index === 0">
+              <summary>{{ item.q }}</summary>
+              <p>{{ item.a }}</p>
+            </details>
+          </div>
+          <div class="subscription-faq__links">
+            <NuxtLink to="/aanmelden" class="btn btn--ink">{{ t.subscriptionFaq.cta }}</NuxtLink>
+            <NuxtLink to="/support">{{ t.subscriptionFaq.help }}</NuxtLink>
+          </div>
+        </div>
+      </section>
     </main>
 
     <footer class="footer">
@@ -332,6 +349,13 @@ onBeforeUnmount(() => { disposed = true; motion?.revert(); window.removeEventLis
 .btn--ink:hover { background: var(--vb-ink-3); }
 
 /* Shared type */
+.subscription-faq__items { max-width: 850px; }
+.subscription-faq details { border-top: 1px solid var(--vb-line); }
+.subscription-faq details:last-child { border-bottom: 1px solid var(--vb-line); }
+.subscription-faq summary { padding: 20px 0; cursor: pointer; font-size: 17px; font-weight: 600; }
+.subscription-faq details p { margin: 0 0 22px; color: var(--vb-muted); line-height: 1.7; }
+.subscription-faq__links { display: flex; flex-wrap: wrap; align-items: center; gap: 20px; margin-top: 28px; }
+.subscription-faq__links > a:not(.btn) { color: var(--vb-brand); }
 .eyebrow { display: inline-flex; align-items: center; margin: 0 0 18px; font: 500 13px/1 var(--vb-mono); text-transform: uppercase; color: var(--vb-brand); }
 .eyebrow--light { color: #8fb0ff; }
 .live { position: relative; width: 8px; height: 8px; border-radius: 50%; background: var(--vb-danger); }

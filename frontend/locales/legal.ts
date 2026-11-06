@@ -135,15 +135,22 @@ export const legal: Record<'privacy' | 'terms' | 'support', Record<Locale, Doc>>
   support: {
     nl: {
       title: 'Hulp',
-      updated: 'Laatst bijgewerkt: 26 oktober 2026',
+      updated: 'Laatst bijgewerkt: 6 november 2026',
       intro: 'Kom je ergens niet uit? Hieronder staan de meest gestelde vragen. Staat je vraag er niet tussen, mail dan naar hallo@veiligerbuiten.nl. We antwoorden binnen twee werkdagen.',
       sections: [
         { title: 'Direct gevaar', body: [
           'VeiligerBuiten is geen hulpdienst. Bij direct gevaar bel je altijd 112.',
         ] },
-        { title: 'Account en abonnement', body: [
-          'Je maakt je account en abonnement aan op veiligerbuiten.nl/aanmelden. Daarna log je in de app in met hetzelfde e-mailadres en wachtwoord.',
-          'Opzeggen, je betaalmethode wijzigen of facturen bekijken doe je op veiligerbuiten.nl/account. Je abonnement loopt door tot het einde van de betaalde maand.',
+        { title: 'Kan ik een abonnement afsluiten via de website?', body: [
+          'Ja. Maak je account aan op veiligerbuiten.nl/aanmelden en sluit je abonnement af voor € 0,99 per maand. Je betaalt via Stripe. In de app kun je ook een abonnement afsluiten via de App Store of Google Play.',
+        ] },
+        { title: 'Werkt mijn webabonnement ook in de app?', body: [
+          'Ja. Log in de app in met hetzelfde e-mailadres en wachtwoord. Je abonnement werkt meteen op dat account; je hoeft in de app geen tweede abonnement af te sluiten.',
+        ] },
+        { title: 'Hoe beheer ik mijn abonnement of zeg ik het op?', body: [
+          'Via de website afgesloten? Ga naar veiligerbuiten.nl/account en kies Abonnement beheren. Daar kun je via Stripe opzeggen, je betaalmethode wijzigen en facturen bekijken.',
+          'Via de App Store of Google Play afgesloten? Ga in de app naar Account → Abonnement → Beheren. Je opent dan de abonnementsinstellingen van die winkel, waar je kunt opzeggen.',
+          'Na opzeggen houd je toegang tot het einde van de betaalde periode.',
         ] },
         { title: 'Wachtwoord vergeten', body: [
           'Tik in de app op Wachtwoord vergeten? of ga naar veiligerbuiten.nl/forgot-password. Je krijgt een link om een nieuw wachtwoord in te stellen.',
@@ -153,7 +160,7 @@ export const legal: Record<'privacy' | 'terms' | 'support', Record<Locale, Doc>>
           'Krijg je geen meldingen op je telefoon? Controleer of meldingen voor VeiligerBuiten aan staan, en kijk in de app onder Account welke soorten meldingen je ontvangt en wanneer je stille uren hebt.',
         ] },
         { title: 'Account verwijderen', body: [
-          'In de app: Account → Account verwijderen. Zonder de app: veiligerbuiten.nl/account-verwijderen. Je account, plekken en instellingen worden verwijderd en een lopend abonnement stopt direct.',
+          'In de app: Account → Account verwijderen. Zonder de app: veiligerbuiten.nl/account-verwijderen. Je account, plekken en instellingen worden verwijderd. Een abonnement via de website stopt direct. Een abonnement via de App Store of Google Play moet je zelf bij die winkel opzeggen; alleen je account of de app verwijderen stopt dat abonnement niet.',
         ] },
         { title: 'Een melding klopt niet', body: [
           'Tik op de melding en kies Is voorbij als de situatie voorbij is. Zie je een melding die niet hoort, mail dan naar hallo@veiligerbuiten.nl met de plaats en het tijdstip.',
@@ -162,15 +169,22 @@ export const legal: Record<'privacy' | 'terms' | 'support', Record<Locale, Doc>>
     },
     en: {
       title: 'Help',
-      updated: 'Last updated: 26 October 2026',
+      updated: 'Last updated: 6 November 2026',
       intro: 'Stuck? These are the most common questions. If yours is not here, email hallo@veiligerbuiten.nl. We reply within two working days.',
       sections: [
         { title: 'Immediate danger', body: [
           'VeiligerBuiten is not an emergency service. In immediate danger, always call 112.',
         ] },
-        { title: 'Account and subscription', body: [
-          'You create your account and subscription at veiligerbuiten.nl/aanmelden. Then log in to the app with the same email address and password.',
-          'To cancel, change your payment method or view invoices, go to veiligerbuiten.nl/account. Your subscription runs until the end of the paid month.',
+        { title: 'Can I subscribe through the website?', body: [
+          'Yes. Create your account at veiligerbuiten.nl/aanmelden and subscribe for €0.99 per month. You pay through Stripe. You can also subscribe in the app through the App Store or Google Play.',
+        ] },
+        { title: 'Does my website subscription work in the app?', body: [
+          'Yes. Log in to the app with the same email address and password. Your subscription works immediately on that account; you do not need a second subscription in the app.',
+        ] },
+        { title: 'How do I manage or cancel my subscription?', body: [
+          'Subscribed through the website? Go to veiligerbuiten.nl/account and choose Manage subscription. There you can cancel, change your payment method and view invoices through Stripe.',
+          'Subscribed through the App Store or Google Play? In the app, go to Account → Subscription → Manage. This opens that store’s subscription settings, where you can cancel.',
+          'After cancelling, you keep access until the end of the paid period.',
         ] },
         { title: 'Forgot password', body: [
           'Tap Forgot password? in the app or go to veiligerbuiten.nl/forgot-password. You will get a link to set a new password.',
@@ -180,7 +194,7 @@ export const legal: Record<'privacy' | 'terms' | 'support', Record<Locale, Doc>>
           'Not getting notifications? Check that notifications for VeiligerBuiten are on, and see under Account in the app which kinds of alerts you receive and when your quiet hours are.',
         ] },
         { title: 'Delete account', body: [
-          'In the app: Account → Delete account. Without the app: veiligerbuiten.nl/account-verwijderen. Your account, places and settings are deleted and a running subscription stops immediately.',
+          'In the app: Account → Delete account. Without the app: veiligerbuiten.nl/account-verwijderen. Your account, places and settings are deleted. A website subscription stops immediately. You must cancel an App Store or Google Play subscription with that store yourself; deleting only your account or the app does not cancel that subscription.',
         ] },
         { title: 'A report is wrong', body: [
           'Tap the report and choose It’s over if the situation has ended. If you see a report that does not belong there, email hallo@veiligerbuiten.nl with the place and time.',

@@ -200,7 +200,18 @@ const nl = {
     title: 'Alles. Voor minder dan een euro.',
     cta: 'Account aanmaken',
     items: ['Live kaart en meldingen', 'Al je plekken en filters', 'Ook zonder internet een seintje', 'Koppeling met je AI-assistent', 'Maandelijks opzegbaar'],
-    note: 'Je maakt je account en betaalt hier op de site, daarna log je in de app in. Geen proefperiode, geen kleine lettertjes.',
+    note: 'Sluit je abonnement hier op de website af via Stripe, of in de app via de App Store of Google Play. Daarna gebruik je hetzelfde account. Geen proefperiode.',
+  },
+  subscriptionFaq: {
+    title: 'Veelgestelde vragen over je abonnement',
+    items: [
+      { q: 'Kan ik een abonnement afsluiten via de website?', a: 'Ja. Maak je account aan via de website en sluit je abonnement af voor € 0,99 per maand. Je betaalt via Stripe. In de app kun je ook een abonnement afsluiten via de App Store of Google Play.' },
+      { q: 'Werkt mijn webabonnement ook in de app?', a: 'Ja. Log in de app in met hetzelfde e-mailadres en wachtwoord. Je abonnement werkt meteen op dat account; je hoeft in de app geen tweede abonnement af te sluiten.' },
+      { q: 'Hoe zeg ik mijn abonnement op?', a: 'Via de website afgesloten? Ga naar je account op veiligerbuiten.nl/account en kies Abonnement beheren. Via de App Store of Google Play afgesloten? Ga in de app naar Account → Abonnement → Beheren en zeg het op bij die winkel. Na opzeggen houd je toegang tot het einde van de betaalde periode.' },
+      { q: 'Stopt mijn abonnement als ik mijn account verwijder?', a: 'Een abonnement via de website stopt bij het verwijderen van je account. Een abonnement via de App Store of Google Play moet je zelf bij die winkel opzeggen. Alleen je account of de app verwijderen stopt zo’n winkelabonnement niet.' },
+    ],
+    cta: 'Abonnement afsluiten via de website',
+    help: 'Alle veelgestelde vragen',
   },
   footer: { motto: 'Be safe.', emergency: 'Bij direct gevaar: bel altijd 112.', privacy: 'Privacy', terms: 'Voorwaarden', help: 'Hulp', remove: 'Account verwijderen', contact: 'Contact' },
   scene: {
@@ -422,7 +433,18 @@ const en: typeof nl = {
     title: 'Everything. For less than a euro.',
     cta: 'Create account',
     items: ['Live map and alerts', 'All your places and filters', 'Heads-ups even without internet', 'Connect your AI assistant', 'Cancel any month'],
-    note: 'You create your account and pay here on the site, then log in to the app. No trial, no fine print.',
+    note: 'Subscribe here on the website through Stripe, or in the app through the App Store or Google Play. Then use the same account. No trial.',
+  },
+  subscriptionFaq: {
+    title: 'Subscription questions',
+    items: [
+      { q: 'Can I subscribe through the website?', a: 'Yes. Create your account on the website and subscribe for €0.99 per month. You pay through Stripe. You can also subscribe in the app through the App Store or Google Play.' },
+      { q: 'Does my website subscription work in the app?', a: 'Yes. Log in to the app with the same email address and password. Your subscription works immediately on that account; you do not need a second subscription in the app.' },
+      { q: 'How do I cancel my subscription?', a: 'Subscribed through the website? Go to your account at veiligerbuiten.nl/account and choose Manage subscription. Subscribed through the App Store or Google Play? In the app, go to Account → Subscription → Manage and cancel with that store. After cancelling, you keep access until the end of the paid period.' },
+      { q: 'Does deleting my account cancel my subscription?', a: 'A website subscription stops when you delete your account. You must cancel an App Store or Google Play subscription with that store yourself. Deleting only your account or the app does not cancel a store subscription.' },
+    ],
+    cta: 'Subscribe through the website',
+    help: 'All frequently asked questions',
   },
   footer: { motto: 'Be safe.', emergency: 'In immediate danger: always call 112.', privacy: 'Privacy', terms: 'Terms', help: 'Help', remove: 'Delete account', contact: 'Contact' },
   scene: {
