@@ -28,3 +28,11 @@ Schedule::command('veiligbuiten:flush-digests')->everyFiveMinutes()->withoutOver
 Schedule::command('veiligbuiten:deliver-alerts')->everyMinute()->withoutOverlapping();
 
 Schedule::command('veiligbuiten:publish-site-statistics')->dailyAt('03:30')->timezone('Europe/Amsterdam')->withoutOverlapping();
+
+// Login-tokens die lang niet gebruikt zijn, werken al niet meer (AppServiceProvider); hier ook echt weg.
+Schedule::call(function () {
+    $cutoff = now()->subDays(config('veiligbuiten.token_idle_days'));
+    \Laravel\Sanctum\PersonalAccessToken::query()
+        ->where(fn ($q) => $q->where('last_used_at', '<', $cutoff)->orWhere(fn ($q) => $q->whereNull('last_used_at')->where('created_at', '<', $cutoff)))
+        ->delete();
+})->name('prune-idle-tokens')->dailyAt('04:40')->timezone('Europe/Amsterdam')->withoutOverlapping();

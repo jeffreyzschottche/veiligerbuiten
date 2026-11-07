@@ -20,7 +20,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'subscribed' => \App\Http\Middleware\EnsureSubscribed::class,
             'gzip' => \App\Http\Middleware\CompressResponse::class,
+            // Eén teller per route in plaats van één voor alles (zie de klasse).
+            'throttle' => \App\Http\Middleware\ThrottlePerRoute::class,
         ]);
+        // De vertrouwde proxies (Traefik) staan in config/trustedproxy.php.
         $middleware->appendToGroup('api', \App\Http\Middleware\SetLocale::class);
         // Er is geen login-pagina op de backend: gasten op de API krijgen een 401, geen redirect.
         $middleware->redirectGuestsTo(fn (\Illuminate\Http\Request $request) => $request->is('api/*') ? null : '/');

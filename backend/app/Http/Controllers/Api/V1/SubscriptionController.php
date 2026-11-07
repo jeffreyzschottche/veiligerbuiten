@@ -59,8 +59,9 @@ class SubscriptionController extends Controller
     {
         $event = $this->verified($request);
         if ($event === null) {
-            // Verkeerd ingesteld geheim = gemiste betalingen; dat wil je weten.
-            Ops::record('payment.webhook_rejected', Ops::ERROR, 'Stripe-webhook geweigerd', 'De handtekening klopt niet met STRIPE_WEBHOOK_SECRET. Betalingen worden niet verwerkt.', [], 'auth');
+            // Verkeerd ingesteld geheim = gemiste betalingen; dat wil je zien. Maar iedereen kan dit
+            // endpoint aanroepen, dus als waarschuwing: anders zet een paar nepverzoeken de status op 'failed'.
+            Ops::record('payment.webhook_rejected', Ops::WARNING, 'Stripe-webhook geweigerd', 'De handtekening klopt niet met STRIPE_WEBHOOK_SECRET. Betalingen worden niet verwerkt.', [], 'auth');
             abort(400);
         }
 
@@ -75,7 +76,7 @@ class SubscriptionController extends Controller
         $secret = (string) config('services.revenuecat.webhook_secret');
         $header = (string) $request->header('Authorization');
         if ($secret === '' || ! (hash_equals($secret, $header) || hash_equals('Bearer '.$secret, $header))) {
-            Ops::record('payment.webhook_rejected', Ops::ERROR, 'RevenueCat-webhook geweigerd', 'De Authorization-header klopt niet met REVENUECAT_WEBHOOK_SECRET. Aankopen in de app worden niet verwerkt.', [], 'revenuecat');
+            Ops::record('payment.webhook_rejected', Ops::WARNING, 'RevenueCat-webhook geweigerd', 'De Authorization-header klopt niet met REVENUECAT_WEBHOOK_SECRET. Aankopen in de app worden niet verwerkt.', [], 'revenuecat');
             abort(401);
         }
 

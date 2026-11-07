@@ -8,6 +8,7 @@ use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\ForgotPasswordRequest;
 use App\Http\Requests\ResetPasswordRequest;
+use App\Models\Installation;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Events\Verified;
@@ -72,6 +73,11 @@ class AuthController extends Controller
     public function logout(Request $request): JsonResponse
     {
         $request->user()->currentAccessToken()->delete();
+        // Ook als het losse ontkoppelverzoek van de app mislukte: na uitloggen geen meldingen
+        // voor de plekken van dit account meer op dit toestel.
+        if ($token = $request->header('X-Installation-Token')) {
+            Installation::query()->where('token', $token)->where('user_id', $request->user()->id)->update(['user_id' => null]);
+        }
 
         return response()->json(['message' => 'Logged out successfully']);
     }

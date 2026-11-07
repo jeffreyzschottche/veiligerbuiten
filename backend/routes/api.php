@@ -22,9 +22,9 @@ Route::prefix('v1')->group(function () {
     Route::get('/internal/site-statistics', \App\Http\Controllers\Api\V1\SiteStatisticsController::class)
         ->middleware('throttle:30,1');
 
-    // Health & status (no throttle needed)
-    Route::get('/health', HealthController::class);
-    Route::get('/sources/status', SourceStatusController::class);
+    // Health & status: ruim genoeg voor de Docker-healthcheck en monitoring, maar geen gratis databasebelasting.
+    Route::get('/health', HealthController::class)->middleware('throttle:60,1');
+    Route::get('/sources/status', SourceStatusController::class)->middleware('throttle:30,1');
     // Status en gebeurtenissen voor de beheer-CMS; beveiligd met OPS_TOKEN.
     Route::get('/ops/status', \App\Http\Controllers\Api\V1\OpsStatusController::class)->middleware('throttle:30,1');
 
@@ -65,7 +65,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/installations', [InstallationController::class, 'store'])
         ->middleware('throttle:10,1');
     Route::put('/installations/push-token', [InstallationController::class, 'pushToken'])
-        ->middleware('throttle:10,1');
+        ->middleware('throttle:30,1');
     Route::put('/installations/link', [InstallationController::class, 'link'])
         ->middleware(['auth:sanctum', 'throttle:10,1']);
 

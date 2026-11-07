@@ -32,7 +32,9 @@ class InstallationController extends Controller
         // A restored app or a reinstalled device can move a token to a new anonymous installation.
         Installation::query()->where('push_token', $data['push_token'])->whereKeyNot($installation->id)
             ->update(['push_token' => null, 'push_platform' => null]);
-        $installation->update(['push_token' => $data['push_token'], 'push_platform' => $data['platform'], 'user_id' => auth('sanctum')->id() ?? $installation->user_id, 'last_seen_at' => now()]);
+        // Alleen een nog niet gekoppeld toestel krijgt hier een eigenaar; een ander account neemt het niet over.
+        $owner = $installation->user_id ?? auth('sanctum')->id();
+        $installation->update(['push_token' => $data['push_token'], 'push_platform' => $data['platform'], 'user_id' => $owner, 'last_seen_at' => now()]);
 
         return response()->json(['data' => ['registered' => true]]);
     }
@@ -41,6 +43,9 @@ class InstallationController extends Controller
     public function link(Request $request): JsonResponse
     {
         $installation = Installation::where('token', $request->header('X-Installation-Token'))->firstOrFail();
+        // Koppelen en ontkoppelen mag alleen de eigenaar (of iedereen zolang het toestel van niemand is).
+        // Anders kan wie een installatietoken kent andermans toestel losmaken: dan missen ze hun meldingen.
+        abort_if($installation->user_id !== null && $installation->user_id !== $request->user()->id, 403, 'Dit toestel hoort bij een ander account.');
         $installation->update(['user_id' => $request->boolean('unlink') ? null : $request->user()->id, 'last_seen_at' => now()]);
 
         return response()->json(['data' => ['linked' => $installation->user_id !== null]]);

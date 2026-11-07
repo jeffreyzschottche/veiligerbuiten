@@ -21,6 +21,9 @@ class McpController extends Controller
 {
     private const PROTOCOL_VERSIONS = ['2025-06-18', '2025-03-26', '2024-11-05'];
 
+    /** Eén HTTP-verzoek mag niet duizenden tool-aanroepen bevatten en zo de rate limit omzeilen. */
+    private const MAX_BATCH = 10;
+
     public function __construct(private readonly VeiligBuitenTools $tools) {}
 
     public function handle(Request $request, ?string $token = null): JsonResponse|Response
@@ -39,6 +42,9 @@ class McpController extends Controller
 
         $payload = $request->json()->all();
         $isBatch = array_is_list($payload) && $payload !== [];
+        if ($isBatch && count($payload) > self::MAX_BATCH) {
+            return response()->json($this->error(null, -32600, 'Batch too large (max '.self::MAX_BATCH.' messages).'), 400);
+        }
         $responses = array_values(array_filter(array_map(fn ($message) => $this->dispatch($user, (array) $message), $isBatch ? $payload : [$payload])));
 
         if ($responses === []) {
@@ -51,8 +57,8 @@ class McpController extends Controller
     private function dispatch(User $user, array $message): ?array
     {
         $id = $message['id'] ?? null;
-        $method = $message['method'] ?? '';
-        $params = $message['params'] ?? [];
+        $method = is_string($message['method'] ?? null) ? $message['method'] : '';
+        $params = is_array($message['params'] ?? null) ? $message['params'] : [];
 
         // Notificaties (zonder id) krijgen geen antwoord.
         if ($id === null) {
@@ -80,7 +86,9 @@ class McpController extends Controller
         }
 
         try {
-            [$text, $structured] = $this->tools->call($user, (string) ($params['name'] ?? ''), (array) ($params['arguments'] ?? []));
+            $name = is_string($params['name'] ?? null) ? $params['name'] : '';
+            $arguments = is_array($params['arguments'] ?? null) ? $params['arguments'] : [];
+            [$text, $structured] = $this->tools->call($user, $name, $arguments);
 
             return $this->result($id, ['content' => [['type' => 'text', 'text' => $text]], 'structuredContent' => $structured, 'isError' => false]);
         } catch (InvalidArgumentException $exception) {

@@ -69,6 +69,9 @@ class VeiligBuitenTools
     /** @return array{0: string, 1: array} tekstsamenvatting en gestructureerde data */
     public function call(User $user, string $name, array $arguments): array
     {
+        // Alleen losse waarden; een lijst of object als argument liet een tool eerder crashen.
+        $arguments = array_filter($arguments, is_scalar(...));
+
         return match ($name) {
             'get_situations_nearby' => $this->situationsNearby($user, $arguments),
             'list_places' => $this->listPlaces($user),
@@ -82,7 +85,7 @@ class VeiligBuitenTools
     {
         [$latitude, $longitude, $label] = $this->resolveLocation($user, $arguments);
         $radiusKm = min(30, max(0.2, (float) ($arguments['radius_km'] ?? 3)));
-        $minRank = DangerScale::rank($arguments['min_level'] ?? 'info');
+        $minRank = DangerScale::rank((string) ($arguments['min_level'] ?? 'info'));
         $latDelta = $radiusKm / 111;
         $lonDelta = $radiusKm / (111 * cos(deg2rad($latitude)));
 
@@ -162,7 +165,7 @@ class VeiligBuitenTools
 
         $query = $user->places()->orderBy('id');
         if (! empty($arguments['place'])) {
-            $query->whereRaw('LOWER(name) = ?', [mb_strtolower(trim($arguments['place']))]);
+            $query->whereRaw('LOWER(name) = ?', [mb_strtolower(trim((string) $arguments['place']))]);
         }
         $place = $query->first();
         if (! $place) {

@@ -5,6 +5,10 @@ return [
     // Server-to-server aggregate; never put this secret in public runtime config.
     'site_stats_token' => env('VB_SITE_STATS_TOKEN', ''),
 
+    // Een login-token dat zo lang niet gebruikt is, werkt niet meer (en wordt opgeruimd). De app en de
+    // achtergrondsync gebruiken het token steeds, dus wie de app gebruikt, wordt nooit uitgelogd.
+    'token_idle_days' => (int) env('VB_TOKEN_IDLE_DAYS', 90),
+
     // Maximaal aantal meldingen dat een account per kalenderdag (Europe/Amsterdam) mag plaatsen.
     'reports_per_day' => (int) env('VB_REPORTS_PER_DAY', 3),
     'timezone' => 'Europe/Amsterdam',
