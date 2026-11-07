@@ -50,21 +50,22 @@
         <div class="row">
           <span class="row__icon"><Icon name="locate" :size="18" /></span>
           <span class="row__main"><span class="row__title">{{ t.start.location }}</span><span class="row__sub">{{ t.start.locationBody }}</span></span>
-          <button class="btn btn--sm" :class="permissions.location ? 'btn--soft' : 'btn--brand'" :disabled="permissions.location" @click="allowLocation">{{ permissions.location ? t.start.allowed : t.start.allow }}</button>
+          <button v-if="!ios" class="btn btn--sm" :class="permissions.location ? 'btn--soft' : 'btn--brand'" :disabled="permissions.location" @click="allowLocation">{{ permissions.location ? t.start.allowed : t.start.allow }}</button>
         </div>
         <div v-if="device.native" class="row">
           <span class="row__icon"><Icon name="bell" :size="18" /></span>
           <span class="row__main"><span class="row__title">{{ t.start.notifications }}</span><span class="row__sub">{{ t.start.notificationsBody }}</span></span>
-          <button class="btn btn--sm" :class="permissions.notifications ? 'btn--soft' : 'btn--brand'" :disabled="permissions.notifications" @click="allowNotifications">{{ permissions.notifications ? t.start.allowed : t.start.allow }}</button>
+          <button v-if="!ios" class="btn btn--sm" :class="permissions.notifications ? 'btn--soft' : 'btn--brand'" :disabled="permissions.notifications" @click="allowNotifications">{{ permissions.notifications ? t.start.allowed : t.start.allow }}</button>
         </div>
       </div>
       <BackgroundLocationConsent />
-      <button class="btn btn--ink btn--block" @click="finish">{{ permissions.location ? t.start.continue : t.start.skip }}</button>
+      <button class="btn btn--ink btn--block" :disabled="busy" @click="finish">{{ busy ? '…' : ios || permissions.location ? t.start.continue : t.start.skip }}</button>
     </section>
   </div>
 </template>
 
 <script setup lang="ts">
+import { ensureTrackingConsent } from '~/composables/useTrackingConsent';
 definePageMeta({ layout: false });
 useHead({ title: 'VeiligerBuiten', meta: [{ name: 'theme-color', content: '#0b0d12' }] });
 
@@ -74,6 +75,7 @@ const { t, locale } = useAppCopy();
 const { setLocale } = useLocale();
 const auth = useAuthStore();
 const device = useDevice();
+const ios = device.platform === 'ios';
 
 const step = ref<Step>(auth.isLoggedIn ? 'permissions' : route.query.mode === 'login' ? 'login' : 'welcome');
 const form = reactive({ name: '', email: '', password: '' });
@@ -114,8 +116,21 @@ async function allowNotifications() {
   permissions.notifications = await device.enableNotifications();
 }
 
-function finish() {
-  navigateTo('/app', { replace: true });
+async function finish() {
+  if (busy.value) return;
+  busy.value = true;
+  try {
+    if (ios) {
+      // A single neutral button always proceeds to Apple's own permission dialogs.
+      await ensureTrackingConsent().catch(() => undefined);
+      await allowLocation().catch(() => undefined);
+      await allowNotifications().catch(() => undefined);
+    }
+    // A denial is a valid choice: the map remains available without permission.
+    await navigateTo('/app', { replace: true });
+  } finally {
+    busy.value = false;
+  }
 }
 </script>
 

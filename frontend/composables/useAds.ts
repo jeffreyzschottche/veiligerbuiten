@@ -1,6 +1,7 @@
 import { Capacitor, type PluginListenerHandle } from '@capacitor/core';
 import { AdMob, BannerAdPluginEvents, BannerAdPosition, BannerAdSize, AdmobConsentStatus } from '@capacitor-community/admob';
 import { storage } from '~/utils/storage';
+import { ensureTrackingConsent } from '~/composables/useTrackingConsent';
 
 /** Google's officiële test-units: veilig in ontwikkeling, geen ongeldige klikken. */
 const TEST_UNITS = { ios: 'ca-app-pub-3940256099942544/2435281174', android: 'ca-app-pub-3940256099942544/9214589741' };
@@ -39,6 +40,8 @@ export function useAds() {
   async function init() {
     if (!native || !unit || ready.value) return ready.value;
     try {
+      // No consent SDK or ad request while the iOS tracking decision is pending.
+      if (await ensureTrackingConsent() === 'notDetermined') return false;
       // Eerst toestemming (AVG/TCF via Google UMP); zonder toestemming geen advertentieverzoeken.
       const consent = await AdMob.requestConsentInfo();
       let canRequest = consent.canRequestAds;
@@ -46,9 +49,6 @@ export function useAds() {
         canRequest = (await AdMob.showConsentForm()).canRequestAds;
       }
       if (!canRequest) return false;
-      if (Capacitor.getPlatform() === 'ios' && (await AdMob.trackingAuthorizationStatus()).status === 'notDetermined') {
-        await AdMob.requestTrackingAuthorization();
-      }
       await AdMob.initialize({ initializeForTesting: testing });
       listeners.push(await AdMob.addListener(BannerAdPluginEvents.SizeChanged, ({ height: h }) => { height.value = visible.value ? h : 0; }));
       listeners.push(await AdMob.addListener(BannerAdPluginEvents.FailedToLoad, () => { void hide(); }));
@@ -77,8 +77,10 @@ export function useAds() {
     if (current.opens < MIN_OPENS || current.shownToday >= MAX_PER_DAY || Date.now() - current.lastShown < COOLDOWN_MS) return;
     if (!(await init())) return;
     try {
+      const tracking = await ensureTrackingConsent();
+      if (tracking === 'notDetermined') return;
       visible.value = true;
-      await AdMob.showBanner({ adId: unit, adSize: BannerAdSize.ADAPTIVE_BANNER, position: BannerAdPosition.BOTTOM_CENTER, margin: ABOVE_TABBAR_DP, isTesting: testing });
+      await AdMob.showBanner({ adId: unit, adSize: BannerAdSize.ADAPTIVE_BANNER, position: BannerAdPosition.BOTTOM_CENTER, margin: ABOVE_TABBAR_DP, isTesting: testing, npa: Capacitor.getPlatform() === 'ios' && tracking !== 'authorized' });
       await storage.set(STATE_KEY, { ...current, lastShown: Date.now(), shownToday: current.shownToday + 1 });
       clearTimeout(hideTimer);
       hideTimer = setTimeout(() => { void hide(); }, VISIBLE_MS);
